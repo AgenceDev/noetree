@@ -1,4 +1,4 @@
-import { query, mutation, declare } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { getUser } from "./helpers/helper";
 import { Doc, Id } from "./_generated/dataModel";
@@ -197,7 +197,7 @@ export const createNote = mutation({
     const note = await ctx.db.insert("notes", {
       owner: user._id,
       title: args.title,
-      content: args.content || "",
+      content: args.content || "{}",
       parentNote: args.parentNote,
       childNotes: args.childNotes || [],
       created_at: new Date().toISOString(),
@@ -210,15 +210,45 @@ export const createNote = mutation({
 export const updateNote = mutation({
   args: {
     id: v.id("notes"),
+    title: v.string(),
     content: v.any(),
     parentNote: v.optional(v.id("notes")),
     childNotes: v.optional(v.array(v.id("notes")))
   },
   handler: async (ctx, args) => {
     const note = await ctx.db.patch(args.id, {
+      title: args.title,
       content: args.content,
       parentNote: args.parentNote,
       childNotes: args.childNotes,
+      updated_at: new Date().toISOString()
+    });
+    return note;
+  }
+});
+
+export const updateNoteTitle = mutation({
+  args: {
+    id: v.id("notes"),
+    title: v.string()
+  },
+  handler: async (ctx, args) => {
+    const note = await ctx.db.patch(args.id, {
+      title: args.title,
+      updated_at: new Date().toISOString()
+    });
+    return note;
+  }
+});
+
+export const updateNoteContent = mutation({
+  args: {
+    id: v.id("notes"),
+    content: v.any()
+  },
+  handler: async (ctx, args) => {
+    const note = await ctx.db.patch(args.id, {
+      content: args.content,
       updated_at: new Date().toISOString()
     });
     return note;

@@ -47,8 +47,6 @@ export default function Notes() {
     convexQuery(api.notes.getTreesByMe, { deep: 2 })
   );
 
-  console.log(data);
-
   const newTreeForm = useForm<z.infer<typeof newTreeFormSchema>>({
     resolver: zodResolver(newTreeFormSchema),
     defaultValues: { title: "" }
