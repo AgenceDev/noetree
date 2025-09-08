@@ -12,7 +12,7 @@ type Message = [
   }
 ];
 
-const gemma3Pipeline =  pipeline(
+const gemma3Pipeline = pipeline(
   "text2text-generation",
   "google/gemma-3-27b-it"
 );

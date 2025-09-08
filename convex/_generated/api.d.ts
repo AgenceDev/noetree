@@ -11,7 +11,7 @@
 import type {
   ApiFromModules,
   FilterApi,
-  FunctionReference,
+  FunctionReference
 } from "convex/server";
 import type * as notes from "../notes.js";
 import type * as users from "../users.js";

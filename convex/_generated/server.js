@@ -15,7 +15,7 @@ import {
   mutationGeneric,
   internalActionGeneric,
   internalMutationGeneric,
-  internalQueryGeneric,
+  internalQueryGeneric
 } from "convex/server";
 
 /**

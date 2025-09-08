@@ -17,7 +17,7 @@ import {
   GenericMutationCtx,
   GenericQueryCtx,
   GenericDatabaseReader,
-  GenericDatabaseWriter,
+  GenericDatabaseWriter
 } from "convex/server";
 import type { DataModel } from "./dataModel.js";
 
