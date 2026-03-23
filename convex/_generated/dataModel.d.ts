@@ -12,7 +12,7 @@ import type {
   DataModelFromSchemaDefinition,
   DocumentByName,
   TableNamesInDataModel,
-  SystemTableNames,
+  SystemTableNames
 } from "convex/server";
 import type { GenericId } from "convex/values";
 import schema from "../schema.js";

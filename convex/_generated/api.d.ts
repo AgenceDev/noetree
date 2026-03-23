@@ -11,7 +11,7 @@
 import type {
   ApiFromModules,
   FilterApi,
-  FunctionReference,
+  FunctionReference
 } from "convex/server";
 import type * as helpers_helper from "../helpers/helper.js";
 import type * as notes from "../notes.js";
