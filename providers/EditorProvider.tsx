@@ -102,10 +102,16 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
       content = "";
     }
 
+    const currentJSON = JSON.stringify(editor.getJSON());
+    const incomingJSON =
+      typeof content === "string" ? content : JSON.stringify(content);
+
+    if (currentJSON === incomingJSON) return;
+
     editor.commands.setContent(content);
 
     setSaveStatus("idle");
-  }, [editor, selectedNote, debouncedSave]);
+  }, [editor, selectedNote?._id, selectedNote?.content, debouncedSave]);
 
   useEffect(() => {
     if (!editor || !selectedNote) return;
