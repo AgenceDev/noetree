@@ -7,6 +7,7 @@ import Image from "@tiptap/extension-image";
 import React, {
   createContext,
   ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useState
@@ -64,26 +65,48 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
 
   let editor = useEditor(editorConfig);
 
-  const debouncedSave = useDebouncedCallback(async (content: Content) => {
-    if (!selectedNote) return;
+  const saveContent = useCallback(
+    async (content: Content) => {
+      if (!selectedNote) return;
 
-    try {
-      setSaveStatus("saving");
+      try {
+        setSaveStatus("saving");
 
-      onUpdateNoteContent(JSON.stringify(content));
+        onUpdateNoteContent(JSON.stringify(content));
 
-      setSaveStatus("success");
+        setSaveStatus("success");
 
-      setTimeout(() => {
-        setSaveStatus(currentStatus =>
-          currentStatus === "success" ? "idle" : currentStatus
-        );
-      }, 2000);
-    } catch (error) {
-      console.error("Failed to save note content", error);
-      setSaveStatus("error");
-    }
-  }, 3000);
+        setTimeout(() => {
+          setSaveStatus(currentStatus =>
+            currentStatus === "success" ? "idle" : currentStatus
+          );
+        }, 2000);
+      } catch (error) {
+        console.error("Failed to save note content", error);
+        setSaveStatus("error");
+      }
+    },
+    [selectedNote, onUpdateNoteContent]
+  );
+
+  const debouncedSave = useDebouncedCallback(saveContent, 3000);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "s") {
+        event.preventDefault();
+        if (editor && saveStatus === "unsaved") {
+          debouncedSave.cancel();
+          saveContent(editor.getJSON());
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [editor, saveStatus, debouncedSave, saveContent]);
 
   useEffect(() => {
     if (!editor || !selectedNote) return;
