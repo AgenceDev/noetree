@@ -14,6 +14,24 @@ import React, {
 import { useDebouncedCallback } from "use-debounce";
 import { useTreeContext } from "./TreeProvider";
 
+const editorConfig = {
+  content: "",
+  extensions: [
+    StarterKit,
+    Placeholder.configure({
+      placeholder: "Write something…"
+    }),
+    Link,
+    Image
+  ],
+  editorProps: {
+    attributes: {
+      class: "flex-1 overflow-y-auto border rounded-md p-4"
+    }
+  },
+  immediatelyRender: false
+};
+
 type saveStatusType = "idle" | "unsaved" | "saving" | "success" | "error";
 
 interface EditorContextType {
@@ -44,62 +62,7 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
 
   const [saveStatus, setSaveStatus] = useState<saveStatusType>("idle");
 
-  const editor = useEditor({
-    content: "",
-    extensions: [
-      StarterKit,
-      Placeholder.configure({
-        placeholder: "Write something…"
-      }),
-      Link,
-      Image
-    ],
-    editorProps: {
-      attributes: {
-        class: "flex-1 overflow-y-auto border rounded-md p-4"
-      }
-    },
-    immediatelyRender: true
-  });
-
-  // Load content when selectedNote changes - reset editor completely
-  useEffect(() => {
-    if (!editor || !selectedNote) return;
-
-    // Parse the content from the database
-    let content = "";
-    try {
-      if (selectedNote.content && typeof selectedNote.content === "string") {
-        // If content is a JSON string, parse it
-        content = JSON.parse(selectedNote.content);
-      } else if (selectedNote.content) {
-        // If content is already an object
-        content = selectedNote.content;
-      }
-    } catch (error) {
-      console.warn("Failed to parse note content, using empty content:", error);
-      content = "";
-    }
-
-    // Clear the editor completely and reset its state like setAsPristine
-    editor.commands.clearContent();
-    editor.commands.setContent(content);
-
-    // Clear the history by destroying and recreating the history extension
-    // This is equivalent to setAsPristine - completely reset the editor state
-    editor.extensionManager.extensions.forEach(extension => {
-      if (extension.name === "history") {
-        const historyExtension = extension as any;
-        if (historyExtension.storage?.history) {
-          historyExtension.storage.history.done = [];
-          historyExtension.storage.history.undone = [];
-        }
-      }
-    });
-
-    // Reset save status
-    setSaveStatus("idle");
-  }, [editor, selectedNote]);
+  let editor = useEditor(editorConfig);
 
   const debouncedSave = useDebouncedCallback(async (content: Content) => {
     if (!selectedNote) return;
@@ -122,7 +85,28 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
     }
   }, 3000);
 
-  // Update handler for editor content changes
+  useEffect(() => {
+    if (!editor || !selectedNote) return;
+
+    debouncedSave.cancel();
+
+    let content = "";
+    try {
+      if (selectedNote.content && typeof selectedNote.content === "string") {
+        content = JSON.parse(selectedNote.content);
+      } else if (selectedNote.content) {
+        content = selectedNote.content;
+      }
+    } catch (error) {
+      console.warn("Failed to parse note content, using empty content:", error);
+      content = "";
+    }
+
+    editor.commands.setContent(content);
+
+    setSaveStatus("idle");
+  }, [editor, selectedNote, debouncedSave]);
+
   useEffect(() => {
     if (!editor || !selectedNote) return;
 
@@ -134,7 +118,9 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
     editor.on("update", updateListener);
 
     return () => {
-      editor.off("update", updateListener);
+      if (editor) {
+        editor.off("update", updateListener);
+      }
     };
   }, [editor, selectedNote, debouncedSave]);
 
