@@ -12,25 +12,39 @@ import React, {
   useEffect,
   useState
 } from "react";
-import { fetchNoteContent, saveNoteContent } from "@/lib/api/notes";
 import { useDebouncedCallback } from "use-debounce";
+import { useTreeContext } from "./TreeProvider";
+
+const editorConfig = {
+  content: "",
+  extensions: [
+    StarterKit,
+    Placeholder.configure({
+      placeholder: "Write something…"
+    }),
+    Link,
+    Image
+  ],
+  editorProps: {
+    attributes: {
+      class: "flex-1 overflow-y-auto border rounded-md p-4"
+    }
+  },
+  immediatelyRender: false
+};
+
+type saveStatusType = "idle" | "unsaved" | "saving" | "success" | "error";
 
 interface EditorContextType {
   editor: Editor | null;
-  isLoading: boolean;
-  isSaving: boolean;
-  saveStatus: "idle" | "success" | "error";
-  hasUnsavedChanges: boolean;
-  loadNoteContent: (noteId: number) => Promise<void>;
+  saveStatus: saveStatusType;
+  getCurrentContent: () => string | null;
 }
 
 const EditorContext = createContext<EditorContextType>({
   editor: null,
-  isLoading: false,
-  isSaving: false,
   saveStatus: "idle",
-  hasUnsavedChanges: false,
-  loadNoteContent: async () => {}
+  getCurrentContent: () => null
 });
 
 export const useEditorContext = (): EditorContextType => {
@@ -45,102 +59,109 @@ interface EditorProviderProps {
 }
 
 export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isSaving, setIsSaving] = useState<boolean>(false);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">(
-    "idle"
-  );
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
-  const [currentNoteId, setCurrentNoteId] = useState<number | null>(null);
+  const { selectedNote, onUpdateNoteContent } = useTreeContext();
 
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Placeholder.configure({
-        placeholder: "Write something…"
-      }),
-      Link,
-      Image
-    ],
-    editorProps: {
-      attributes: {
-        class: "flex-1 overflow-y-auto border rounded-md p-4"
-      }
-    }
-  });
+  const [saveStatus, setSaveStatus] = useState<saveStatusType>("idle");
 
-  //timout if no editor
-  useEffect(() => {
-    if (!editor) return;
-    const timeout = setTimeout(() => {}, 1000);
-    return () => clearTimeout(timeout);
-  }, [editor]);
+  let editor = useEditor(editorConfig);
 
-  const loadNoteContent = useCallback(
-    async (noteId: number) => {
-      if (!editor) return;
-
-      setIsLoading(true);
-      setSaveStatus("idle");
-      setHasUnsavedChanges(false);
-      setCurrentNoteId(noteId);
+  const saveContent = useCallback(
+    async (content: Content) => {
+      if (!selectedNote) return;
 
       try {
-        const content = await fetchNoteContent(noteId);
-        if (editor) {
-          editor.commands.setContent(content);
-        }
-      } catch (error) {
-        console.error("Failed to load note content", error);
-        if (editor) {
-          editor.commands.setContent("");
-        }
-        setSaveStatus("error");
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [editor]
-  );
+        setSaveStatus("saving");
 
-  const debouncedSave = useDebouncedCallback(
-    async (noteId: number, content: Content) => {
-      if (!hasUnsavedChanges || !noteId) return;
+        onUpdateNoteContent(JSON.stringify(content));
 
-      try {
-        setIsSaving(true);
-        await saveNoteContent(noteId, JSON.stringify(content));
         setSaveStatus("success");
-        setHasUnsavedChanges(false);
 
-        // Reset success status after 3 seconds
         setTimeout(() => {
-          setSaveStatus("idle");
-        }, 3000);
+          setSaveStatus(currentStatus =>
+            currentStatus === "success" ? "idle" : currentStatus
+          );
+        }, 2000);
       } catch (error) {
         console.error("Failed to save note content", error);
         setSaveStatus("error");
-      } finally {
-        setIsSaving(false);
       }
     },
-    1000
+    [selectedNote, onUpdateNoteContent]
   );
 
-  editor?.on("update", ({ editor }) => {
-    if (!currentNoteId) return;
-    setHasUnsavedChanges(true);
+  const debouncedSave = useDebouncedCallback(saveContent, 3000);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "s") {
+        event.preventDefault();
+        if (editor && saveStatus === "unsaved") {
+          debouncedSave.cancel();
+          saveContent(editor.getJSON());
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [editor, saveStatus, debouncedSave, saveContent]);
+
+  useEffect(() => {
+    if (!editor || !selectedNote) return;
+
+    debouncedSave.cancel();
+
+    let content = "";
+    try {
+      if (selectedNote.content && typeof selectedNote.content === "string") {
+        content = JSON.parse(selectedNote.content);
+      } else if (selectedNote.content) {
+        content = selectedNote.content;
+      }
+    } catch (error) {
+      console.warn("Failed to parse note content, using empty content:", error);
+      content = "";
+    }
+
+    const currentJSON = JSON.stringify(editor.getJSON());
+    const incomingJSON =
+      typeof content === "string" ? content : JSON.stringify(content);
+
+    if (currentJSON === incomingJSON) return;
+
+    editor.commands.setContent(content);
+
     setSaveStatus("idle");
-    debouncedSave(currentNoteId, editor.getJSON());
-  });
+  }, [editor, selectedNote?._id, selectedNote?.content, debouncedSave]);
+
+  useEffect(() => {
+    if (!editor || !selectedNote) return;
+
+    const updateListener = ({ editor }: { editor: Editor }) => {
+      setSaveStatus("unsaved");
+      debouncedSave(editor.getJSON());
+    };
+
+    editor.on("update", updateListener);
+
+    return () => {
+      if (editor) {
+        editor.off("update", updateListener);
+      }
+    };
+  }, [editor, selectedNote, debouncedSave]);
+
+  const getCurrentContent = () => {
+    if (!editor) return null;
+    return JSON.stringify(editor.getJSON());
+  };
 
   const contextValue = {
     editor,
-    isLoading,
-    isSaving,
     saveStatus,
-    hasUnsavedChanges,
-    loadNoteContent
+    getCurrentContent
   };
 
   return (

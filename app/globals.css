@@ -172,7 +172,7 @@ div:has(> .tiptap) {
 .tiptap {
   /* Placeholder */
   p.is-editor-empty:first-child::before {
-    color: var(--color-gray-400);
+    color: var(--color-muted-foreground);
     content: attr(data-placeholder);
     float: left;
     height: 0;
