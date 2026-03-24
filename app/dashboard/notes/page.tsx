@@ -3,6 +3,12 @@
 import ConditionChecker from "@/components/helpers/ConditionChecker";
 import { Button } from "@/components/ui/button";
 import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
   Dialog,
   DialogClose,
   DialogContent,
@@ -76,7 +82,7 @@ export default function Notes() {
   });
 
   return (
-    <div className="flex flex-col justify-center items-center gap-8">
+    <div className="flex flex-col justify-center items-center gap-8 p-6">
       <h1 className="text-8xl font-bold">Trees</h1>
 
       <ConditionChecker condition={!!isPending}>
@@ -89,18 +95,24 @@ export default function Notes() {
         </ConditionChecker>
 
         <ConditionChecker condition={!!data && data.length > 0}>
-          <ul>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full max-w-6xl">
             {data?.map(tree => (
-              <li key={tree._id}>
-                <Link
-                  href={`/dashboard/notes/${tree._id}`}
-                  className="hover:underline"
-                >
-                  {tree.title}
-                </Link>
-              </li>
+              <Link
+                key={tree._id}
+                href={`/dashboard/notes/${tree._id}`}
+                className="transition-transform hover:scale-[1.02]"
+              >
+                <Card className="h-full hover:bg-muted/50 transition-colors">
+                  <CardHeader>
+                    <CardTitle className="text-xl">{tree.title}</CardTitle>
+                    <CardDescription>
+                      {tree.childNotes?.length || 0} nested note(s)
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              </Link>
             ))}
-          </ul>
+          </div>
         </ConditionChecker>
       </ConditionChecker>
 
