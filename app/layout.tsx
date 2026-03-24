@@ -5,6 +5,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ConvexClientProvider } from "@/providers/ConvexClientProvider";
 import { ThemeProvider } from "next-themes";
 import Header from "@/components/Header";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 
@@ -26,7 +28,7 @@ export default function RootLayout({
       <ConvexClientProvider>
         <html lang="en" suppressHydrationWarning>
           <body
-            className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col h-screen overflow-hidden selection:bg-primary selection:text-white`}
+            className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-primary selection:text-white`}
           >
             <ThemeProvider
               attribute="class"
@@ -34,8 +36,13 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-              <Header />
-              <main className="h-full overflow-y-auto">{children}</main>
+              <SidebarProvider>
+                <AppSidebar />
+                <SidebarInset className="flex flex-col h-screen overflow-hidden bg-background">
+                  <Header />
+                  <main className="flex-1 overflow-y-auto">{children}</main>
+                </SidebarInset>
+              </SidebarProvider>
             </ThemeProvider>
           </body>
         </html>

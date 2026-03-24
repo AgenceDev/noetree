@@ -112,7 +112,7 @@ export default function EditorToolbar() {
   };
 
   return (
-    <TooltipProvider delayDuration={300}>
+    <TooltipProvider delayDuration={1000}>
       <div className="flex flex-wrap gap-1">
         <ToolbarGroup items={historyItems} />
 
