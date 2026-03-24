@@ -63,7 +63,24 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
 
   const [saveStatus, setSaveStatus] = useState<saveStatusType>("idle");
 
-  let editor = useEditor(editorConfig);
+  let initialContent: any = "";
+  try {
+    if (selectedNote?.content && typeof selectedNote.content === "string") {
+      initialContent = JSON.parse(selectedNote.content);
+    } else if (selectedNote?.content) {
+      initialContent = selectedNote.content;
+    }
+  } catch (error) {
+    console.warn("Failed to parse note content, using empty content:", error);
+  }
+
+  let editor = useEditor(
+    {
+      ...editorConfig,
+      content: initialContent,
+    },
+    [selectedNote?._id],
+  );
 
   const saveContent = useCallback(
     async (content: Content) => {
@@ -131,7 +148,7 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
 
     if (currentJSON === incomingJSON) return;
 
-    editor.commands.setContent(content);
+    editor.commands.setContent(content, false);
 
     setSaveStatus("idle");
   }, [editor, selectedNote?._id, selectedNote?.content, debouncedSave]);
