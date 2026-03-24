@@ -34,6 +34,6 @@ export function useStoreUserEffect() {
   // Combine the local state with the state from context
   return {
     isLoading: isLoading || (isAuthenticated && userId === null),
-    isAuthenticated: isAuthenticated && userId !== null
+    isAuthenticated: isAuthenticated && userId !== null,
   };
 }

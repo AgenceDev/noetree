@@ -3,7 +3,7 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
-  ContextMenuTrigger
+  ContextMenuTrigger,
 } from "./ui/context-menu";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -15,7 +15,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle
+  AlertDialogTitle,
 } from "./ui/alert-dialog";
 import ConditionChecker from "./helpers/ConditionChecker";
 import { Id } from "@/convex/_generated/dataModel";
@@ -30,7 +30,7 @@ export default function NotesTree() {
     onSelectNote,
     onUpdateNoteTitle,
     onAddChildNote,
-    onDeleteNote
+    onDeleteNote,
   } = useTreeContext();
 
   const { getCurrentContent } = useEditorContext();
@@ -38,7 +38,7 @@ export default function NotesTree() {
   const [editingNoteId, setEditingNoteId] = useState<Id<"notes"> | null>(null);
   const [newNoteTitle, setNewNoteTitle] = useState("");
   const [renamingNoteId, setRenamingNoteId] = useState<Id<"notes"> | null>(
-    null
+    null,
   );
   const [editedTitle, setEditedTitle] = useState("");
   const [noteToDelete, setNoteToDelete] = useState<Id<"notes"> | null>(null);
@@ -85,7 +85,7 @@ export default function NotesTree() {
 
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
-    note: NoteTree
+    note: NoteTree,
   ) => {
     if (e.key === "Enter") {
       addChildNote(note);
@@ -97,7 +97,7 @@ export default function NotesTree() {
 
   const handleRenameKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
-    note: NoteTree
+    note: NoteTree,
   ) => {
     if (e.key === "Enter") {
       saveRenamedNote(note);

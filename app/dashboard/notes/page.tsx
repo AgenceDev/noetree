@@ -10,7 +10,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { api } from "@/convex/_generated/api";
@@ -27,7 +27,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
+  FormMessage,
 } from "@/components/ui/form";
 import { useState } from "react";
 
@@ -36,7 +36,7 @@ const newTreeFormSchema = z.object({
     .string()
     .nonempty("Title is required")
     .max(50, "Title is too long")
-    .min(3, "Title is too short")
+    .min(3, "Title is too short"),
 });
 
 export default function Notes() {
@@ -44,12 +44,12 @@ export default function Notes() {
   const [titleError, setTitleError] = useState<string | null>(null);
 
   const { data, isPending, error } = useQuery(
-    convexQuery(api.notes.getTreesByMe, { deep: 2 })
+    convexQuery(api.notes.getTreesByMe, { deep: 2 }),
   );
 
   const newTreeForm = useForm<z.infer<typeof newTreeFormSchema>>({
     resolver: zodResolver(newTreeFormSchema),
-    defaultValues: { title: "" }
+    defaultValues: { title: "" },
   });
 
   const { mutate: createNote, isPending: isNotePending } = useMutation({
@@ -58,12 +58,12 @@ export default function Notes() {
       newTreeForm.reset();
       setNewTreeDialogOpen(false);
       setTitleError(null);
-    }
+    },
   });
 
   const handleSubmit = newTreeForm.handleSubmit(async formData => {
     const titleExists = data?.some(
-      note => note.title.toLowerCase() === formData.title.toLowerCase()
+      note => note.title.toLowerCase() === formData.title.toLowerCase(),
     );
 
     if (titleExists) {

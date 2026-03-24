@@ -7,7 +7,7 @@ import { TreeProvider } from "@/providers/TreeProvider";
 import {
   ResizableHandle,
   ResizablePanel,
-  ResizablePanelGroup
+  ResizablePanelGroup,
 } from "@/components/ui/resizable";
 
 const NotePageContent = () => {

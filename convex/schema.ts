@@ -14,11 +14,11 @@ export default defineSchema({
     phone_number: v.optional(v.string()),
     email_verified: v.optional(v.boolean()),
     phone_number_verified: v.optional(v.boolean()),
-    role: v.id("roles")
+    role: v.id("roles"),
   }).index("by_token", ["tokenIdentifier"]),
 
   roles: defineTable({
-    role: v.string()
+    role: v.string(),
   }),
 
   notes: defineTable({
@@ -28,8 +28,8 @@ export default defineSchema({
     title: v.string(),
     content: v.string(),
     childNotes: v.optional(v.array(v.id("notes"))),
-    parentNote: v.optional(v.id("notes"))
+    parentNote: v.optional(v.id("notes")),
   })
     .index("by_owner", ["owner", "parentNote"])
-    .index("by_parent", ["parentNote"])
+    .index("by_parent", ["parentNote"]),
 });

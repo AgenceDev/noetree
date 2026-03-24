@@ -4,7 +4,7 @@ import { ConvexQueryClient } from "@convex-dev/react-query";
 import { ConvexReactClient } from "convex/react";
 import {
   QueryClient,
-  QueryClientProvider as TanStackQueryClientProvider
+  QueryClientProvider as TanStackQueryClientProvider,
 } from "@tanstack/react-query";
 import { ReactNode } from "react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
@@ -16,14 +16,14 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       queryKeyHashFn: convexQueryClient.hashFn(),
-      queryFn: convexQueryClient.queryFn()
-    }
-  }
+      queryFn: convexQueryClient.queryFn(),
+    },
+  },
 });
 convexQueryClient.connect(queryClient);
 
 export function ConvexClientProvider({
-  children
+  children,
 }: Readonly<{ children: ReactNode }>) {
   return (
     <ConvexProviderWithClerk client={convex} useAuth={useAuth}>

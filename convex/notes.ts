@@ -12,7 +12,7 @@ interface NotesToSend extends Omit<Notes, "childNotes"> {
 export const getTreeById = query({
   args: {
     id: v.id("notes"),
-    deep: v.optional(v.number())
+    deep: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     // step 1 Get the user
@@ -38,7 +38,7 @@ export const getTreeById = query({
     //step 5 - map current notes to be as NotesToSend
     const noteToSend: NotesToSend = {
       ...note,
-      childNotes: note.childNotes || []
+      childNotes: note.childNotes || [],
     };
 
     //step 6 - check if deep is provided and if so, get the children notes until deep level
@@ -63,8 +63,8 @@ export const getTreeById = query({
             const childrenNotesToSend: NotesToSend[] = childrenNotes.map(
               childNote => ({
                 ...childNote,
-                childNotes: childNote.childNotes || []
-              })
+                childNotes: childNote.childNotes || [],
+              }),
             );
 
             // Add these children to the current note
@@ -86,12 +86,12 @@ export const getTreeById = query({
     }
 
     return noteToSend;
-  }
+  },
 });
 
 export const getTreesByMe = query({
   args: {
-    deep: v.optional(v.number())
+    deep: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     //setp 1 - get user
@@ -106,7 +106,7 @@ export const getTreesByMe = query({
     const notes = await ctx.db
       .query("notes")
       .withIndex("by_owner", q =>
-        q.eq("owner", user._id).eq("parentNote", undefined)
+        q.eq("owner", user._id).eq("parentNote", undefined),
       )
       .order("asc")
       .collect();
@@ -114,7 +114,7 @@ export const getTreesByMe = query({
     //step 4 - map current notes to be as NotesToSend
     const notesToSend: NotesToSend[] = notes.map(note => ({
       ...note,
-      childNotes: note.childNotes || []
+      childNotes: note.childNotes || [],
     }));
 
     //step 5 - check if deep is provided and if so, get the children notes until deep level
@@ -139,8 +139,8 @@ export const getTreesByMe = query({
             const childrenNotesToSend: NotesToSend[] = childrenNotes.map(
               childNote => ({
                 ...childNote,
-                childNotes: childNote.childNotes || []
-              })
+                childNotes: childNote.childNotes || [],
+              }),
             );
 
             // Add these children to the current note
@@ -162,7 +162,7 @@ export const getTreesByMe = query({
     }
 
     return notesToSend;
-  }
+  },
 });
 
 export const createNote = mutation({
@@ -170,7 +170,7 @@ export const createNote = mutation({
     title: v.string(),
     content: v.optional(v.any()),
     parentNote: v.optional(v.id("notes")),
-    childNotes: v.optional(v.array(v.id("notes")))
+    childNotes: v.optional(v.array(v.id("notes"))),
   },
   handler: async (ctx, args) => {
     const user = await getUser(ctx);
@@ -185,8 +185,8 @@ export const createNote = mutation({
       .filter(q =>
         q.and(
           q.eq(q.field("owner"), user._id),
-          q.eq(q.field("title"), args.title)
-        )
+          q.eq(q.field("title"), args.title),
+        ),
       )
       .first();
 
@@ -201,10 +201,10 @@ export const createNote = mutation({
       parentNote: args.parentNote,
       childNotes: args.childNotes || [],
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     });
     return note;
-  }
+  },
 });
 
 export const updateNote = mutation({
@@ -213,7 +213,7 @@ export const updateNote = mutation({
     title: v.string(),
     content: v.any(),
     parentNote: v.optional(v.id("notes")),
-    childNotes: v.optional(v.array(v.id("notes")))
+    childNotes: v.optional(v.array(v.id("notes"))),
   },
   handler: async (ctx, args) => {
     const note = await ctx.db.patch(args.id, {
@@ -221,38 +221,38 @@ export const updateNote = mutation({
       content: args.content,
       parentNote: args.parentNote,
       childNotes: args.childNotes,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     });
     return note;
-  }
+  },
 });
 
 export const updateNoteTitle = mutation({
   args: {
     id: v.id("notes"),
-    title: v.string()
+    title: v.string(),
   },
   handler: async (ctx, args) => {
     const note = await ctx.db.patch(args.id, {
       title: args.title,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     });
     return note;
-  }
+  },
 });
 
 export const updateNoteContent = mutation({
   args: {
     id: v.id("notes"),
-    content: v.any()
+    content: v.any(),
   },
   handler: async (ctx, args) => {
     const note = await ctx.db.patch(args.id, {
       content: args.content,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     });
     return note;
-  }
+  },
 });
 
 export const deleteNote = mutation({
@@ -260,42 +260,42 @@ export const deleteNote = mutation({
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
     return true;
-  }
+  },
 });
 
 export const updateParentNote = mutation({
   args: {
     id: v.id("notes"),
-    parentNote: v.optional(v.id("notes"))
+    parentNote: v.optional(v.id("notes")),
   },
   handler: async (ctx, args) => {
     const note = await ctx.db.patch(args.id, {
       parentNote: args.parentNote,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     });
     return note;
-  }
+  },
 });
 
 export const updateChildNotes = mutation({
   args: {
     id: v.id("notes"),
-    childNotes: v.optional(v.array(v.id("notes")))
+    childNotes: v.optional(v.array(v.id("notes"))),
   },
   handler: async (ctx, args) => {
     const note = await ctx.db.patch(args.id, {
       childNotes: args.childNotes,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     });
     return note;
-  }
+  },
 });
 
 export const moveNote = mutation({
   args: {
     id: v.id("notes"),
     from: v.id("notes"),
-    to: v.id("notes")
+    to: v.id("notes"),
   },
   handler: async (ctx, args) => {
     // remove from childNotes of from
@@ -318,11 +318,11 @@ export const moveNote = mutation({
     }
 
     const newChildrenNotesFrom = noteFrom.childNotes.filter(
-      id => id !== args.id
+      id => id !== args.id,
     );
 
     await ctx.db.patch(args.from, {
-      childNotes: newChildrenNotesFrom
+      childNotes: newChildrenNotesFrom,
     });
 
     const newChildrenNotesTo = noteTo.childNotes
@@ -331,14 +331,14 @@ export const moveNote = mutation({
 
     // add to childNotes of to
     await ctx.db.patch(args.to, {
-      childNotes: newChildrenNotesTo
+      childNotes: newChildrenNotesTo,
     });
 
     const note = await ctx.db.patch(args.id, {
-      parentNote: args.to
+      parentNote: args.to,
     });
     return note;
-  }
+  },
 });
 
 export const fetchNoteContent = query({
@@ -354,5 +354,5 @@ export const fetchNoteContent = query({
     }
 
     return note.content;
-  }
+  },
 });

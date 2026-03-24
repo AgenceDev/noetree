@@ -7,7 +7,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger
+  TooltipTrigger,
 } from "../ui/tooltip";
 import { ToolbarGroup } from "./ToolbarGroup";
 import {
@@ -15,7 +15,7 @@ import {
   headingItems,
   historyItems,
   listItems,
-  specialItems
+  specialItems,
 } from "./toolbarItems";
 import {
   Dialog,
@@ -23,7 +23,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -47,12 +47,12 @@ export default function EditorToolbar() {
       const attrs = editor.getAttributes("link");
       setLinkUrl(attrs.href || "");
       setLinkText(
-        editor.state.selection.content().content.firstChild?.text || ""
+        editor.state.selection.content().content.firstChild?.text || "",
       );
     } else {
       setLinkUrl("");
       setLinkText(
-        editor.state.selection.content().content.firstChild?.text || ""
+        editor.state.selection.content().content.firstChild?.text || "",
       );
     }
 
@@ -104,7 +104,7 @@ export default function EditorToolbar() {
       .focus()
       .setImage({
         src: imageUrl,
-        alt: imageAlt || "Image"
+        alt: imageAlt || "Image",
       })
       .run();
 
@@ -257,7 +257,7 @@ const ToolbarButton = ({
   active,
   disabled,
   tooltip,
-  icon
+  icon,
 }: ToolbarButtonProps) => (
   <Tooltip>
     <TooltipTrigger asChild>

@@ -14,7 +14,7 @@ interface TreeContextType {
   selectedNote: NoteTree | null;
   onSelectNote: (
     note: NoteTree,
-    getCurrentEditorContent?: () => string | null
+    getCurrentEditorContent?: () => string | null,
   ) => void;
   onUpdateNoteTitle: (noteId: Id<"notes">, newTitle: string) => void;
   onUpdateNoteContent: (newContent: string) => void;
@@ -29,7 +29,7 @@ const TreeContext = createContext<TreeContextType>({
   onUpdateNoteTitle: () => {},
   onUpdateNoteContent: () => {},
   onAddChildNote: () => {},
-  onDeleteNote: () => {}
+  onDeleteNote: () => {},
 });
 
 export const useTreeContext = (): TreeContextType => {
@@ -49,26 +49,26 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
   const [selectedNoteId, setSelectedNoteId] = useState<Id<"notes">>(noteId);
 
   const { data: tree } = useQuery(
-    convexQuery(api.notes.getTreeById, { id: noteId, deep: 10 })
+    convexQuery(api.notes.getTreeById, { id: noteId, deep: 10 }),
   );
 
   const { mutate: updateNoteTitle } = useMutation({
-    mutationFn: useConvexMutation(api.notes.updateNoteTitle)
+    mutationFn: useConvexMutation(api.notes.updateNoteTitle),
   });
 
   const { mutate: updateNoteContent } = useMutation({
-    mutationFn: useConvexMutation(api.notes.updateNoteContent)
+    mutationFn: useConvexMutation(api.notes.updateNoteContent),
   });
 
   const { mutate: createNote } = useMutation({
     mutationFn: useConvexMutation(api.notes.createNote),
     onSuccess: (newNoteId: Id<"notes">) => {
       setSelectedNoteId(newNoteId);
-    }
+    },
   });
 
   const { mutate: deleteNote } = useMutation({
-    mutationFn: useConvexMutation(api.notes.deleteNote)
+    mutationFn: useConvexMutation(api.notes.deleteNote),
   });
 
   const selectedNote = useMemo(() => {
@@ -76,7 +76,7 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
 
     const findNoteById = (
       noteId: Id<"notes">,
-      note: NoteTree
+      note: NoteTree,
     ): NoteTree | null => {
       if (note._id === noteId) return note;
       if (!note.childNotes?.length) return null;
@@ -97,7 +97,7 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
       selectedNote,
       onSelectNote: (
         note: NoteTree,
-        getCurrentEditorContent?: () => string | null
+        getCurrentEditorContent?: () => string | null,
       ) => {
         if (selectedNoteId === note._id) return;
 
@@ -106,7 +106,7 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
           if (currentContent) {
             updateNoteContent({
               id: selectedNote._id,
-              content: currentContent
+              content: currentContent,
             });
           }
         }
@@ -117,21 +117,21 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
         if (!selectedNote) return;
         updateNoteTitle({
           id: noteId,
-          title: newTitle
+          title: newTitle,
         });
       },
       onUpdateNoteContent: (newContent: string) => {
         if (!selectedNote) return;
         updateNoteContent({
           id: selectedNote._id,
-          content: newContent
+          content: newContent,
         });
       },
       onAddChildNote: (parentId: Id<"notes">, newNoteTitle: string) => {
         createNote({
           title: newNoteTitle,
           content: "",
-          parentNote: parentId
+          parentNote: parentId,
         });
       },
       onDeleteNote: (noteId: Id<"notes">) => {
@@ -146,9 +146,9 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
         }
 
         deleteNote({
-          id: noteId
+          id: noteId,
         });
-      }
+      },
     }),
     [
       tree,
@@ -157,8 +157,8 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
       updateNoteTitle,
       updateNoteContent,
       createNote,
-      deleteNote
-    ]
+      deleteNote,
+    ],
   );
 
   return (

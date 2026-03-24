@@ -10,7 +10,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
-  useState
+  useState,
 } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { useTreeContext } from "./TreeProvider";
@@ -20,17 +20,17 @@ const editorConfig = {
   extensions: [
     StarterKit,
     Placeholder.configure({
-      placeholder: "Write something…"
+      placeholder: "Write something…",
     }),
     Link,
-    Image
+    Image,
   ],
   editorProps: {
     attributes: {
-      class: "flex-1 overflow-y-auto border rounded-md p-4"
-    }
+      class: "flex-1 overflow-y-auto border rounded-md p-4",
+    },
   },
-  immediatelyRender: false
+  immediatelyRender: false,
 };
 
 type saveStatusType = "idle" | "unsaved" | "saving" | "success" | "error";
@@ -44,7 +44,7 @@ interface EditorContextType {
 const EditorContext = createContext<EditorContextType>({
   editor: null,
   saveStatus: "idle",
-  getCurrentContent: () => null
+  getCurrentContent: () => null,
 });
 
 export const useEditorContext = (): EditorContextType => {
@@ -78,7 +78,7 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
 
         setTimeout(() => {
           setSaveStatus(currentStatus =>
-            currentStatus === "success" ? "idle" : currentStatus
+            currentStatus === "success" ? "idle" : currentStatus,
           );
         }, 2000);
       } catch (error) {
@@ -86,7 +86,7 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
         setSaveStatus("error");
       }
     },
-    [selectedNote, onUpdateNoteContent]
+    [selectedNote, onUpdateNoteContent],
   );
 
   const debouncedSave = useDebouncedCallback(saveContent, 3000);
@@ -161,7 +161,7 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
   const contextValue = {
     editor,
     saveStatus,
-    getCurrentContent
+    getCurrentContent,
   };
 
   return (
