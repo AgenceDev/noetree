@@ -9,6 +9,17 @@ export interface NoteTree extends Omit<Doc<"notes">, "childNotes"> {
   childNotes?: NoteTree[];
 }
 
+const findNoteById = (noteId: Id<"notes">, note: NoteTree): NoteTree | null => {
+  if (note._id === noteId) return note;
+  if (!note.childNotes?.length) return null;
+
+  for (const childNote of note.childNotes) {
+    const found = findNoteById(noteId, childNote);
+    if (found) return found;
+  }
+  return null;
+};
+
 interface TreeContextType {
   tree: NoteTree | null;
   selectedNote: NoteTree | null;
@@ -18,7 +29,11 @@ interface TreeContextType {
   ) => void;
   onUpdateNoteTitle: (noteId: Id<"notes">, newTitle: string) => void;
   onUpdateNoteContent: (newContent: string) => void;
-  onAddChildNote: (parentId: Id<"notes">, newNoteTitle: string) => void;
+  onAddChildNote: (
+    parentId: Id<"notes">,
+    newNoteTitle: string,
+    getCurrentEditorContent?: () => string | null,
+  ) => void;
   onDeleteNote: (noteId: Id<"notes">) => void;
 }
 
@@ -73,21 +88,6 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
 
   const selectedNote = useMemo(() => {
     if (!tree) return null;
-
-    const findNoteById = (
-      noteId: Id<"notes">,
-      note: NoteTree,
-    ): NoteTree | null => {
-      if (note._id === noteId) return note;
-      if (!note.childNotes?.length) return null;
-
-      for (const childNote of note.childNotes) {
-        const found = findNoteById(noteId, childNote);
-        if (found) return found;
-      }
-      return null;
-    };
-
     return findNoteById(selectedNoteId, tree as unknown as NoteTree);
   }, [tree, selectedNoteId]);
 
@@ -127,7 +127,21 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
           content: newContent,
         });
       },
-      onAddChildNote: (parentId: Id<"notes">, newNoteTitle: string) => {
+      onAddChildNote: (
+        parentId: Id<"notes">,
+        newNoteTitle: string,
+        getCurrentEditorContent?: () => string | null,
+      ) => {
+        if (selectedNote && getCurrentEditorContent) {
+          const currentContent = getCurrentEditorContent();
+          if (currentContent) {
+            updateNoteContent({
+              id: selectedNote._id,
+              content: currentContent,
+            });
+          }
+        }
+
         createNote({
           title: newNoteTitle,
           content: "",
@@ -135,14 +149,25 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
         });
       },
       onDeleteNote: (noteId: Id<"notes">) => {
-        if (selectedNoteId === noteId && selectedNote?.parentNote) {
-          setSelectedNoteId(selectedNote.parentNote);
-        } else if (
-          selectedNoteId === noteId &&
-          !selectedNote?.parentNote &&
-          tree
-        ) {
-          setSelectedNoteId(tree._id);
+        const currentTree = tree as unknown as NoteTree;
+        const noteToDelete = currentTree
+          ? findNoteById(noteId, currentTree)
+          : null;
+
+        if (noteToDelete) {
+          // If the selected note is the one being deleted OR one of its descendants
+          const isSelectedInBranch = !!findNoteById(
+            selectedNoteId,
+            noteToDelete,
+          );
+
+          if (isSelectedInBranch) {
+            if (noteToDelete.parentNote) {
+              setSelectedNoteId(noteToDelete.parentNote);
+            } else if (currentTree && currentTree._id !== noteId) {
+              setSelectedNoteId(currentTree._id);
+            }
+          }
         }
 
         deleteNote({

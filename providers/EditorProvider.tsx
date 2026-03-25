@@ -126,14 +126,25 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
   }, [editor, saveStatus, debouncedSave, saveContent]);
 
   useEffect(() => {
-    if (!editor || !selectedNote) return;
+    if (!editor) return;
 
     debouncedSave.cancel();
+
+    if (!selectedNote) {
+      if (editor.getText() !== "") {
+        editor.commands.setContent("");
+      }
+      return;
+    }
 
     let content = "";
     try {
       if (selectedNote.content && typeof selectedNote.content === "string") {
-        content = JSON.parse(selectedNote.content);
+        if (selectedNote.content.trim() === "") {
+          content = "";
+        } else {
+          content = JSON.parse(selectedNote.content);
+        }
       } else if (selectedNote.content) {
         content = selectedNote.content;
       }
