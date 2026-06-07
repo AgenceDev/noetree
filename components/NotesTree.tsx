@@ -1,4 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { Crosshair } from "lucide-react";
+import { Button } from "./ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +20,7 @@ import { NoteCard } from "./NoteCard";
 import { NewNoteCard } from "./NewNoteCard";
 
 export default function NotesTree() {
-  const { tree, onAddChildNote, onDeleteNote } = useTreeContext();
+  const { tree, selectedNote, onAddChildNote, onDeleteNote } = useTreeContext();
   const { getCurrentContent } = useEditorContext();
 
   const [editingNoteId, setEditingNoteId] = useState<Id<"notes"> | null>(null);
@@ -27,9 +29,7 @@ export default function NotesTree() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const selectedCardRef = useRef<HTMLDivElement | null>(null);
 
-  // Scroll container to center the selected card whenever selectedNote changes
-  const { selectedNote } = useTreeContext();
-  useEffect(() => {
+  const scrollToSelected = useCallback(() => {
     const container = scrollContainerRef.current;
     const card = selectedCardRef.current;
     if (!container || !card) return;
@@ -54,7 +54,12 @@ export default function NotesTree() {
       top: scrollTop,
       behavior: "smooth",
     });
-  }, [selectedNote?._id]);
+  }, []);
+
+  // Auto-center on selection change
+  useEffect(() => {
+    scrollToSelected();
+  }, [selectedNote?._id, scrollToSelected]);
 
   const handleSelectedRef = useCallback((el: HTMLDivElement | null) => {
     selectedCardRef.current = el;
@@ -118,10 +123,10 @@ export default function NotesTree() {
   };
 
   return (
-    <>
+    <div className="relative w-full h-full">
       <div
         ref={scrollContainerRef}
-        className="w-full h-full overflow-auto scrollbar-thin"
+        className="relative w-full h-full overflow-auto scrollbar-thin"
       >
         <div className="min-w-full inline-flex justify-center items-start p-4">
           <ConditionChecker condition={!tree}>
@@ -136,6 +141,17 @@ export default function NotesTree() {
           {!!tree && renderNote(tree)}
         </div>
       </div>
+      {selectedNote && (
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={scrollToSelected}
+          className="absolute bottom-4 right-4 z-10 h-9 w-9 rounded-full shadow-lg backdrop-blur-sm bg-background/80 border-border/60 hover:bg-accent hover:scale-110 transition-all duration-200"
+          title="Recentrer sur la note active"
+        >
+          <Crosshair className="h-4 w-4" />
+        </Button>
+      )}
       <AlertDialog
         open={noteToDelete !== null}
         onOpenChange={open => !open && setNoteToDelete(null)}
@@ -165,6 +181,6 @@ export default function NotesTree() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </ div>
   );
 }
