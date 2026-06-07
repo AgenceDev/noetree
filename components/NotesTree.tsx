@@ -181,6 +181,6 @@ export default function NotesTree() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </ div>
+    </div>
   );
 }
