@@ -1,6 +1,5 @@
-import { useRef, useEffect } from "react";
+import React, { useRef, useEffect } from "react";
 import { Card } from "./ui/card";
-import { Input } from "./ui/input";
 
 interface NewNoteCardProps {
   onSave: (title: string) => void;
@@ -8,14 +7,19 @@ interface NewNoteCardProps {
 }
 
 export function NewNoteCard({ onSave, onCancel }: NewNoteCardProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    inputRef.current?.focus();
+    const el = inputRef.current;
+    if (!el) return;
+    el.focus();
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
   }, []);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter") {
+      e.preventDefault(); // prevent newline before saving
       onSave(e.currentTarget.value);
     }
     if (e.key === "Escape") {
@@ -24,14 +28,19 @@ export function NewNoteCard({ onSave, onCancel }: NewNoteCardProps) {
   };
 
   return (
-    <Card className="border-border shadow-md min-w-[160px] max-w-[240px] p-3 bg-background border-dashed border-2">
-      <Input
+    <Card className="border-border shadow-md min-w-[120px] max-w-[240px] p-3 bg-background border-dashed border-2">
+      <textarea
         ref={inputRef}
-        type="text"
         placeholder="New note title..."
+        rows={1}
         onKeyDown={handleKeyDown}
         onBlur={onCancel}
-        className="h-6 text-sm font-semibold text-center border-none focus-visible:ring-0 p-0"
+        onChange={e => {
+          e.target.style.height = "auto";
+          e.target.style.height = e.target.scrollHeight + "px";
+        }}
+        className="w-full resize-none overflow-hidden bg-transparent text-sm font-semibold text-center border-none outline-none p-0 focus:ring-0 focus:outline-none leading-initial placeholder:text-muted-foreground"
+        style={{ fieldSizing: "content" } as React.CSSProperties}
       />
     </Card>
   );

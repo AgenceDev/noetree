@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -6,7 +6,6 @@ import {
   ContextMenuTrigger,
 } from "./ui/context-menu";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
 import { Card } from "./ui/card";
 import { cn } from "@/lib/utils";
 import { Plus, Trash2 } from "lucide-react";
@@ -34,7 +33,7 @@ export function NoteCard({
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [editedTitle, setEditedTitle] = useState(note.title);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const isSelected = selectedNote?._id === note._id;
 
@@ -48,7 +47,15 @@ export function NoteCard({
   useEffect(() => {
     if (isRenaming) {
       setEditedTitle(note.title);
-      setTimeout(() => inputRef.current?.focus(), 0);
+      setTimeout(() => {
+        const el = inputRef.current;
+        if (!el) return;
+        el.focus();
+        el.select();
+        // JS fallback for browsers without field-sizing: content
+        el.style.height = "auto";
+        el.style.height = el.scrollHeight + "px";
+      }, 0);
     }
   }, [isRenaming, note.title]);
 
@@ -59,8 +66,9 @@ export function NoteCard({
     setIsRenaming(false);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter") {
+      e.preventDefault(); // prevent newline in textarea
       handleSaveRename();
     }
     if (e.key === "Escape") {
@@ -75,29 +83,35 @@ export function NoteCard({
         <ContextMenuTrigger disabled={isRenaming}>
           <Card
             className={cn(
-              "cursor-pointer transition-all hover:bg-accent/50 group border-border shadow-md min-w-[160px] max-w-[240px] relative overflow-hidden",
+              "cursor-pointer transition-all bg-background hover:bg-accent/50 group border-border shadow-md min-w-[120px] max-w-[240px] relative overflow-hidden",
               isSelected
-                ? "bg-accent border-primary ring-2 ring-primary/20"
-                : "bg-background",
+                ? "bg-accent/30 border-primary ring-2 ring-primary/20"
+                : "",
             )}
             onClick={() => !isRenaming && onSelectNote(note, getCurrentContent)}
             onDoubleClick={() => setIsRenaming(true)}
           >
             <div className="flex flex-col items-center p-3">
               <ConditionChecker condition={isRenaming}>
-                <Input
+                <textarea
                   ref={inputRef}
-                  type="text"
                   value={editedTitle}
-                  onChange={e => setEditedTitle(e.target.value)}
+                  rows={1}
+                  onChange={e => {
+                    setEditedTitle(e.target.value);
+                    // auto-resize fallback
+                    e.target.style.height = "auto";
+                    e.target.style.height = e.target.scrollHeight + "px";
+                  }}
                   onKeyDown={handleKeyDown}
                   onBlur={handleSaveRename}
                   onClick={e => e.stopPropagation()}
-                  className="h-auto text-sm font-semibold bg-transparent! text-center border-none p-0 focus-visible:ring-0"
+                  className="w-full resize-none overflow-hidden bg-transparent text-sm font-semibold text-center border-none outline-none p-0 focus:ring-0 focus:outline-none leading-initial"
+                  style={{ fieldSizing: "content" } as React.CSSProperties}
                 />
               </ConditionChecker>
               <ConditionChecker condition={!isRenaming}>
-                <span className="truncate text-sm font-semibold text-center">
+                <span className="text-sm font-semibold text-center">
                   {note.title}
                 </span>
               </ConditionChecker>

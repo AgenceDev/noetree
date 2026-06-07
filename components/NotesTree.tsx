@@ -68,10 +68,6 @@ export default function NotesTree() {
     return (
       <div className="flex flex-col items-center gap-8 relative">
         <div className="flex flex-col items-center relative group/node">
-          {/* Vertical line from sibling group above (hidden for root) */}
-          <ConditionChecker condition={note._id !== tree?._id}>
-            <div className="absolute -top-8 h-8 w-px bg-border/60" />
-          </ConditionChecker>
 
           <NoteCard
             note={note}
@@ -90,26 +86,14 @@ export default function NotesTree() {
 
         {((note.childNotes && note.childNotes.length > 0) ||
           editingNoteId === note._id) && (
-          <div className="flex gap-8 relative px-4">
-            {/* Horizontal bridge line for siblings */}
-            {(note.childNotes?.length ?? 0) +
-              (editingNoteId === note._id ? 1 : 0) >
-              1 && (
-              <div
-                className="absolute -top-8 bg-border/60 h-px"
-                style={{
-                  left: "calc(160px / 2 + 1rem)", // half card width + padding
-                  right: "calc(160px / 2 + 1rem)",
-                }}
-              />
-            )}
+          <div className="tree-children flex gap-8 relative">
 
             {note.childNotes?.map(childNote => {
               if (!childNote || !childNote._id || !childNote.title) return null;
               return (
                 <div
                   key={childNote._id}
-                  className="relative flex flex-col items-center"
+                  className="tree-child relative flex flex-col items-center"
                 >
                   {renderNote(childNote)}
                 </div>
@@ -117,8 +101,7 @@ export default function NotesTree() {
             })}
 
             {editingNoteId === note._id && (
-              <div className="relative flex flex-col items-center">
-                <div className="absolute top-[-48px] h-8 w-px bg-border/60" />
+              <div className="tree-child relative flex flex-col items-center">
                 <NewNoteCard
                   onSave={title => {
                     if (title.trim()) {
