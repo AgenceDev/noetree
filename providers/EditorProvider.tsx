@@ -112,7 +112,7 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key === "s") {
         event.preventDefault();
-        if (editor && saveStatus === "unsaved") {
+        if (editor && !editor.isDestroyed && saveStatus === "unsaved") {
           debouncedSave.cancel();
           saveContent(editor.getJSON());
         }
@@ -126,7 +126,7 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
   }, [editor, saveStatus, debouncedSave, saveContent]);
 
   useEffect(() => {
-    if (!editor) return;
+    if (!editor || editor.isDestroyed) return;
 
     debouncedSave.cancel();
 
@@ -159,13 +159,13 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
 
     if (currentJSON === incomingJSON) return;
 
-    editor.commands.setContent(content, false);
+    editor.commands.setContent(content, { emitUpdate: false });
 
     setSaveStatus("idle");
   }, [editor, selectedNote?._id, selectedNote?.content, debouncedSave]);
 
   useEffect(() => {
-    if (!editor || !selectedNote) return;
+    if (!editor || editor.isDestroyed || !selectedNote) return;
 
     const updateListener = ({ editor }: { editor: Editor }) => {
       setSaveStatus("unsaved");
@@ -182,7 +182,7 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
   }, [editor, selectedNote, debouncedSave]);
 
   const getCurrentContent = () => {
-    if (!editor) return null;
+    if (!editor || editor.isDestroyed) return null;
     return JSON.stringify(editor.getJSON());
   };
 
