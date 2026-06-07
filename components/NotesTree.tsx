@@ -49,7 +49,11 @@ export default function NotesTree() {
       containerRect.height / 2 +
       cardRect.height / 2;
 
-    container.scrollTo({ left: scrollLeft, top: scrollTop, behavior: "smooth" });
+    container.scrollTo({
+      left: scrollLeft,
+      top: scrollTop,
+      behavior: "smooth",
+    });
   }, [selectedNote?._id]);
 
   const handleSelectedRef = useCallback((el: HTMLDivElement | null) => {
@@ -134,18 +138,21 @@ export default function NotesTree() {
 
   return (
     <>
-      <div ref={scrollContainerRef} className="w-full h-full overflow-auto scrollbar-thin">
+      <div
+        ref={scrollContainerRef}
+        className="w-full h-full overflow-auto scrollbar-thin"
+      >
         <div className="min-w-full inline-flex justify-center items-start p-4">
-        <ConditionChecker condition={!tree}>
-          <div className="flex flex-col gap-8 items-center">
-            <Skeleton className="w-48 h-16 rounded-lg" />
-            <div className="flex gap-4">
-              <Skeleton className="w-40 h-14 rounded-lg" />
-              <Skeleton className="w-40 h-14 rounded-lg" />
+          <ConditionChecker condition={!tree}>
+            <div className="flex flex-col gap-8 items-center">
+              <Skeleton className="w-48 h-16 rounded-lg" />
+              <div className="flex gap-4">
+                <Skeleton className="w-40 h-14 rounded-lg" />
+                <Skeleton className="w-40 h-14 rounded-lg" />
+              </div>
             </div>
-          </div>
-        </ConditionChecker>
-        {!!tree && renderNote(tree)}
+          </ConditionChecker>
+          {!!tree && renderNote(tree)}
         </div>
       </div>
       <AlertDialog
