@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +24,38 @@ export default function NotesTree() {
   const [editingNoteId, setEditingNoteId] = useState<Id<"notes"> | null>(null);
   const [noteToDelete, setNoteToDelete] = useState<Id<"notes"> | null>(null);
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const selectedCardRef = useRef<HTMLDivElement | null>(null);
+
+  // Scroll container to center the selected card whenever selectedNote changes
+  const { selectedNote } = useTreeContext();
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    const card = selectedCardRef.current;
+    if (!container || !card) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const cardRect = card.getBoundingClientRect();
+
+    const scrollLeft =
+      container.scrollLeft +
+      (cardRect.left - containerRect.left) -
+      containerRect.width / 2 +
+      cardRect.width / 2;
+
+    const scrollTop =
+      container.scrollTop +
+      (cardRect.top - containerRect.top) -
+      containerRect.height / 2 +
+      cardRect.height / 2;
+
+    container.scrollTo({ left: scrollLeft, top: scrollTop, behavior: "smooth" });
+  }, [selectedNote?._id]);
+
+  const handleSelectedRef = useCallback((el: HTMLDivElement | null) => {
+    selectedCardRef.current = el;
+  }, []);
+
   const handleStartAddingNote = (noteId: Id<"notes">) => {
     setEditingNoteId(noteId);
   };
@@ -42,6 +74,7 @@ export default function NotesTree() {
             isRoot={note._id === tree?._id}
             onAddChild={() => handleStartAddingNote(note._id)}
             onDelete={() => setNoteToDelete(note._id)}
+            onRef={handleSelectedRef}
           />
 
           {/* Vertical line to children anchor */}
@@ -101,7 +134,8 @@ export default function NotesTree() {
 
   return (
     <>
-      <div className="w-full h-full inline-flex justify-center items-start overflow-auto">
+      <div ref={scrollContainerRef} className="w-full h-full overflow-auto scrollbar-thin">
+        <div className="min-w-full inline-flex justify-center items-start p-4">
         <ConditionChecker condition={!tree}>
           <div className="flex flex-col gap-8 items-center">
             <Skeleton className="w-48 h-16 rounded-lg" />
@@ -112,6 +146,7 @@ export default function NotesTree() {
           </div>
         </ConditionChecker>
         {!!tree && renderNote(tree)}
+        </div>
       </div>
       <AlertDialog
         open={noteToDelete !== null}

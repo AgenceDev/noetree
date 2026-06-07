@@ -17,7 +17,7 @@ const NotePageContent = () => {
         direction="horizontal"
         autoSaveId="autoSaveNotePageResizablePanel"
       >
-        <ResizablePanel defaultSize={40} minSize={20} className="p-4">
+        <ResizablePanel defaultSize={40} minSize={20}>
           <NoteTree />
         </ResizablePanel>
         <ResizableHandle withHandle />

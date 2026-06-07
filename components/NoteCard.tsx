@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -19,6 +19,7 @@ interface NoteCardProps {
   isRoot: boolean;
   onAddChild: () => void;
   onDelete: () => void;
+  onRef?: (el: HTMLDivElement | null) => void;
 }
 
 export function NoteCard({
@@ -26,6 +27,7 @@ export function NoteCard({
   isRoot,
   onAddChild,
   onDelete,
+  onRef,
 }: NoteCardProps) {
   const { onSelectNote, onUpdateNoteTitle, selectedNote } = useTreeContext();
   const { getCurrentContent } = useEditorContext();
@@ -35,6 +37,13 @@ export function NoteCard({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const isSelected = selectedNote?._id === note._id;
+
+  const cardRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      if (isSelected) onRef?.(el);
+    },
+    [isSelected, onRef],
+  );
 
   useEffect(() => {
     if (isRenaming) {
@@ -61,7 +70,7 @@ export function NoteCard({
   };
 
   return (
-    <div className="relative group/node">
+    <div ref={cardRef} className="relative group/node">
       <ContextMenu>
         <ContextMenuTrigger disabled={isRenaming}>
           <Card
