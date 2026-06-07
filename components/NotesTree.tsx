@@ -68,7 +68,6 @@ export default function NotesTree() {
     return (
       <div className="flex flex-col items-center gap-8 relative">
         <div className="flex flex-col items-center relative group/node">
-
           <NoteCard
             note={note}
             isRoot={note._id === tree?._id}
@@ -87,7 +86,6 @@ export default function NotesTree() {
         {((note.childNotes && note.childNotes.length > 0) ||
           editingNoteId === note._id) && (
           <div className="tree-children flex gap-8 relative">
-
             {note.childNotes?.map(childNote => {
               if (!childNote || !childNote._id || !childNote.title) return null;
               return (
