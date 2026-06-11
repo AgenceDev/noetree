@@ -2,6 +2,7 @@
 
 import ConditionChecker from "@/components/helpers/ConditionChecker";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import {
   Card,
   CardDescription,
@@ -36,6 +37,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useState } from "react";
+import { Search } from "lucide-react";
 
 const newTreeFormSchema = z.object({
   title: z
@@ -48,9 +50,14 @@ const newTreeFormSchema = z.object({
 export default function Notes() {
   const [newTreeDialogOpen, setNewTreeDialogOpen] = useState(false);
   const [titleError, setTitleError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data, isPending, error } = useQuery(
     convexQuery(api.notes.getTreesByMe, { deep: 2 }),
+  );
+
+  const filteredTrees = data?.filter(tree =>
+    tree.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const newTreeForm = useForm<z.infer<typeof newTreeFormSchema>>({
@@ -85,6 +92,22 @@ export default function Notes() {
     <div className="flex flex-col justify-center items-center gap-8 p-6">
       <h1 className="text-8xl font-bold">Trees</h1>
 
+      <ConditionChecker
+        condition={!isPending && !error && !!data && data.length > 0}
+      >
+        <ButtonGroup>
+          <Input
+            type="search"
+            placeholder="Search trees..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
+          <Button variant="outline" aria-label="Search" type="button">
+            <Search />
+          </Button>
+        </ButtonGroup>
+      </ConditionChecker>
+
       <ConditionChecker condition={!!isPending}>
         <p>Loading trees...</p>
       </ConditionChecker>
@@ -94,9 +117,22 @@ export default function Notes() {
           <p>You have no trees.</p>
         </ConditionChecker>
 
-        <ConditionChecker condition={!!data && data.length > 0}>
+        <ConditionChecker
+          condition={
+            !!data &&
+            data.length > 0 &&
+            !!filteredTrees &&
+            filteredTrees.length === 0
+          }
+        >
+          <p className="text-muted-foreground">No trees match your search.</p>
+        </ConditionChecker>
+
+        <ConditionChecker
+          condition={!!filteredTrees && filteredTrees.length > 0}
+        >
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full max-w-6xl">
-            {data?.map(tree => (
+            {filteredTrees?.map(tree => (
               <Link
                 key={tree._id}
                 href={`/dashboard/notes/${tree._id}`}
@@ -124,7 +160,7 @@ export default function Notes() {
         <DialogTrigger asChild>
           <Button>Create a new tree</Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent>
           <Form {...newTreeForm}>
             <form onSubmit={handleSubmit} className="contents">
               <DialogHeader>
