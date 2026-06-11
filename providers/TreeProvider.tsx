@@ -35,6 +35,7 @@ interface TreeContextType {
     getCurrentEditorContent?: () => string | null,
   ) => void;
   onDeleteNote: (noteId: Id<"notes">) => void;
+  onDuplicateNote: (noteId: Id<"notes">) => void;
 }
 
 const TreeContext = createContext<TreeContextType>({
@@ -45,6 +46,7 @@ const TreeContext = createContext<TreeContextType>({
   onUpdateNoteContent: () => {},
   onAddChildNote: () => {},
   onDeleteNote: () => {},
+  onDuplicateNote: () => {},
 });
 
 export const useTreeContext = (): TreeContextType => {
@@ -84,6 +86,10 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
 
   const { mutate: deleteNote } = useMutation({
     mutationFn: useConvexMutation(api.notes.deleteNote),
+  });
+
+  const { mutate: duplicateNote } = useMutation({
+    mutationFn: useConvexMutation(api.notes.duplicateNote),
   });
 
   const selectedNote = useMemo(() => {
@@ -174,6 +180,11 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
           id: noteId,
         });
       },
+      onDuplicateNote: (noteId: Id<"notes">) => {
+        duplicateNote({
+          id: noteId,
+        });
+      },
     }),
     [
       tree,
@@ -183,6 +194,7 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
       updateNoteContent,
       createNote,
       deleteNote,
+      duplicateNote,
     ],
   );
 

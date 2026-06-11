@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { convexQuery, useConvexMutation } from "@convex-dev/react-query";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
@@ -37,7 +38,31 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useState } from "react";
-import { Search } from "lucide-react";
+import { Search, MoreVertical, Edit, Copy, Trash } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 
 const newTreeFormSchema = z.object({
   title: z
@@ -52,6 +77,17 @@ export default function Notes() {
   const [titleError, setTitleError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [noteToRename, setNoteToRename] = useState<{
+    id: Id<"notes">;
+    title: string;
+  } | null>(null);
+  const [newTitle, setNewTitle] = useState("");
+  const [renameError, setRenameError] = useState<string | null>(null);
+
+  const [deleteAlertDialogOpen, setDeleteAlertDialogOpen] = useState(false);
+  const [noteToDelete, setNoteToDelete] = useState<Id<"notes"> | null>(null);
+
   const { data, isPending, error } = useQuery(
     convexQuery(api.notes.getTreesByMe, { deep: 2 }),
   );
@@ -59,6 +95,56 @@ export default function Notes() {
   const filteredTrees = data?.filter(tree =>
     tree.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  const { mutate: updateNoteTitle } = useMutation({
+    mutationFn: useConvexMutation(api.notes.updateNoteTitle),
+    onSuccess: () => {
+      setRenameDialogOpen(false);
+      setNoteToRename(null);
+      setNewTitle("");
+      setRenameError(null);
+    },
+  });
+
+  const { mutate: duplicateNote } = useMutation({
+    mutationFn: useConvexMutation(api.notes.duplicateNote),
+  });
+
+  const { mutate: deleteNote } = useMutation({
+    mutationFn: useConvexMutation(api.notes.deleteNote),
+    onSuccess: () => {
+      setDeleteAlertDialogOpen(false);
+      setNoteToDelete(null);
+    },
+  });
+
+  const handleRenameSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanTitle = newTitle.trim();
+    if (!cleanTitle || cleanTitle.length < 3) {
+      setRenameError("Title must be at least 3 characters");
+      return;
+    }
+    if (cleanTitle.length > 50) {
+      setRenameError("Title is too long");
+      return;
+    }
+
+    const titleExists = data?.some(
+      note =>
+        note._id !== noteToRename?.id &&
+        note.title.toLowerCase() === cleanTitle.toLowerCase(),
+    );
+
+    if (titleExists) {
+      setRenameError("A note with this title already exists");
+      return;
+    }
+
+    if (noteToRename) {
+      updateNoteTitle({ id: noteToRename.id, title: cleanTitle });
+    }
+  };
 
   const newTreeForm = useForm<z.infer<typeof newTreeFormSchema>>({
     resolver: zodResolver(newTreeFormSchema),
@@ -133,20 +219,114 @@ export default function Notes() {
         >
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full max-w-6xl">
             {filteredTrees?.map(tree => (
-              <Link
-                key={tree._id}
-                href={`/dashboard/notes/${tree._id}`}
-                className="transition-transform hover:scale-[1.02]"
-              >
-                <Card className="h-full hover:bg-muted/50 transition-colors">
-                  <CardHeader>
-                    <CardTitle className="text-xl">{tree.title}</CardTitle>
-                    <CardDescription>
-                      {tree.childNotes?.length || 0} nested note(s)
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
-              </Link>
+              <ContextMenu key={tree._id}>
+                <ContextMenuTrigger>
+                  <div className="relative group transition-transform hover:scale-[1.02] h-full">
+                    <Link
+                      href={`/dashboard/notes/${tree._id}`}
+                      className="block h-full"
+                    >
+                      <Card className="h-full hover:bg-muted/50 transition-colors pr-10">
+                        <CardHeader>
+                          <CardTitle className="text-xl pr-6 truncate">
+                            {tree.title}
+                          </CardTitle>
+                          <CardDescription>
+                            {tree.childNotes?.length || 0} nested note(s)
+                          </CardDescription>
+                        </CardHeader>
+                      </Card>
+                    </Link>
+                    <div className="absolute top-4 right-4 z-10">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                            onClick={e => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setNoteToRename({
+                                id: tree._id,
+                                title: tree.title,
+                              });
+                              setNewTitle(tree.title);
+                              setRenameError(null);
+                              setRenameDialogOpen(true);
+                            }}
+                          >
+                            <Edit className="mr-2 h-4 w-4" />
+                            Modifier
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              duplicateNote({ id: tree._id });
+                            }}
+                          >
+                            <Copy className="mr-2 h-4 w-4" />
+                            Dupliquer
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => {
+                              setNoteToDelete(tree._id);
+                              setDeleteAlertDialogOpen(true);
+                            }}
+                          >
+                            <Trash className="mr-2 h-4 w-4" />
+                            Supprimer
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                  <ContextMenuItem
+                    onClick={() => {
+                      setNoteToRename({ id: tree._id, title: tree.title });
+                      setNewTitle(tree.title);
+                      setRenameError(null);
+                      setRenameDialogOpen(true);
+                    }}
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    Modifier
+                  </ContextMenuItem>
+                  <ContextMenuItem
+                    onClick={() => {
+                      duplicateNote({ id: tree._id });
+                    }}
+                  >
+                    <Copy className="mr-2 h-4 w-4" />
+                    Dupliquer
+                  </ContextMenuItem>
+                  <ContextMenuSeparator />
+                  <ContextMenuItem
+                    variant="destructive"
+                    onClick={() => {
+                      setNoteToDelete(tree._id);
+                      setDeleteAlertDialogOpen(true);
+                    }}
+                  >
+                    <Trash className="mr-2 h-4 w-4" />
+                    Supprimer
+                  </ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
             ))}
           </div>
         </ConditionChecker>
@@ -267,6 +447,76 @@ export default function Notes() {
           </Form>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+        <DialogContent>
+          <form onSubmit={handleRenameSubmit} className="space-y-4">
+            <DialogHeader>
+              <DialogTitle>Rename tree</DialogTitle>
+              <DialogDescription>
+                Enter a new title for &quot;{noteToRename?.title}&quot;
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2">
+              <Input
+                placeholder="Enter tree title"
+                value={newTitle}
+                onChange={e => setNewTitle(e.target.value)}
+              />
+              {renameError && (
+                <p className="text-sm font-medium text-destructive mt-1">
+                  {renameError}
+                </p>
+              )}
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setRenameDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit">Save</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog
+        open={deleteAlertDialogOpen}
+        onOpenChange={setDeleteAlertDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete this
+              tree and all of its nested notes.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setDeleteAlertDialogOpen(false);
+                setNoteToDelete(null);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              onClick={() => {
+                if (noteToDelete) {
+                  deleteNote({ id: noteToDelete });
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

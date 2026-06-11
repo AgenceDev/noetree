@@ -258,8 +258,139 @@ export const updateNoteContent = mutation({
 export const deleteNote = mutation({
   args: { id: v.id("notes") },
   handler: async (ctx, args) => {
-    await ctx.db.delete(args.id);
+    const user = await getUser(ctx);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const rootNote = await ctx.db.get(args.id);
+    if (!rootNote || rootNote.owner !== user._id) {
+      throw new Error("Note not found or unauthorized");
+    }
+
+    const deleteRecursive = async (noteId: Id<"notes">) => {
+      const children = await ctx.db
+        .query("notes")
+        .withIndex("by_parent", q => q.eq("parentNote", noteId))
+        .collect();
+
+      for (const child of children) {
+        await deleteRecursive(child._id);
+      }
+      await ctx.db.delete(noteId);
+    };
+
+    if (rootNote.parentNote) {
+      const parent = await ctx.db.get(rootNote.parentNote);
+      if (parent && parent.childNotes) {
+        const updatedChildNotes = parent.childNotes.filter(
+          id => id !== args.id,
+        );
+        await ctx.db.patch(rootNote.parentNote, {
+          childNotes: updatedChildNotes,
+        });
+      }
+    }
+
+    await deleteRecursive(args.id);
     return true;
+  },
+});
+
+export const duplicateNote = mutation({
+  args: { id: v.id("notes") },
+  handler: async (ctx, args) => {
+    const user = await getUser(ctx);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const sourceNote = await ctx.db.get(args.id);
+    if (!sourceNote || sourceNote.owner !== user._id) {
+      throw new Error("Note not found or unauthorized");
+    }
+
+    const duplicateRecursive = async (
+      noteId: Id<"notes">,
+      newParentId?: Id<"notes">,
+      newTitleOverride?: string,
+    ): Promise<Id<"notes">> => {
+      const note = await ctx.db.get(noteId);
+      if (!note) {
+        throw new Error("Note not found");
+      }
+
+      const title = newTitleOverride || note.title;
+
+      const newNoteId = await ctx.db.insert("notes", {
+        owner: user._id,
+        title: title,
+        content: note.content,
+        parentNote: newParentId,
+        childNotes: [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+      const children = await ctx.db
+        .query("notes")
+        .withIndex("by_parent", q => q.eq("parentNote", noteId))
+        .collect();
+
+      const newChildIds: Id<"notes">[] = [];
+      for (const child of children) {
+        const newChildId = await duplicateRecursive(child._id, newNoteId);
+        newChildIds.push(newChildId);
+      }
+
+      if (newChildIds.length > 0) {
+        await ctx.db.patch(newNoteId, { childNotes: newChildIds });
+      }
+
+      return newNoteId;
+    };
+
+    let baseTitle = `${sourceNote.title} - Copy`;
+    let uniqueTitle = baseTitle;
+    let counter = 1;
+    while (true) {
+      const existing = await ctx.db
+        .query("notes")
+        .filter(q =>
+          q.and(
+            q.eq(q.field("owner"), user._id),
+            q.eq(q.field("title"), uniqueTitle),
+            q.eq(q.field("parentNote"), sourceNote.parentNote),
+          ),
+        )
+        .first();
+
+      if (!existing) {
+        break;
+      }
+      uniqueTitle = `${baseTitle} (${counter})`;
+      counter++;
+    }
+
+    const newNoteId = await duplicateRecursive(
+      args.id,
+      sourceNote.parentNote,
+      uniqueTitle,
+    );
+
+    if (sourceNote.parentNote) {
+      const parent = await ctx.db.get(sourceNote.parentNote);
+      if (parent) {
+        const updatedChildNotes = parent.childNotes
+          ? [...parent.childNotes, newNoteId]
+          : [newNoteId];
+        await ctx.db.patch(sourceNote.parentNote, {
+          childNotes: updatedChildNotes,
+        });
+      }
+    }
+
+    return newNoteId;
   },
 });
 

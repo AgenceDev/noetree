@@ -8,7 +8,7 @@ import {
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { cn } from "@/lib/utils";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Copy } from "lucide-react";
 import { NoteTree, useTreeContext } from "@/providers/TreeProvider";
 import { useEditorContext } from "@/providers/EditorProvider";
 import ConditionChecker from "./helpers/ConditionChecker";
@@ -28,7 +28,8 @@ export function NoteCard({
   onDelete,
   onRef,
 }: NoteCardProps) {
-  const { onSelectNote, onUpdateNoteTitle, selectedNote } = useTreeContext();
+  const { onSelectNote, onUpdateNoteTitle, onDuplicateNote, selectedNote } =
+    useTreeContext();
   const { getCurrentContent } = useEditorContext();
 
   const [isRenaming, setIsRenaming] = useState(false);
@@ -116,7 +117,7 @@ export function NoteCard({
                 </span>
               </ConditionChecker>
 
-              <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center justify-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -128,6 +129,18 @@ export function NoteCard({
                   title="Add child note"
                 >
                   <Plus className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={e => {
+                    e.stopPropagation();
+                    onDuplicateNote(note._id);
+                  }}
+                  title="Duplicate note"
+                >
+                  <Copy className="h-3 w-3" />
                 </Button>
                 <ConditionChecker condition={!isRoot}>
                   <Button
@@ -153,6 +166,9 @@ export function NoteCard({
           </ContextMenuItem>
           <ContextMenuItem onClick={() => setIsRenaming(true)}>
             Rename
+          </ContextMenuItem>
+          <ContextMenuItem onClick={() => onDuplicateNote(note._id)}>
+            Duplicate
           </ContextMenuItem>
           <ConditionChecker condition={!isRoot}>
             <ContextMenuItem variant="destructive" onClick={onDelete}>
