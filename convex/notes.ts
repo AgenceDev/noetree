@@ -59,6 +59,8 @@ export const getTreeById = query({
             .collect();
 
           if (childrenNotes.length > 0) {
+            const orderedIds = currentNote.childNotes as Id<"notes">[];
+
             // Convert children to NotesToSend format
             const childrenNotesToSend: NotesToSend[] = childrenNotes.map(
               childNote => ({
@@ -66,6 +68,17 @@ export const getTreeById = query({
                 childNotes: childNote.childNotes || [],
               }),
             );
+
+            // Sort childrenNotesToSend by parent's childNotes order
+            childrenNotesToSend.sort((a, b) => {
+              const idxA = orderedIds.indexOf(a._id);
+              const idxB = orderedIds.indexOf(b._id);
+              const posA =
+                idxA !== -1 ? idxA : orderedIds.length + a._creationTime;
+              const posB =
+                idxB !== -1 ? idxB : orderedIds.length + b._creationTime;
+              return posA - posB;
+            });
 
             // Add these children to the current note
             currentNote.childNotes = childrenNotesToSend;
@@ -108,8 +121,14 @@ export const getTreesByMe = query({
       .withIndex("by_owner", q =>
         q.eq("owner", user._id).eq("parentNote", undefined),
       )
-      .order("asc")
       .collect();
+
+    // Sort notes by index (falling back to _creationTime if index is not defined)
+    notes.sort((a, b) => {
+      const indexA = a.index ?? a._creationTime;
+      const indexB = b.index ?? b._creationTime;
+      return indexA - indexB;
+    });
 
     //step 4 - map current notes to be as NotesToSend
     const notesToSend: NotesToSend[] = notes.map(note => ({
@@ -135,6 +154,8 @@ export const getTreesByMe = query({
             .collect();
 
           if (childrenNotes.length > 0) {
+            const orderedIds = currentNote.childNotes as Id<"notes">[];
+
             // Convert children to NotesToSend format
             const childrenNotesToSend: NotesToSend[] = childrenNotes.map(
               childNote => ({
@@ -142,6 +163,17 @@ export const getTreesByMe = query({
                 childNotes: childNote.childNotes || [],
               }),
             );
+
+            // Sort childrenNotesToSend by parent's childNotes order
+            childrenNotesToSend.sort((a, b) => {
+              const idxA = orderedIds.indexOf(a._id);
+              const idxB = orderedIds.indexOf(b._id);
+              const posA =
+                idxA !== -1 ? idxA : orderedIds.length + a._creationTime;
+              const posB =
+                idxB !== -1 ? idxB : orderedIds.length + b._creationTime;
+              return posA - posB;
+            });
 
             // Add these children to the current note
             currentNote.childNotes = childrenNotesToSend;
@@ -238,6 +270,28 @@ export const updateNoteTitle = mutation({
       updated_at: new Date().toISOString(),
     });
     return note;
+  },
+});
+
+export const updateNoteIndex = mutation({
+  args: {
+    id: v.id("notes"),
+    index: v.float64(),
+  },
+  handler: async (ctx, args) => {
+    const user = await getUser(ctx);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    const note = await ctx.db.get(args.id);
+    if (!note || note.owner !== user._id) {
+      throw new Error("Note not found or unauthorized");
+    }
+    const updatedNote = await ctx.db.patch(args.id, {
+      index: args.index,
+      updated_at: new Date().toISOString(),
+    });
+    return updatedNote;
   },
 });
 
@@ -350,7 +404,7 @@ export const duplicateNote = mutation({
       return newNoteId;
     };
 
-    let baseTitle = `${sourceNote.title} - Copy`;
+    const baseTitle = `${sourceNote.title} - Copy`;
     let uniqueTitle = baseTitle;
     let counter = 1;
     while (true) {

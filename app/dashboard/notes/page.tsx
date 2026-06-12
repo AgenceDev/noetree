@@ -1,4 +1,7 @@
 "use client";
+import { DragDropProvider, PointerSensor } from "@dnd-kit/react";
+import { useSortable, isSortable } from "@dnd-kit/react/sortable";
+import { cn } from "@/lib/utils";
 
 import ConditionChecker from "@/components/helpers/ConditionChecker";
 import { Button } from "@/components/ui/button";
@@ -72,6 +75,173 @@ const newTreeFormSchema = z.object({
     .min(3, "Title is too short"),
 });
 
+const customSensors = [
+  PointerSensor.configure({
+    preventActivation: event => {
+      const target = event.target as Element;
+      return !!(
+        target.closest("button") ||
+        target.closest("input") ||
+        target.closest("textarea") ||
+        target.closest("[role='menu']") ||
+        target.closest("[role='menuitem']")
+      );
+    },
+  }),
+];
+
+interface DashboardSortableItemProps {
+  tree: {
+    _id: Id<"notes">;
+    title: string;
+    childNotes?: unknown[] | undefined;
+  };
+  index: number;
+  duplicateNote: (args: { id: Id<"notes"> }) => void;
+  setNoteToRename: (val: { id: Id<"notes">; title: string } | null) => void;
+  setNewTitle: (val: string) => void;
+  setRenameError: (val: string | null) => void;
+  setRenameDialogOpen: (val: boolean) => void;
+  setNoteToDelete: (val: Id<"notes"> | null) => void;
+  setDeleteAlertDialogOpen: (val: boolean) => void;
+}
+
+function DashboardSortableItem({
+  tree,
+  index,
+  duplicateNote,
+  setNoteToRename,
+  setNewTitle,
+  setRenameError,
+  setRenameDialogOpen,
+  setNoteToDelete,
+  setDeleteAlertDialogOpen,
+}: DashboardSortableItemProps) {
+  const { ref, isDragging } = useSortable({
+    id: tree._id,
+    index,
+  });
+
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "relative group transition-transform h-full",
+        isDragging ? "opacity-50 scale-95 z-20" : "hover:scale-[1.02]",
+      )}
+    >
+      <ContextMenu>
+        <ContextMenuTrigger>
+          <div className="h-full relative">
+            <Link
+              href={`/dashboard/notes/${tree._id}`}
+              className="block h-full"
+            >
+              <Card className="h-full hover:bg-muted/50 transition-colors pr-10">
+                <CardHeader>
+                  <CardTitle className="text-xl pr-6 truncate">
+                    {tree.title}
+                  </CardTitle>
+                  <CardDescription>
+                    {tree.childNotes?.length || 0} nested note(s)
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
+            <div className="absolute top-4 right-4 z-10">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                    onClick={e => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  onClick={e => e.stopPropagation()}
+                >
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setNoteToRename({
+                        id: tree._id,
+                        title: tree.title,
+                      });
+                      setNewTitle(tree.title);
+                      setRenameError(null);
+                      setRenameDialogOpen(true);
+                    }}
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    Modifier
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      duplicateNote({ id: tree._id });
+                    }}
+                  >
+                    <Copy className="mr-2 h-4 w-4" />
+                    Dupliquer
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => {
+                      setNoteToDelete(tree._id);
+                      setDeleteAlertDialogOpen(true);
+                    }}
+                  >
+                    <Trash className="mr-2 h-4 w-4" />
+                    Supprimer
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem
+            onClick={() => {
+              setNoteToRename({ id: tree._id, title: tree.title });
+              setNewTitle(tree.title);
+              setRenameError(null);
+              setRenameDialogOpen(true);
+            }}
+          >
+            <Edit className="mr-2 h-4 w-4" />
+            Modifier
+          </ContextMenuItem>
+          <ContextMenuItem
+            onClick={() => {
+              duplicateNote({ id: tree._id });
+            }}
+          >
+            <Copy className="mr-2 h-4 w-4" />
+            Dupliquer
+          </ContextMenuItem>
+          <ContextMenuSeparator />
+          <ContextMenuItem
+            variant="destructive"
+            onClick={() => {
+              setNoteToDelete(tree._id);
+              setDeleteAlertDialogOpen(true);
+            }}
+          >
+            <Trash className="mr-2 h-4 w-4" />
+            Supprimer
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+    </div>
+  );
+}
+
 export default function Notes() {
   const [newTreeDialogOpen, setNewTreeDialogOpen] = useState(false);
   const [titleError, setTitleError] = useState<string | null>(null);
@@ -116,6 +286,10 @@ export default function Notes() {
       setDeleteAlertDialogOpen(false);
       setNoteToDelete(null);
     },
+  });
+
+  const { mutate: updateNoteIndex } = useMutation({
+    mutationFn: useConvexMutation(api.notes.updateNoteIndex),
   });
 
   const handleRenameSubmit = (e: React.FormEvent) => {
@@ -217,118 +391,59 @@ export default function Notes() {
         <ConditionChecker
           condition={!!filteredTrees && filteredTrees.length > 0}
         >
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full max-w-6xl">
-            {filteredTrees?.map(tree => (
-              <ContextMenu key={tree._id}>
-                <ContextMenuTrigger>
-                  <div className="relative group transition-transform hover:scale-[1.02] h-full">
-                    <Link
-                      href={`/dashboard/notes/${tree._id}`}
-                      className="block h-full"
-                    >
-                      <Card className="h-full hover:bg-muted/50 transition-colors pr-10">
-                        <CardHeader>
-                          <CardTitle className="text-xl pr-6 truncate">
-                            {tree.title}
-                          </CardTitle>
-                          <CardDescription>
-                            {tree.childNotes?.length || 0} nested note(s)
-                          </CardDescription>
-                        </CardHeader>
-                      </Card>
-                    </Link>
-                    <div className="absolute top-4 right-4 z-10">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 transition-opacity"
-                            onClick={e => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                            }}
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          align="end"
-                          onClick={e => e.stopPropagation()}
-                        >
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setNoteToRename({
-                                id: tree._id,
-                                title: tree.title,
-                              });
-                              setNewTitle(tree.title);
-                              setRenameError(null);
-                              setRenameDialogOpen(true);
-                            }}
-                          >
-                            <Edit className="mr-2 h-4 w-4" />
-                            Modifier
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              duplicateNote({ id: tree._id });
-                            }}
-                          >
-                            <Copy className="mr-2 h-4 w-4" />
-                            Dupliquer
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            variant="destructive"
-                            onClick={() => {
-                              setNoteToDelete(tree._id);
-                              setDeleteAlertDialogOpen(true);
-                            }}
-                          >
-                            <Trash className="mr-2 h-4 w-4" />
-                            Supprimer
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                </ContextMenuTrigger>
-                <ContextMenuContent>
-                  <ContextMenuItem
-                    onClick={() => {
-                      setNoteToRename({ id: tree._id, title: tree.title });
-                      setNewTitle(tree.title);
-                      setRenameError(null);
-                      setRenameDialogOpen(true);
-                    }}
-                  >
-                    <Edit className="mr-2 h-4 w-4" />
-                    Modifier
-                  </ContextMenuItem>
-                  <ContextMenuItem
-                    onClick={() => {
-                      duplicateNote({ id: tree._id });
-                    }}
-                  >
-                    <Copy className="mr-2 h-4 w-4" />
-                    Dupliquer
-                  </ContextMenuItem>
-                  <ContextMenuSeparator />
-                  <ContextMenuItem
-                    variant="destructive"
-                    onClick={() => {
-                      setNoteToDelete(tree._id);
-                      setDeleteAlertDialogOpen(true);
-                    }}
-                  >
-                    <Trash className="mr-2 h-4 w-4" />
-                    Supprimer
-                  </ContextMenuItem>
-                </ContextMenuContent>
-              </ContextMenu>
-            ))}
-          </div>
+          <DragDropProvider
+            sensors={customSensors}
+            onDragEnd={({ operation }) => {
+              const { source } = operation;
+              if (isSortable(source) && filteredTrees) {
+                const { initialIndex, index: newIndex } = source.sortable;
+                if (initialIndex !== newIndex) {
+                  const updated = [...filteredTrees];
+                  const [moved] = updated.splice(initialIndex, 1);
+                  updated.splice(newIndex, 0, moved);
+
+                  // Calculate fractional index
+                  const getNoteIndex = (note: typeof moved) =>
+                    note.index ?? note._creationTime;
+                  let newIndexValue: number;
+
+                  if (newIndex === 0) {
+                    newIndexValue = getNoteIndex(updated[1]) - 1000;
+                  } else if (newIndex === updated.length - 1) {
+                    newIndexValue =
+                      getNoteIndex(updated[updated.length - 2]) + 1000;
+                  } else {
+                    newIndexValue =
+                      (getNoteIndex(updated[newIndex - 1]) +
+                        getNoteIndex(updated[newIndex + 1])) /
+                      2;
+                  }
+
+                  updateNoteIndex({
+                    id: moved._id,
+                    index: newIndexValue,
+                  });
+                }
+              }
+            }}
+          >
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full max-w-6xl">
+              {filteredTrees?.map((tree, index) => (
+                <DashboardSortableItem
+                  key={tree._id}
+                  tree={tree}
+                  index={index}
+                  duplicateNote={duplicateNote}
+                  setNoteToRename={setNoteToRename}
+                  setNewTitle={setNewTitle}
+                  setRenameError={setRenameError}
+                  setRenameDialogOpen={setRenameDialogOpen}
+                  setNoteToDelete={setNoteToDelete}
+                  setDeleteAlertDialogOpen={setDeleteAlertDialogOpen}
+                />
+              ))}
+            </div>
+          </DragDropProvider>
         </ConditionChecker>
       </ConditionChecker>
 

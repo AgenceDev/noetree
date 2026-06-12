@@ -29,6 +29,7 @@ export default defineSchema({
     content: v.string(),
     childNotes: v.optional(v.array(v.id("notes"))),
     parentNote: v.optional(v.id("notes")),
+    index: v.optional(v.float64()),
   })
     .index("by_owner", ["owner", "parentNote"])
     .index("by_parent", ["parentNote"]),
