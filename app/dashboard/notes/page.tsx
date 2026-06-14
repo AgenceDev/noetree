@@ -44,6 +44,13 @@ import {
 import { useState } from "react";
 import { Search, MoreVertical, Edit, Copy, Trash } from "lucide-react";
 import {
+  DashboardTreeItem,
+  addTreeToList,
+  removeTreeFromList,
+  renameTreeInList,
+  updateTreeIndexInList,
+} from "@/lib/treeUtils";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -250,16 +257,6 @@ function DashboardSortableItem({
   );
 }
 
-interface DashboardTreeItem {
-  _id: Id<"notes">;
-  _creationTime: number;
-  title: string;
-  content: string;
-  childNotes?: unknown[] | undefined;
-  nestedNotesCount?: number;
-  index?: number;
-}
-
 export default function Notes() {
   const [newTreeDialogOpen, setNewTreeDialogOpen] = useState(false);
   const [titleError, setTitleError] = useState<string | null>(null);
@@ -305,13 +302,10 @@ export default function Notes() {
       const previousTrees =
         queryClient.getQueryData<DashboardTreeItem[]>(queryKey);
       if (previousTrees) {
-        const updated = previousTrees.map(tree => {
-          if (tree._id === variables.id) {
-            return { ...tree, title: variables.title };
-          }
-          return tree;
-        });
-        queryClient.setQueryData(queryKey, updated);
+        queryClient.setQueryData(
+          queryKey,
+          renameTreeInList(previousTrees, variables.id, variables.title),
+        );
       }
       return { previousTrees };
     },
@@ -346,8 +340,10 @@ export default function Notes() {
       const previousTrees =
         queryClient.getQueryData<DashboardTreeItem[]>(queryKey);
       if (previousTrees) {
-        const updated = previousTrees.filter(tree => tree._id !== variables.id);
-        queryClient.setQueryData(queryKey, updated);
+        queryClient.setQueryData(
+          queryKey,
+          removeTreeFromList(previousTrees, variables.id),
+        );
       }
       return { previousTrees };
     },
@@ -375,18 +371,10 @@ export default function Notes() {
       const previousTrees =
         queryClient.getQueryData<DashboardTreeItem[]>(queryKey);
       if (previousTrees) {
-        const updated = previousTrees.map(tree => {
-          if (tree._id === variables.id) {
-            return { ...tree, index: variables.index };
-          }
-          return tree;
-        });
-        updated.sort((a, b) => {
-          const indexA = a.index ?? a._creationTime;
-          const indexB = b.index ?? b._creationTime;
-          return indexA - indexB;
-        });
-        queryClient.setQueryData(queryKey, updated);
+        queryClient.setQueryData(
+          queryKey,
+          updateTreeIndexInList(previousTrees, variables.id, variables.index),
+        );
       }
       return { previousTrees };
     },
@@ -452,15 +440,10 @@ export default function Notes() {
         queryClient.getQueryData<DashboardTreeItem[]>(queryKey);
       if (previousTrees) {
         const tempId = `temp-${Math.random()}` as unknown as Id<"notes">;
-        const newTree: DashboardTreeItem = {
-          _id: tempId,
-          _creationTime: Date.now(),
-          title: variables.title,
-          content: variables.content || "{}",
-          childNotes: [],
-          nestedNotesCount: 0,
-        };
-        queryClient.setQueryData(queryKey, [...previousTrees, newTree]);
+        queryClient.setQueryData(
+          queryKey,
+          addTreeToList(previousTrees, variables.title, tempId),
+        );
       }
       return { previousTrees };
     },
