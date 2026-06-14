@@ -439,7 +439,6 @@ export default function NotesTree() {
         className="relative w-full h-full overflow-auto scrollbar-thin"
       >
         <DragDropProvider
-          key={treeKey}
           sensors={customSensors}
           onDragStart={() => {
             setTimeout(() => {
@@ -558,7 +557,10 @@ export default function NotesTree() {
             }, 0);
           }}
         >
-          <div className="min-w-full inline-flex justify-center items-start p-4">
+          <div
+            key={treeKey}
+            className="min-w-full inline-flex justify-center items-start p-4"
+          >
             <ConditionChecker condition={!tree}>
               <div className="flex flex-col gap-8 items-center">
                 <Skeleton className="w-48 h-16 rounded-lg" />

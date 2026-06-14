@@ -1,7 +1,15 @@
 "use client";
 
 import { Id } from "@/convex/_generated/dataModel";
-import { createContext, ReactNode, useContext, useMemo, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+} from "react";
 import { api } from "@/convex/_generated/api";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { convexQuery, useConvexMutation } from "@convex-dev/react-query";
@@ -20,6 +28,11 @@ const findNoteById = (noteId: Id<"notes">, note: NoteTree): NoteTree | null => {
   }
   return null;
 };
+
+interface Action {
+  undo: () => void;
+  redo: () => void;
+}
 
 interface TreeContextType {
   tree: NoteTree | null;
@@ -47,6 +60,10 @@ interface TreeContextType {
     toParentId: Id<"notes">,
     index?: number,
   ) => void;
+  undo: () => void;
+  redo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
 const TreeContext = createContext<TreeContextType>({
@@ -60,6 +77,10 @@ const TreeContext = createContext<TreeContextType>({
   onDuplicateNote: () => {},
   onUpdateChildNotesOrder: () => {},
   onMoveNote: () => {},
+  undo: () => {},
+  redo: () => {},
+  canUndo: false,
+  canRedo: false,
 });
 
 export const useTreeContext = (): TreeContextType => {
@@ -77,6 +98,18 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
   const params = useParams();
   const noteId = params.id as Id<"notes">;
   const [selectedNoteId, setSelectedNoteId] = useState<Id<"notes">>(noteId);
+
+  const [history, setHistory] = useState<{
+    undoStack: Action[];
+    redoStack: Action[];
+  }>({ undoStack: [], redoStack: [] });
+
+  const pushAction = useCallback((action: Action) => {
+    setHistory(prev => ({
+      undoStack: [...prev.undoStack, action],
+      redoStack: [],
+    }));
+  }, []);
 
   const { data: tree } = useQuery(
     convexQuery(api.notes.getTreeById, { id: noteId, deep: 10 }),
@@ -97,6 +130,64 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
     updateChildNotes,
     moveNote,
   } = useNoteMutations(noteId, setSelectedNoteId);
+
+  const undo = useCallback(() => {
+    setHistory(prev => {
+      if (prev.undoStack.length === 0) return prev;
+      const nextUndoStack = [...prev.undoStack];
+      const action = nextUndoStack.pop()!;
+      action.undo();
+      return {
+        undoStack: nextUndoStack,
+        redoStack: [...prev.redoStack, action],
+      };
+    });
+  }, []);
+
+  const redo = useCallback(() => {
+    setHistory(prev => {
+      if (prev.redoStack.length === 0) return prev;
+      const nextRedoStack = [...prev.redoStack];
+      const action = nextRedoStack.pop()!;
+      action.redo();
+      return {
+        undoStack: [...prev.undoStack, action],
+        redoStack: nextRedoStack,
+      };
+    });
+  }, []);
+
+  const canUndo = history.undoStack.length > 0;
+  const canRedo = history.redoStack.length > 0;
+
+  // Keyboard shortcut event listener for Ctrl+Z / Ctrl+Y (or Command+Z / Command+Shift+Z)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      ) {
+        // Let the browser handle standard text editing undo/redo
+        return;
+      }
+
+      const isZ = e.key.toLowerCase() === "z";
+      const isY = e.key.toLowerCase() === "y";
+
+      if ((e.ctrlKey || e.metaKey) && isZ && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      } else if ((e.ctrlKey || e.metaKey) && (isY || (e.shiftKey && isZ))) {
+        e.preventDefault();
+        redo();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [undo, redo]);
 
   const selectedNote = useMemo(() => {
     if (!tree) return null;
@@ -127,6 +218,16 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
       },
       onUpdateNoteTitle: (noteId: Id<"notes">, newTitle: string) => {
         if (!selectedNote) return;
+        const currentTree = tree as unknown as NoteTree;
+        const note = currentTree ? findNoteById(noteId, currentTree) : null;
+        const originalTitle = note?.title || "";
+        if (originalTitle === newTitle) return;
+
+        pushAction({
+          undo: () => updateNoteTitle({ id: noteId, title: originalTitle }),
+          redo: () => updateNoteTitle({ id: noteId, title: newTitle }),
+        });
+
         updateNoteTitle({
           id: noteId,
           title: newTitle,
@@ -153,6 +254,9 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
             });
           }
         }
+
+        // Duplication or Creation clears history to prevent references to non-existent temporary states
+        setHistory({ undoStack: [], redoStack: [] });
 
         createNote({
           title: newNoteTitle,
@@ -182,11 +286,15 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
           }
         }
 
+        // Destructive delete clears history
+        setHistory({ undoStack: [], redoStack: [] });
+
         deleteNote({
           id: noteId,
         });
       },
       onDuplicateNote: (noteId: Id<"notes">) => {
+        setHistory({ undoStack: [], redoStack: [] });
         duplicateNote({
           id: noteId,
         });
@@ -195,6 +303,19 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
         parentId: Id<"notes">,
         orderedChildIds: Id<"notes">[],
       ) => {
+        const currentTree = tree as unknown as NoteTree;
+        const parentNote = currentTree
+          ? findNoteById(parentId, currentTree)
+          : null;
+        const originalChildIds = parentNote?.childNotes?.map(c => c._id) || [];
+
+        pushAction({
+          undo: () =>
+            updateChildNotes({ id: parentId, childNotes: originalChildIds }),
+          redo: () =>
+            updateChildNotes({ id: parentId, childNotes: orderedChildIds }),
+        });
+
         updateChildNotes({
           id: parentId,
           childNotes: orderedChildIds,
@@ -206,6 +327,25 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
         toParentId: Id<"notes">,
         index?: number,
       ) => {
+        const currentTree = tree as unknown as NoteTree;
+        const parentNote = currentTree
+          ? findNoteById(fromParentId, currentTree)
+          : null;
+        const originalIndex =
+          parentNote?.childNotes?.findIndex(c => c._id === noteId) ?? 0;
+
+        pushAction({
+          undo: () =>
+            moveNote({
+              id: noteId,
+              from: toParentId,
+              to: fromParentId,
+              index: originalIndex,
+            }),
+          redo: () =>
+            moveNote({ id: noteId, from: fromParentId, to: toParentId, index }),
+        });
+
         moveNote({
           id: noteId,
           from: fromParentId,
@@ -213,6 +353,10 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
           index,
         });
       },
+      undo,
+      redo,
+      canUndo,
+      canRedo,
     }),
     [
       tree,
@@ -225,6 +369,11 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
       duplicateNote,
       updateChildNotes,
       moveNote,
+      undo,
+      redo,
+      canUndo,
+      canRedo,
+      pushAction,
     ],
   );
 
