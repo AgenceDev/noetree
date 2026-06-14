@@ -1,5 +1,6 @@
 "use client";
 import { DragDropProvider, PointerSensor } from "@dnd-kit/react";
+import { PointerActivationConstraints } from "@dnd-kit/dom";
 import { useSortable, isSortable } from "@dnd-kit/react/sortable";
 import { cn } from "@/lib/utils";
 
@@ -77,6 +78,9 @@ const newTreeFormSchema = z.object({
 
 const customSensors = [
   PointerSensor.configure({
+    activationConstraints: [
+      new PointerActivationConstraints.Distance({ value: 5 }),
+    ],
     preventActivation: event => {
       const target = event.target as Element;
       return !!(

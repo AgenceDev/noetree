@@ -36,6 +36,16 @@ interface TreeContextType {
   ) => void;
   onDeleteNote: (noteId: Id<"notes">) => void;
   onDuplicateNote: (noteId: Id<"notes">) => void;
+  onUpdateChildNotesOrder: (
+    parentId: Id<"notes">,
+    orderedChildIds: Id<"notes">[],
+  ) => void;
+  onMoveNote: (
+    noteId: Id<"notes">,
+    fromParentId: Id<"notes">,
+    toParentId: Id<"notes">,
+    index?: number,
+  ) => void;
 }
 
 const TreeContext = createContext<TreeContextType>({
@@ -47,6 +57,8 @@ const TreeContext = createContext<TreeContextType>({
   onAddChildNote: () => {},
   onDeleteNote: () => {},
   onDuplicateNote: () => {},
+  onUpdateChildNotesOrder: () => {},
+  onMoveNote: () => {},
 });
 
 export const useTreeContext = (): TreeContextType => {
@@ -90,6 +102,14 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
 
   const { mutate: duplicateNote } = useMutation({
     mutationFn: useConvexMutation(api.notes.duplicateNote),
+  });
+
+  const { mutate: updateChildNotes } = useMutation({
+    mutationFn: useConvexMutation(api.notes.updateChildNotes),
+  });
+
+  const { mutate: moveNote } = useMutation({
+    mutationFn: useConvexMutation(api.notes.moveNote),
   });
 
   const selectedNote = useMemo(() => {
@@ -185,6 +205,28 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
           id: noteId,
         });
       },
+      onUpdateChildNotesOrder: (
+        parentId: Id<"notes">,
+        orderedChildIds: Id<"notes">[],
+      ) => {
+        updateChildNotes({
+          id: parentId,
+          childNotes: orderedChildIds,
+        });
+      },
+      onMoveNote: (
+        noteId: Id<"notes">,
+        fromParentId: Id<"notes">,
+        toParentId: Id<"notes">,
+        index?: number,
+      ) => {
+        moveNote({
+          id: noteId,
+          from: fromParentId,
+          to: toParentId,
+          index,
+        });
+      },
     }),
     [
       tree,
@@ -195,6 +237,8 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
       createNote,
       deleteNote,
       duplicateNote,
+      updateChildNotes,
+      moveNote,
     ],
   );
 

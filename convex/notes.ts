@@ -481,6 +481,7 @@ export const moveNote = mutation({
     id: v.id("notes"),
     from: v.id("notes"),
     to: v.id("notes"),
+    index: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     // remove from childNotes of from
@@ -510,9 +511,16 @@ export const moveNote = mutation({
       childNotes: newChildrenNotesFrom,
     });
 
+    // Remove existing if any, then insert
     const newChildrenNotesTo = noteTo.childNotes
-      ? [...noteTo.childNotes, args.id]
-      : [args.id];
+      ? noteTo.childNotes.filter(id => id !== args.id)
+      : [];
+
+    if (args.index !== undefined) {
+      newChildrenNotesTo.splice(args.index, 0, args.id);
+    } else {
+      newChildrenNotesTo.push(args.id);
+    }
 
     // add to childNotes of to
     await ctx.db.patch(args.to, {

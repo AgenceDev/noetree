@@ -18,10 +18,249 @@ import { useEditorContext } from "@/providers/EditorProvider";
 import { Skeleton } from "./ui/skeleton";
 import { NoteCard } from "./NoteCard";
 import { NewNoteCard } from "./NewNoteCard";
+import {
+  DragDropProvider,
+  PointerSensor,
+  useDragOperation,
+  useDroppable,
+} from "@dnd-kit/react";
+import { PointerActivationConstraints } from "@dnd-kit/dom";
+import { useSortable } from "@dnd-kit/react/sortable";
+import { cn } from "@/lib/utils";
+
+const customSensors = [
+  PointerSensor.configure({
+    activationConstraints: [
+      new PointerActivationConstraints.Distance({ value: 5 }),
+    ],
+    preventActivation: event => {
+      const target = event.target as Element;
+      return !!(
+        target.closest("button") ||
+        target.closest("input") ||
+        target.closest("textarea") ||
+        target.closest("[role='menu']") ||
+        target.closest("[role='menuitem']")
+      );
+    },
+  }),
+];
+
+const findNoteInTree = (
+  noteId: Id<"notes">,
+  root: NoteTree,
+): NoteTree | null => {
+  if (root._id === noteId) return root;
+  if (!root.childNotes?.length) return null;
+  for (const child of root.childNotes) {
+    const found = findNoteInTree(noteId, child);
+    if (found) return found;
+  }
+  return null;
+};
+
+const isSelfOrDescendantOfDragged = (
+  noteId: Id<"notes">,
+  draggedId: Id<"notes"> | undefined,
+  tree: NoteTree | null | undefined,
+): boolean => {
+  if (!draggedId || !tree) return false;
+  if (noteId === draggedId) return true;
+  const draggedSubtree = findNoteInTree(draggedId, tree);
+  if (!draggedSubtree) return false;
+  return findNoteInTree(noteId, draggedSubtree) !== null;
+};
+
+const getTreeStateKey = (note: NoteTree | null | undefined): string => {
+  if (!note) return "";
+  const childIds = note.childNotes?.map(c => c?._id).filter(Boolean) || [];
+  const childrenStr = childIds.join(",");
+  const subTreeStr = note.childNotes
+    ? note.childNotes.map(c => getTreeStateKey(c)).join("|")
+    : "";
+  return `${note._id}:${childrenStr}[${subTreeStr}]`;
+};
+
+interface CustomCollisionDetectorInput {
+  dragOperation: {
+    position: {
+      current: { x: number; y: number } | null;
+    };
+  };
+  droppable: {
+    id: string | number;
+    shape?: {
+      center: { x: number; y: number };
+      containsPoint: (point: { x: number; y: number }) => boolean;
+      boundingRectangle: {
+        width: number;
+        height: number;
+        left: number;
+        right: number;
+        top: number;
+        bottom: number;
+      };
+    } | null;
+    data?: {
+      parentId?: string;
+      hasChildren?: boolean;
+    };
+  };
+}
+
+const customCollisionDetection = ({
+  dragOperation,
+  droppable,
+}: CustomCollisionDetectorInput) => {
+  const pointerCoordinates = dragOperation.position.current;
+  if (!pointerCoordinates || !droppable.shape) {
+    return null;
+  }
+
+  // Check if pointer is inside the droppable target shape (NoteCard)
+  const isInside = droppable.shape.containsPoint(pointerCoordinates);
+
+  // Calculate distance between pointer and droppable center
+  const dx = droppable.shape.center.x - pointerCoordinates.x;
+  const dy = droppable.shape.center.y - pointerCoordinates.y;
+  const distance = Math.sqrt(dx * dx + dy * dy) || 1;
+
+  const targetIdStr = String(droppable.id);
+  const isCard =
+    !targetIdStr.startsWith("empty-placeholder-") &&
+    targetIdStr !== "root-droppable";
+
+  if (isInside) {
+    if (isCard && droppable.data?.hasChildren === false) {
+      const rect = droppable.shape.boundingRectangle;
+      const relativeX = (pointerCoordinates.x - rect.left) / rect.width;
+
+      // If cursor is in the middle 70% of the card, treat it as hovering the child placeholder
+      if (relativeX >= 0.15 && relativeX <= 0.85) {
+        return {
+          id: `empty-placeholder-${droppable.id}`,
+          value: 10000 / distance, // prioritize items the cursor is directly over
+          type: 2, // PointerIntersection
+          priority: 3, // High
+        };
+      }
+    }
+
+    return {
+      id: droppable.id,
+      value: 10000 / distance, // prioritize items the cursor is directly over
+      type: 2, // PointerIntersection
+      priority: 3, // High
+    };
+  }
+
+  return {
+    id: droppable.id,
+    value: 1 / distance,
+    type: 0, // Collision
+    priority: 2, // Normal
+  };
+};
+
+interface TreeSortableBranchProps {
+  id: Id<"notes">;
+  index: number;
+  parentId: Id<"notes">;
+  hasChildren?: boolean;
+  className?: string;
+  children: (
+    handleRef: (element: Element | null) => void,
+    targetRef: (element: Element | null) => void,
+  ) => React.ReactNode;
+}
+
+function TreeSortableBranch({
+  id,
+  index,
+  parentId,
+  hasChildren,
+  className,
+  children,
+}: TreeSortableBranchProps) {
+  const { ref, handleRef, targetRef, isDragging } = useSortable({
+    id,
+    index,
+    group: `group-${parentId}`,
+    data: {
+      parentId,
+      hasChildren,
+    },
+    collisionDetector: customCollisionDetection as unknown as undefined,
+    plugins: [],
+  });
+
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "tree-child relative flex flex-col items-center",
+        className,
+        isDragging && "opacity-50 scale-95 z-20",
+      )}
+    >
+      {children(handleRef, targetRef)}
+    </div>
+  );
+}
 
 export default function NotesTree() {
-  const { tree, selectedNote, onAddChildNote, onDeleteNote } = useTreeContext();
+  const {
+    tree,
+    selectedNote,
+    onAddChildNote,
+    onDeleteNote,
+    onUpdateChildNotesOrder,
+    onMoveNote,
+  } = useTreeContext();
   const { getCurrentContent } = useEditorContext();
+  const { source, target } = useDragOperation();
+  const isDraggingActive = !!source;
+
+  const { ref: rootDroppableRef } = useDroppable({
+    id: (tree?._id ?? "root-droppable") as string,
+    data: {
+      hasChildren: !!(tree?.childNotes && tree.childNotes.length > 0),
+    },
+    collisionDetector: customCollisionDetection as unknown as undefined,
+  });
+
+  const [hoveredNoteId, setHoveredNoteId] = useState<Id<"notes"> | null>(null);
+
+  useEffect(() => {
+    if (!isDraggingActive || !target) {
+      setHoveredNoteId(null);
+      return;
+    }
+    const targetIdStr = String(target.id);
+    const noteId = (
+      targetIdStr.startsWith("empty-placeholder-")
+        ? targetIdStr.replace("empty-placeholder-", "")
+        : targetIdStr
+    ) as Id<"notes">;
+
+    if (
+      noteId &&
+      !isSelfOrDescendantOfDragged(
+        noteId,
+        source?.id as Id<"notes"> | undefined,
+        tree,
+      )
+    ) {
+      setHoveredNoteId(noteId);
+    } else {
+      setHoveredNoteId(null);
+    }
+  }, [target, isDraggingActive, source?.id, tree]);
+
+  const [dropIndicator, setDropIndicator] = useState<{
+    noteId: Id<"notes">;
+    position: "before" | "after" | "child";
+  } | null>(null);
 
   const [editingNoteId, setEditingNoteId] = useState<Id<"notes"> | null>(null);
   const [noteToDelete, setNoteToDelete] = useState<Id<"notes"> | null>(null);
@@ -69,58 +308,129 @@ export default function NotesTree() {
     setEditingNoteId(noteId);
   };
 
-  const renderNote = (note: NoteTree) => {
+  const renderNote = (
+    note: NoteTree,
+    index: number,
+    handleRef?: (element: Element | null) => void,
+    targetRef?: (element: Element | null) => void,
+  ) => {
+    const hasChildren = note.childNotes && note.childNotes.length > 0;
+    const isEditing = editingNoteId === note._id;
+    const isDraggedOverEligible =
+      isDraggingActive && hoveredNoteId === note._id;
+    const showChildrenSection =
+      hasChildren || isEditing || isDraggedOverEligible;
+
+    const isIndicatorActive = dropIndicator?.noteId === note._id;
+    const isBefore = isIndicatorActive && dropIndicator?.position === "before";
+    const isAfter = isIndicatorActive && dropIndicator?.position === "after";
+    const isNesting = isIndicatorActive && dropIndicator?.position === "child";
+
     return (
-      <div className="flex flex-col items-center gap-8 relative">
+      <div
+        className={cn(
+          "flex flex-col items-center relative",
+          showChildrenSection ? "gap-8" : "gap-0",
+        )}
+      >
         <div className="flex flex-col items-center relative group/node">
+          {isBefore && (
+            <div className="absolute -left-4 top-0 w-1 h-20 bg-primary rounded-full shadow-[0_0_8px_var(--color-primary)] z-30" />
+          )}
+
           <NoteCard
             note={note}
             isRoot={note._id === tree?._id}
             onAddChild={() => handleStartAddingNote(note._id)}
             onDelete={() => setNoteToDelete(note._id)}
             onRef={handleSelectedRef}
+            handleRef={handleRef as (el: HTMLDivElement | null) => void}
+            targetRef={targetRef as (el: HTMLDivElement | null) => void}
+            isNestingHovered={isNesting}
           />
 
-          {/* Vertical line to children anchor */}
-          {((note.childNotes && note.childNotes.length > 0) ||
-            editingNoteId === note._id) && (
-            <div className="w-px h-8 bg-border/60" />
+          {isAfter && (
+            <div className="absolute -right-4 top-0 w-1 h-20 bg-primary rounded-full shadow-[0_0_8px_var(--color-primary)] z-30" />
           )}
+
+          {/* Vertical line to children anchor */}
+          {showChildrenSection && <div className="w-px h-8 bg-border/60" />}
         </div>
 
-        {((note.childNotes && note.childNotes.length > 0) ||
-          editingNoteId === note._id) && (
-          <div className="tree-children flex gap-8 relative">
-            {note.childNotes?.map(childNote => {
-              if (!childNote || !childNote._id || !childNote.title) return null;
-              return (
-                <div
-                  key={childNote._id}
-                  className="tree-child relative flex flex-col items-center"
-                >
-                  {renderNote(childNote)}
-                </div>
-              );
-            })}
+        {/* Children container: always rendered in DOM, collapsed/hidden if not needed */}
+        <div
+          className={cn(
+            "tree-children flex gap-8 relative",
+            !showChildrenSection && "hidden pointer-events-none",
+          )}
+        >
+          {note.childNotes?.map((childNote, idx) => {
+            if (!childNote || !childNote._id || !childNote.title) return null;
+            return (
+              <TreeSortableBranch
+                key={childNote._id}
+                id={childNote._id}
+                index={idx}
+                parentId={note._id}
+                hasChildren={
+                  !!(childNote.childNotes && childNote.childNotes.length > 0)
+                }
+              >
+                {(sortableHandleRef, sortableTargetRef) =>
+                  renderNote(
+                    childNote,
+                    idx,
+                    sortableHandleRef,
+                    sortableTargetRef,
+                  )
+                }
+              </TreeSortableBranch>
+            );
+          })}
 
-            {editingNoteId === note._id && (
-              <div className="tree-child relative flex flex-col items-center">
-                <NewNoteCard
-                  onSave={title => {
-                    if (title.trim()) {
-                      onAddChildNote(note._id, title, getCurrentContent);
-                    }
-                    setEditingNoteId(null);
-                  }}
-                  onCancel={() => setEditingNoteId(null)}
-                />
-              </div>
-            )}
-          </div>
-        )}
+          {/* Empty child drop target: always rendered in JSX if no children, collapsed if not active/eligible */}
+          {!hasChildren && !isEditing && (
+            <TreeSortableBranch
+              key={`empty-placeholder-${note._id}`}
+              id={`empty-placeholder-${note._id}` as Id<"notes">}
+              index={0}
+              parentId={note._id}
+              className={cn(
+                !isDraggedOverEligible && "hidden pointer-events-none",
+              )}
+            >
+              {(_, sortableTargetRef) => (
+                <div
+                  ref={sortableTargetRef as (el: HTMLDivElement | null) => void}
+                  className="w-45 h-20 border-2 border-dashed border-primary/30 rounded-lg flex items-center justify-center bg-primary/5 hover:bg-primary/10 hover:border-primary/50 opacity-70"
+                >
+                  <span className="text-xs text-muted-foreground font-medium">
+                    Déposer ici
+                  </span>
+                </div>
+              )}
+            </TreeSortableBranch>
+          )}
+
+          {editingNoteId === note._id && (
+            <div className="tree-child relative flex flex-col items-center">
+              <NewNoteCard
+                onSave={title => {
+                  if (title.trim()) {
+                    onAddChildNote(note._id, title, getCurrentContent);
+                  }
+                  setEditingNoteId(null);
+                }}
+                onCancel={() => setEditingNoteId(null)}
+              />
+            </div>
+          )}
+        </div>
       </div>
     );
   };
+
+  const treeKey = getTreeStateKey(tree);
 
   return (
     <div className="relative w-full h-full">
@@ -128,18 +438,139 @@ export default function NotesTree() {
         ref={scrollContainerRef}
         className="relative w-full h-full overflow-auto scrollbar-thin"
       >
-        <div className="min-w-full inline-flex justify-center items-start p-4">
-          <ConditionChecker condition={!tree}>
-            <div className="flex flex-col gap-8 items-center">
-              <Skeleton className="w-48 h-16 rounded-lg" />
-              <div className="flex gap-4">
-                <Skeleton className="w-40 h-14 rounded-lg" />
-                <Skeleton className="w-40 h-14 rounded-lg" />
+        <DragDropProvider
+          key={treeKey}
+          sensors={customSensors}
+          onDragStart={() => {
+            setTimeout(() => {
+              setDropIndicator(null);
+            }, 0);
+          }}
+          onDragMove={({ operation }) => {
+            setTimeout(() => {
+              const { source, target } = operation;
+              if (!source || !target) {
+                setDropIndicator(null);
+                return;
+              }
+
+              const targetIdStr = String(target.id);
+              if (targetIdStr.startsWith("empty-placeholder-")) {
+                const noteId = targetIdStr.replace(
+                  "empty-placeholder-",
+                  "",
+                ) as Id<"notes">;
+                setDropIndicator({ noteId, position: "child" });
+              } else {
+                const targetId = target.id as Id<"notes">;
+                if (targetIdStr === "root-droppable") {
+                  setDropIndicator({
+                    noteId: tree?._id as Id<"notes">,
+                    position: "child",
+                  });
+                  return;
+                }
+
+                if (target.element && operation.position.current) {
+                  const rect = target.element.getBoundingClientRect();
+                  const relativeX =
+                    (operation.position.current.x - rect.left) / rect.width;
+
+                  if (relativeX < 0.15) {
+                    setDropIndicator({ noteId: targetId, position: "before" });
+                  } else if (relativeX > 0.85) {
+                    setDropIndicator({ noteId: targetId, position: "after" });
+                  } else {
+                    setDropIndicator({ noteId: targetId, position: "child" });
+                  }
+                }
+              }
+            }, 0);
+          }}
+          onDragEnd={({ operation }) => {
+            setTimeout(() => {
+              setDropIndicator(null);
+              const { source, target } = operation;
+              if (!source || !target || !tree) return;
+
+              const draggedId = source.id as Id<"notes">;
+              const oldParentId = source.data.parentId as Id<"notes">;
+
+              if (String(target.id).startsWith("empty-placeholder-")) {
+                const newParentId = String(target.id).replace(
+                  "empty-placeholder-",
+                  "",
+                ) as Id<"notes">;
+
+                if (oldParentId !== newParentId) {
+                  onMoveNote(draggedId, oldParentId, newParentId, 0);
+                }
+              } else {
+                // Dropped on a card (sibling sortable or other note card)
+                const targetId = target.id as Id<"notes">;
+                const newParentId = target.data.parentId as
+                  | Id<"notes">
+                  | undefined;
+
+                if (!newParentId) return;
+
+                // Find target index in the parent's children list
+                const parentNote = findNoteInTree(newParentId, tree);
+                if (!parentNote || !parentNote.childNotes) return;
+
+                const childIds = parentNote.childNotes.map(c => c._id);
+                const targetIndex = childIds.indexOf(targetId);
+                if (targetIndex === -1) return;
+
+                // Calculate relative pointer position to decide whether to insert before or after target
+                let insertAfter = false;
+                if (operation.position.current && target.element) {
+                  const rect = target.element.getBoundingClientRect();
+                  const relativeX =
+                    (operation.position.current.x - rect.left) / rect.width;
+                  if (relativeX > 0.5) {
+                    insertAfter = true;
+                  }
+                }
+
+                const newIndex = insertAfter ? targetIndex + 1 : targetIndex;
+
+                if (oldParentId !== newParentId) {
+                  onMoveNote(draggedId, oldParentId, newParentId, newIndex);
+                } else {
+                  // Sibling sorting under same parent
+                  const initialIndex = childIds.indexOf(draggedId);
+                  if (initialIndex === -1 || initialIndex === newIndex) return;
+
+                  const updatedIds = [...childIds];
+                  const [movedId] = updatedIds.splice(initialIndex, 1);
+
+                  // Adjust index if we spliced before the insert target
+                  let adjustedNewIndex = newIndex;
+                  if (initialIndex < newIndex) {
+                    adjustedNewIndex = newIndex - 1;
+                  }
+
+                  updatedIds.splice(adjustedNewIndex, 0, movedId);
+                  onUpdateChildNotesOrder(newParentId, updatedIds);
+                }
+              }
+            }, 0);
+          }}
+        >
+          <div className="min-w-full inline-flex justify-center items-start p-4">
+            <ConditionChecker condition={!tree}>
+              <div className="flex flex-col gap-8 items-center">
+                <Skeleton className="w-48 h-16 rounded-lg" />
+                <div className="flex gap-4">
+                  <Skeleton className="w-40 h-14 rounded-lg" />
+                  <Skeleton className="w-40 h-14 rounded-lg" />
+                </div>
               </div>
-            </div>
-          </ConditionChecker>
-          {!!tree && renderNote(tree)}
-        </div>
+            </ConditionChecker>
+            {tree ? renderNote(tree, 0, undefined, rootDroppableRef) : null}
+          </div>
+        </DragDropProvider>
       </div>
       {selectedNote && (
         <Button

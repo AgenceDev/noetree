@@ -19,6 +19,9 @@ interface NoteCardProps {
   onAddChild: () => void;
   onDelete: () => void;
   onRef?: (el: HTMLDivElement | null) => void;
+  handleRef?: (el: HTMLDivElement | null) => void;
+  targetRef?: (el: HTMLDivElement | null) => void;
+  isNestingHovered?: boolean;
 }
 
 export function NoteCard({
@@ -27,6 +30,9 @@ export function NoteCard({
   onAddChild,
   onDelete,
   onRef,
+  handleRef,
+  targetRef,
+  isNestingHovered,
 }: NoteCardProps) {
   const { onSelectNote, onUpdateNoteTitle, onDuplicateNote, selectedNote } =
     useTreeContext();
@@ -38,11 +44,13 @@ export function NoteCard({
 
   const isSelected = selectedNote?._id === note._id;
 
-  const cardRef = useCallback(
+  const combinedRef = useCallback(
     (el: HTMLDivElement | null) => {
+      if (handleRef) handleRef(el);
+      if (targetRef) targetRef(el);
       if (isSelected) onRef?.(el);
     },
-    [isSelected, onRef],
+    [handleRef, targetRef, isSelected, onRef],
   );
 
   useEffect(() => {
@@ -79,14 +87,17 @@ export function NoteCard({
   };
 
   return (
-    <div ref={cardRef} className="relative group/node">
+    <div ref={combinedRef} className="relative group/node">
       <ContextMenu>
         <ContextMenuTrigger disabled={isRenaming}>
           <Card
             className={cn(
-              "cursor-pointer transition-all bg-background hover:bg-accent/50 group border-border shadow-md min-w-[120px] max-w-[240px] relative overflow-hidden",
+              "cursor-pointer transition-all bg-background hover:bg-accent/50 group border-border shadow-md min-w-30 max-w-60 relative overflow-hidden",
               isSelected
                 ? "bg-accent/30 border-primary ring-2 ring-primary/20"
+                : "",
+              isNestingHovered
+                ? "border-primary ring-2 ring-primary/50 bg-primary/5 scale-105"
                 : "",
             )}
             onClick={() => !isRenaming && onSelectNote(note, getCurrentContent)}
