@@ -13,15 +13,12 @@ import {
 const NotePageContent = () => {
   return (
     <EditorProvider>
-      <ResizablePanelGroup
-        direction="horizontal"
-        autoSaveId="autoSaveNotePageResizablePanel"
-      >
-        <ResizablePanel defaultSize={40} minSize={20}>
+      <ResizablePanelGroup orientation="horizontal">
+        <ResizablePanel defaultSize="60%" minSize="250px">
           <NoteTree />
         </ResizablePanel>
         <ResizableHandle withHandle />
-        <ResizablePanel defaultSize={60} minSize={40} className="p-4">
+        <ResizablePanel defaultSize="40%" minSize="400px" className="p-4">
           <NoteContent />
         </ResizablePanel>
       </ResizablePanelGroup>
