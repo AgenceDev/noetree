@@ -10,9 +10,12 @@ import { ReactNode } from "react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { useAuth } from "@clerk/nextjs";
 
-const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!, {
-  skipConvexDeploymentUrlCheck: true,
-});
+let convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL!;
+if (convexUrl && convexUrl.endsWith(".convex.site")) {
+  convexUrl = convexUrl.replace(".convex.site", ".convex.cloud");
+}
+
+const convex = new ConvexReactClient(convexUrl);
 const convexQueryClient = new ConvexQueryClient(convex);
 const queryClient = new QueryClient({
   defaultOptions: {
