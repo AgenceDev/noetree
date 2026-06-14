@@ -99,6 +99,7 @@ interface DashboardSortableItemProps {
     _id: Id<"notes">;
     title: string;
     childNotes?: unknown[] | undefined;
+    nestedNotesCount?: number;
   };
   index: number;
   duplicateNote: (args: { id: Id<"notes"> }) => void;
@@ -147,7 +148,7 @@ function DashboardSortableItem({
                     {tree.title}
                   </CardTitle>
                   <CardDescription>
-                    {tree.childNotes?.length || 0} nested note(s)
+                    {tree.nestedNotesCount ?? 0} nested note(s)
                   </CardDescription>
                 </CardHeader>
               </Card>

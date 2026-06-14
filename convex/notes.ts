@@ -7,6 +7,7 @@ type Notes = Doc<"notes">;
 
 interface NotesToSend extends Omit<Notes, "childNotes"> {
   childNotes: NotesToSend[] | Id<"notes">[] | undefined;
+  nestedNotesCount?: number;
 }
 
 export const getTreeById = query({
@@ -130,10 +131,39 @@ export const getTreesByMe = query({
       return indexA - indexB;
     });
 
+    // Fetch all user notes to compute total nested notes count recursively
+    const allNotes = await ctx.db
+      .query("notes")
+      .withIndex("by_owner", q => q.eq("owner", user._id))
+      .collect();
+
+    // Map parent note to its children
+    const childMap = new Map<string, Doc<"notes">[]>();
+    for (const n of allNotes) {
+      if (n.parentNote) {
+        const parentId = n.parentNote;
+        if (!childMap.has(parentId)) {
+          childMap.set(parentId, []);
+        }
+        childMap.get(parentId)!.push(n);
+      }
+    }
+
+    // Helper to recursively count descendants of a note
+    const countDescendants = (noteId: Id<"notes">): number => {
+      const children = childMap.get(noteId) || [];
+      let count = children.length;
+      for (const child of children) {
+        count += countDescendants(child._id);
+      }
+      return count;
+    };
+
     //step 4 - map current notes to be as NotesToSend
     const notesToSend: NotesToSend[] = notes.map(note => ({
       ...note,
       childNotes: note.childNotes || [],
+      nestedNotesCount: countDescendants(note._id),
     }));
 
     //step 5 - check if deep is provided and if so, get the children notes until deep level
