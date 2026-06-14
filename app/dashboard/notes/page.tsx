@@ -27,7 +27,7 @@ import { Input } from "@/components/ui/input";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { convexQuery, useConvexMutation } from "@convex-dev/react-query";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -127,20 +127,23 @@ function DashboardSortableItem({
     index,
   });
 
+  const isTemp = typeof tree._id === "string" && tree._id.startsWith("temp-");
+
   return (
     <div
       ref={ref}
       className={cn(
         "relative group transition-transform h-full",
         isDragging ? "opacity-50 scale-95 z-20" : "hover:scale-[1.02]",
+        isTemp && "opacity-60 pointer-events-none animate-pulse",
       )}
     >
       <ContextMenu>
-        <ContextMenuTrigger>
+        <ContextMenuTrigger disabled={isTemp}>
           <div className="h-full relative">
             <Link
-              href={`/dashboard/notes/${tree._id}`}
-              className="block h-full"
+              href={isTemp ? "#" : `/dashboard/notes/${tree._id}`}
+              className={cn("block h-full", isTemp && "pointer-events-none")}
             >
               <Card className="h-full hover:bg-muted/50 transition-colors pr-10">
                 <CardHeader>
@@ -247,6 +250,16 @@ function DashboardSortableItem({
   );
 }
 
+interface DashboardTreeItem {
+  _id: Id<"notes">;
+  _creationTime: number;
+  title: string;
+  content: string;
+  childNotes?: unknown[] | undefined;
+  nestedNotesCount?: number;
+  index?: number;
+}
+
 export default function Notes() {
   const [newTreeDialogOpen, setNewTreeDialogOpen] = useState(false);
   const [titleError, setTitleError] = useState<string | null>(null);
@@ -263,6 +276,9 @@ export default function Notes() {
   const [deleteAlertDialogOpen, setDeleteAlertDialogOpen] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState<Id<"notes"> | null>(null);
 
+  const queryClient = useQueryClient();
+  const queryKey = convexQuery(api.notes.getTreesByMe, { deep: 2 }).queryKey;
+
   const { data, isPending, error } = useQuery(
     convexQuery(api.notes.getTreesByMe, { deep: 2 }),
   );
@@ -271,13 +287,42 @@ export default function Notes() {
     tree.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const { mutate: updateNoteTitle } = useMutation({
-    mutationFn: useConvexMutation(api.notes.updateNoteTitle),
-    onSuccess: () => {
+  const updateNoteTitleMutate = useConvexMutation(api.notes.updateNoteTitle);
+  const { mutate: updateNoteTitle } = useMutation<
+    unknown,
+    Error,
+    Parameters<typeof updateNoteTitleMutate>[0],
+    { previousTrees: DashboardTreeItem[] | undefined }
+  >({
+    mutationFn: updateNoteTitleMutate,
+    onMutate: async variables => {
       setRenameDialogOpen(false);
       setNoteToRename(null);
       setNewTitle("");
       setRenameError(null);
+
+      await queryClient.cancelQueries({ queryKey });
+      const previousTrees =
+        queryClient.getQueryData<DashboardTreeItem[]>(queryKey);
+      if (previousTrees) {
+        const updated = previousTrees.map(tree => {
+          if (tree._id === variables.id) {
+            return { ...tree, title: variables.title };
+          }
+          return tree;
+        });
+        queryClient.setQueryData(queryKey, updated);
+      }
+      return { previousTrees };
+    },
+    onError: (
+      err,
+      variables,
+      context?: { previousTrees: DashboardTreeItem[] | undefined },
+    ) => {
+      if (context?.previousTrees) {
+        queryClient.setQueryData(queryKey, context.previousTrees);
+      }
     },
   });
 
@@ -285,16 +330,75 @@ export default function Notes() {
     mutationFn: useConvexMutation(api.notes.duplicateNote),
   });
 
-  const { mutate: deleteNote } = useMutation({
-    mutationFn: useConvexMutation(api.notes.deleteNote),
-    onSuccess: () => {
+  const deleteNoteMutate = useConvexMutation(api.notes.deleteNote);
+  const { mutate: deleteNote } = useMutation<
+    unknown,
+    Error,
+    Parameters<typeof deleteNoteMutate>[0],
+    { previousTrees: DashboardTreeItem[] | undefined }
+  >({
+    mutationFn: deleteNoteMutate,
+    onMutate: async variables => {
       setDeleteAlertDialogOpen(false);
       setNoteToDelete(null);
+
+      await queryClient.cancelQueries({ queryKey });
+      const previousTrees =
+        queryClient.getQueryData<DashboardTreeItem[]>(queryKey);
+      if (previousTrees) {
+        const updated = previousTrees.filter(tree => tree._id !== variables.id);
+        queryClient.setQueryData(queryKey, updated);
+      }
+      return { previousTrees };
+    },
+    onError: (
+      err,
+      variables,
+      context?: { previousTrees: DashboardTreeItem[] | undefined },
+    ) => {
+      if (context?.previousTrees) {
+        queryClient.setQueryData(queryKey, context.previousTrees);
+      }
     },
   });
 
-  const { mutate: updateNoteIndex } = useMutation({
-    mutationFn: useConvexMutation(api.notes.updateNoteIndex),
+  const updateNoteIndexMutate = useConvexMutation(api.notes.updateNoteIndex);
+  const { mutate: updateNoteIndex } = useMutation<
+    unknown,
+    Error,
+    Parameters<typeof updateNoteIndexMutate>[0],
+    { previousTrees: DashboardTreeItem[] | undefined }
+  >({
+    mutationFn: updateNoteIndexMutate,
+    onMutate: async variables => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousTrees =
+        queryClient.getQueryData<DashboardTreeItem[]>(queryKey);
+      if (previousTrees) {
+        const updated = previousTrees.map(tree => {
+          if (tree._id === variables.id) {
+            return { ...tree, index: variables.index };
+          }
+          return tree;
+        });
+        updated.sort((a, b) => {
+          const indexA = a.index ?? a._creationTime;
+          const indexB = b.index ?? b._creationTime;
+          return indexA - indexB;
+        });
+        queryClient.setQueryData(queryKey, updated);
+      }
+      return { previousTrees };
+    },
+    onError: (
+      err,
+      variables,
+      context?: { previousTrees: DashboardTreeItem[] | undefined },
+    ) => {
+      if (context?.previousTrees) {
+        queryClient.setQueryData(queryKey, context.previousTrees);
+      }
+    },
   });
 
   const handleRenameSubmit = (e: React.FormEvent) => {
@@ -330,12 +434,44 @@ export default function Notes() {
     defaultValues: { title: "" },
   });
 
-  const { mutate: createNote, isPending: isNotePending } = useMutation({
-    mutationFn: useConvexMutation(api.notes.createNote),
-    onSuccess: () => {
+  const createNoteMutate = useConvexMutation(api.notes.createNote);
+  const { mutate: createNote, isPending: isNotePending } = useMutation<
+    unknown,
+    Error,
+    Parameters<typeof createNoteMutate>[0],
+    { previousTrees: DashboardTreeItem[] | undefined }
+  >({
+    mutationFn: createNoteMutate,
+    onMutate: async variables => {
       newTreeForm.reset();
       setNewTreeDialogOpen(false);
       setTitleError(null);
+
+      await queryClient.cancelQueries({ queryKey });
+      const previousTrees =
+        queryClient.getQueryData<DashboardTreeItem[]>(queryKey);
+      if (previousTrees) {
+        const tempId = `temp-${Math.random()}` as unknown as Id<"notes">;
+        const newTree: DashboardTreeItem = {
+          _id: tempId,
+          _creationTime: Date.now(),
+          title: variables.title,
+          content: variables.content || "{}",
+          childNotes: [],
+          nestedNotesCount: 0,
+        };
+        queryClient.setQueryData(queryKey, [...previousTrees, newTree]);
+      }
+      return { previousTrees };
+    },
+    onError: (
+      err,
+      variables,
+      context?: { previousTrees: DashboardTreeItem[] | undefined },
+    ) => {
+      if (context?.previousTrees) {
+        queryClient.setQueryData(queryKey, context.previousTrees);
+      }
     },
   });
 

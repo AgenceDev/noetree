@@ -43,6 +43,7 @@ export function NoteCard({
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const isSelected = selectedNote?._id === note._id;
+  const isTemp = typeof note._id === "string" && note._id.startsWith("temp-");
 
   const combinedRef = useCallback(
     (el: HTMLDivElement | null) => {
@@ -87,9 +88,15 @@ export function NoteCard({
   };
 
   return (
-    <div ref={combinedRef} className="relative group/node">
+    <div
+      ref={combinedRef}
+      className={cn(
+        "relative group/node",
+        isTemp && "opacity-60 pointer-events-none animate-pulse",
+      )}
+    >
       <ContextMenu>
-        <ContextMenuTrigger disabled={isRenaming}>
+        <ContextMenuTrigger disabled={isRenaming || isTemp}>
           <Card
             className={cn(
               "cursor-pointer transition-all bg-background hover:bg-accent/50 group border-border shadow-md min-w-30 max-w-60 relative overflow-hidden",
@@ -100,8 +107,10 @@ export function NoteCard({
                 ? "border-primary ring-2 ring-primary/50 bg-primary/5 scale-105"
                 : "",
             )}
-            onClick={() => !isRenaming && onSelectNote(note, getCurrentContent)}
-            onDoubleClick={() => setIsRenaming(true)}
+            onClick={() =>
+              !isRenaming && !isTemp && onSelectNote(note, getCurrentContent)
+            }
+            onDoubleClick={() => !isTemp && setIsRenaming(true)}
           >
             <div className="flex flex-col items-center p-3">
               <ConditionChecker condition={isRenaming}>
