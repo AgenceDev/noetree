@@ -9,16 +9,20 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
+import { VisuallyHidden } from "radix-ui";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTreeContext } from "@/providers/TreeProvider";
 
 function MobileDrawer() {
-  const { isDrawerOpen, setIsDrawerOpen } = useTreeContext();
+  const { isDrawerOpen, setIsDrawerOpen, selectedNote } = useTreeContext();
 
   return (
     <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
       <DrawerContent className="h-[85vh] flex flex-col">
+        <VisuallyHidden.Root>
+          <DrawerTitle>{selectedNote?.title ?? "Note"}</DrawerTitle>
+        </VisuallyHidden.Root>
         <div className="flex-1 overflow-auto px-4 pb-4">
           <NoteContent />
         </div>
