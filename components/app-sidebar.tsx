@@ -23,12 +23,12 @@ import { api } from "@/convex/_generated/api";
 const items = [
   {
     title: "dashboard",
-    url: "/dashboard",
+    url: "/",
     icon: Home,
   },
   {
     title: "notes",
-    url: "/dashboard/notes",
+    url: "/notes",
     icon: FileText,
   },
 ];
@@ -54,9 +54,9 @@ export function AppSidebar() {
         setOpenMobile(false);
       } else {
         const isEditorPage =
-          pathname.startsWith("/dashboard/notes/") &&
-          pathname !== "/dashboard/notes" &&
-          pathname !== "/dashboard/notes/";
+          pathname.startsWith("/notes/") &&
+          pathname !== "/notes" &&
+          pathname !== "/notes/";
 
         if (isEditorPage) {
           setOpen(false);
@@ -92,10 +92,7 @@ export function AppSidebar() {
               {pinnedTrees.map(tree => (
                 <SidebarMenuItem key={tree._id}>
                   <SidebarMenuButton asChild tooltip={tree.title}>
-                    <Link
-                      href={`/dashboard/notes/${tree._id}`}
-                      onClick={handleItemClick}
-                    >
+                    <Link href={`/notes/${tree._id}`} onClick={handleItemClick}>
                       <Pin className="h-4 w-4 -rotate-45" />
                       <span className="truncate">{tree.title}</span>
                     </Link>

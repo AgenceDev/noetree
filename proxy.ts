@@ -5,8 +5,8 @@ import { routing } from "./i18n/routing";
 const intlMiddleware = createMiddleware(routing);
 
 const isProtectedRoute = createRouteMatcher([
-  "/dashboard(.*)",
-  "/:locale/dashboard(.*)",
+  "/notes(.*)",
+  "/:locale/notes(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {

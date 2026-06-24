@@ -3,10 +3,6 @@
     "title": "NoeTree",
     "description": "Visualisez et gérez vos notes hiérarchiques."
   },
-  "Landing": {
-    "welcome": "Bienvenue sur NoeTree, le site est en construction, merci de votre compréhension.",
-    "dashboardLink": "Tableau de bord"
-  },
   "Sidebar": {
     "title": "NoeTree",
     "dashboard": "Tableau de bord",

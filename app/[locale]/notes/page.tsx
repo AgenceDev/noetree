@@ -160,7 +160,7 @@ function DashboardSortableItem({
         <ContextMenuTrigger disabled={isTemp}>
           <div className="h-full relative">
             <Link
-              href={isTemp ? "#" : `/dashboard/notes/${tree._id}`}
+              href={isTemp ? "#" : `/notes/${tree._id}`}
               className={cn("block h-full", isTemp && "pointer-events-none")}
             >
               <Card className="h-full hover:bg-muted/50 transition-colors pr-10">
