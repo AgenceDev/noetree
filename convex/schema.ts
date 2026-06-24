@@ -30,6 +30,7 @@ export default defineSchema({
     childNotes: v.optional(v.array(v.id("notes"))),
     parentNote: v.optional(v.id("notes")),
     index: v.optional(v.float64()),
+    isPinned: v.optional(v.boolean()),
   })
     .index("by_owner", ["owner", "parentNote"])
     .index("by_parent", ["parentNote"]),

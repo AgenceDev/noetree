@@ -10,7 +10,8 @@
   "Sidebar": {
     "title": "NoeTree",
     "dashboard": "Tableau de bord",
-    "notes": "Notes"
+    "notes": "Notes",
+    "pinned": "Épinglées"
   },
   "NavUser": {
     "account": "Compte",
@@ -59,7 +60,9 @@
     "actions": {
       "edit": "Renommer",
       "duplicate": "Dupliquer",
-      "delete": "Supprimer"
+      "delete": "Supprimer",
+      "pin": "Épingler",
+      "unpin": "Désépingler"
     }
   },
   "NoteCard": {

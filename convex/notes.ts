@@ -124,8 +124,13 @@ export const getTreesByMe = query({
       )
       .collect();
 
-    // Sort notes by index (falling back to _creationTime if index is not defined)
+    // Sort notes by pinned status first, then by index (falling back to _creationTime if index is not defined)
     notes.sort((a, b) => {
+      const pinA = a.isPinned ? 1 : 0;
+      const pinB = b.isPinned ? 1 : 0;
+      if (pinA !== pinB) {
+        return pinB - pinA;
+      }
       const indexA = a.index ?? a._creationTime;
       const indexB = b.index ?? b._creationTime;
       return indexA - indexB;
@@ -576,5 +581,26 @@ export const fetchNoteContent = query({
     }
 
     return note.content;
+  },
+});
+
+export const togglePinNote = mutation({
+  args: {
+    id: v.id("notes"),
+  },
+  handler: async (ctx, args) => {
+    const user = await getUser(ctx);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    const note = await ctx.db.get(args.id);
+    if (!note || note.owner !== user._id) {
+      throw new Error("Note not found or unauthorized");
+    }
+    const updatedNote = await ctx.db.patch(args.id, {
+      isPinned: !note.isPinned,
+      updated_at: new Date().toISOString(),
+    });
+    return updatedNote;
   },
 });

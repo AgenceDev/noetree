@@ -12,6 +12,7 @@ export interface DashboardTreeItem {
   childNotes?: DashboardTreeItem[] | undefined;
   nestedNotesCount?: number;
   index?: number;
+  isPinned?: boolean;
 }
 
 /**
@@ -239,6 +240,11 @@ export const updateTreeIndexInList = (
     return tree;
   });
   updated.sort((a, b) => {
+    const pinA = a.isPinned ? 1 : 0;
+    const pinB = b.isPinned ? 1 : 0;
+    if (pinA !== pinB) {
+      return pinB - pinA;
+    }
     const indexA = a.index ?? a._creationTime;
     const indexB = b.index ?? b._creationTime;
     return indexA - indexB;
@@ -263,4 +269,30 @@ export const addTreeToList = (
     nestedNotesCount: 0,
   };
   return [...list, newTree];
+};
+
+/**
+ * Toggles a tree's pinned status in the dashboard list and re-sorts.
+ */
+export const togglePinTreeInList = (
+  list: DashboardTreeItem[],
+  id: Id<"notes">,
+): DashboardTreeItem[] => {
+  const updated = list.map(tree => {
+    if (tree._id === id) {
+      return { ...tree, isPinned: !tree.isPinned };
+    }
+    return tree;
+  });
+  updated.sort((a, b) => {
+    const pinA = a.isPinned ? 1 : 0;
+    const pinB = b.isPinned ? 1 : 0;
+    if (pinA !== pinB) {
+      return pinB - pinA;
+    }
+    const indexA = a.index ?? a._creationTime;
+    const indexB = b.index ?? b._creationTime;
+    return indexA - indexB;
+  });
+  return updated;
 };

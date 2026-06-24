@@ -43,13 +43,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useState } from "react";
-import { Search, MoreVertical, Edit, Copy, Trash } from "lucide-react";
+import { Search, MoreVertical, Edit, Copy, Trash, Pin } from "lucide-react";
 import {
   DashboardTreeItem,
   addTreeToList,
   removeTreeFromList,
   renameTreeInList,
   updateTreeIndexInList,
+  togglePinTreeInList,
 } from "@/lib/treeUtils";
 import {
   DropdownMenu,
@@ -100,9 +101,11 @@ interface DashboardSortableItemProps {
     title: string;
     childNotes?: unknown[] | undefined;
     nestedNotesCount?: number;
+    isPinned?: boolean;
   };
   index: number;
   duplicateNote: (args: { id: Id<"notes"> }) => void;
+  togglePinNote: (args: { id: Id<"notes"> }) => void;
   setNoteToRename: (val: { id: Id<"notes">; title: string } | null) => void;
   setNewTitle: (val: string) => void;
   setRenameError: (val: string | null) => void;
@@ -115,6 +118,7 @@ function DashboardSortableItem({
   tree,
   index,
   duplicateNote,
+  togglePinNote,
   setNoteToRename,
   setNewTitle,
   setRenameError,
@@ -157,7 +161,29 @@ function DashboardSortableItem({
                 </CardHeader>
               </Card>
             </Link>
-            <div className="absolute top-4 right-4 z-10">
+            <div className="absolute top-4 right-4 z-10 flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "h-8 w-8 transition-all duration-200",
+                  tree.isPinned
+                    ? "text-blue-500 hover:text-blue-600 scale-110"
+                    : "md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 text-muted-foreground hover:text-blue-500",
+                )}
+                onClick={e => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  togglePinNote({ id: tree._id });
+                }}
+              >
+                <Pin
+                  className={cn(
+                    "h-4 w-4",
+                    tree.isPinned && "fill-blue-500 -rotate-45",
+                  )}
+                />
+              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -198,6 +224,20 @@ function DashboardSortableItem({
                     <Copy className="mr-2 h-4 w-4" />
                     {t("actions.duplicate")}
                   </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      togglePinNote({ id: tree._id });
+                    }}
+                  >
+                    <Pin
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        tree.isPinned &&
+                          "fill-blue-500 text-blue-500 -rotate-45",
+                      )}
+                    />
+                    {tree.isPinned ? t("actions.unpin") : t("actions.pin")}
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     variant="destructive"
@@ -233,6 +273,19 @@ function DashboardSortableItem({
           >
             <Copy className="mr-2 h-4 w-4" />
             {t("actions.duplicate")}
+          </ContextMenuItem>
+          <ContextMenuItem
+            onClick={() => {
+              togglePinNote({ id: tree._id });
+            }}
+          >
+            <Pin
+              className={cn(
+                "mr-2 h-4 w-4",
+                tree.isPinned && "fill-blue-500 text-blue-500 -rotate-45",
+              )}
+            />
+            {tree.isPinned ? t("actions.unpin") : t("actions.pin")}
           </ContextMenuItem>
           <ContextMenuSeparator />
           <ContextMenuItem
@@ -411,6 +464,37 @@ export default function Notes() {
     },
   });
 
+  const togglePinNoteMutate = useConvexMutation(api.notes.togglePinNote);
+  const { mutate: togglePinNote } = useMutation<
+    unknown,
+    Error,
+    Parameters<typeof togglePinNoteMutate>[0],
+    { previousTrees: DashboardTreeItem[] | undefined }
+  >({
+    mutationFn: togglePinNoteMutate,
+    onMutate: async variables => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousTrees =
+        queryClient.getQueryData<DashboardTreeItem[]>(queryKey);
+      if (previousTrees) {
+        queryClient.setQueryData(
+          queryKey,
+          togglePinTreeInList(previousTrees, variables.id),
+        );
+      }
+      return { previousTrees };
+    },
+    onError: (
+      err,
+      variables,
+      context?: { previousTrees: DashboardTreeItem[] | undefined },
+    ) => {
+      if (context?.previousTrees) {
+        queryClient.setQueryData(queryKey, context.previousTrees);
+      }
+    },
+  });
+
   const handleRenameSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const cleanTitle = newTitle.trim();
@@ -539,11 +623,32 @@ export default function Notes() {
         >
           <DragDropProvider
             sensors={customSensors}
+            onDragOver={event => {
+              const { operation } = event;
+              const { source, target } = operation;
+              if (isSortable(source) && isSortable(target) && filteredTrees) {
+                const sourceItem = filteredTrees.find(t => t._id === source.id);
+                const targetItem = filteredTrees.find(t => t._id === target.id);
+                if (
+                  sourceItem &&
+                  targetItem &&
+                  !!sourceItem.isPinned !== !!targetItem.isPinned
+                ) {
+                  event.preventDefault();
+                }
+              }
+            }}
             onDragEnd={({ operation }) => {
               const { source } = operation;
               if (isSortable(source) && filteredTrees) {
                 const { initialIndex, index: newIndex } = source.sortable;
                 if (initialIndex !== newIndex) {
+                  const itemToMove = filteredTrees[initialIndex];
+                  const target = filteredTrees[newIndex];
+                  if (!!itemToMove.isPinned !== !!target.isPinned) {
+                    return;
+                  }
+
                   const updated = [...filteredTrees];
                   const [moved] = updated.splice(initialIndex, 1);
                   updated.splice(newIndex, 0, moved);
@@ -580,6 +685,7 @@ export default function Notes() {
                   tree={tree}
                   index={index}
                   duplicateNote={duplicateNote}
+                  togglePinNote={togglePinNote}
                   setNoteToRename={setNoteToRename}
                   setNewTitle={setNewTitle}
                   setRenameError={setRenameError}

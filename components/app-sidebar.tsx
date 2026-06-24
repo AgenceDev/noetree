@@ -13,9 +13,12 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Home, FileText } from "lucide-react";
+import { Home, FileText, Pin } from "lucide-react";
 import { NavUser } from "@/components/nav-user";
 import { useTranslations } from "next-intl";
+import { useQuery } from "@tanstack/react-query";
+import { convexQuery } from "@convex-dev/react-query";
+import { api } from "@/convex/_generated/api";
 
 const items = [
   {
@@ -35,6 +38,9 @@ export function AppSidebar() {
   const { setOpen } = useSidebar();
   const lastPath = useRef("");
   const t = useTranslations("Sidebar");
+
+  const { data: trees } = useQuery(convexQuery(api.notes.getTreesByMe, {}));
+  const pinnedTrees = trees?.filter(t => t.isPinned).slice(0, 10) || [];
 
   useEffect(() => {
     const isEditorPage =
@@ -68,6 +74,24 @@ export function AppSidebar() {
             ))}
           </SidebarMenu>
         </SidebarGroup>
+
+        {pinnedTrees.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel>{t("pinned")}</SidebarGroupLabel>
+            <SidebarMenu>
+              {pinnedTrees.map(tree => (
+                <SidebarMenuItem key={tree._id}>
+                  <SidebarMenuButton asChild tooltip={tree.title}>
+                    <Link href={`/dashboard/notes/${tree._id}`}>
+                      <Pin className="h-4 w-4 -rotate-45" />
+                      <span className="truncate">{tree.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       <SidebarFooter>
         <NavUser />
