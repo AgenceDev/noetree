@@ -32,9 +32,21 @@ import { cn } from "@/lib/utils";
 
 const customSensors = [
   PointerSensor.configure({
-    activationConstraints: [
-      new PointerActivationConstraints.Distance({ value: 5 }),
-    ],
+    activationConstraints: event => {
+      if (event.pointerType === "touch") {
+        return [
+          new PointerActivationConstraints.Delay({
+            value: 250,
+            tolerance: 10,
+          }),
+        ];
+      }
+      return [
+        new PointerActivationConstraints.Distance({
+          value: 5,
+        }),
+      ];
+    },
     preventActivation: event => {
       const target = event.target as Element;
       return !!(
