@@ -34,26 +34,30 @@ function MobileDrawer() {
 const NotePageContent = () => {
   const isMobile = useIsMobile();
 
-  return (
-    <EditorProvider>
-      {isMobile ? (
+  if (isMobile === undefined || isMobile) {
+    return (
+      <EditorProvider>
         <>
           <div className="h-full w-full overflow-auto">
             <NoteTree />
           </div>
           <MobileDrawer />
         </>
-      ) : (
-        <ResizablePanelGroup orientation="horizontal">
-          <ResizablePanel defaultSize="60%" minSize="250px">
-            <NoteTree />
-          </ResizablePanel>
-          <ResizableHandle withHandle />
-          <ResizablePanel defaultSize="40%" minSize="400px" className="p-4">
-            <NoteContent />
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      )}
+      </EditorProvider>
+    );
+  }
+
+  return (
+    <EditorProvider>
+      <ResizablePanelGroup orientation="horizontal">
+        <ResizablePanel defaultSize="60%" minSize="250px">
+          <NoteTree />
+        </ResizablePanel>
+        <ResizableHandle withHandle />
+        <ResizablePanel defaultSize="40%" minSize="400px" className="p-4">
+          <NoteContent />
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </EditorProvider>
   );
 };
