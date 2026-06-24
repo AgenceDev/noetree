@@ -152,18 +152,20 @@ export function NoteCard({
                 >
                   <Plus className="h-3 w-3" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={e => {
-                    e.stopPropagation();
-                    onDuplicateNote(note._id);
-                  }}
-                  title={t("tooltips.duplicate")}
-                >
-                  <Copy className="h-3 w-3" />
-                </Button>
+                <ConditionChecker condition={!isRoot}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={e => {
+                      e.stopPropagation();
+                      onDuplicateNote(note._id);
+                    }}
+                    title={t("tooltips.duplicate")}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </ConditionChecker>
                 <ConditionChecker condition={!isRoot}>
                   <Button
                     variant="ghost"
@@ -189,9 +191,11 @@ export function NoteCard({
           <ContextMenuItem onClick={() => setIsRenaming(true)}>
             {t("contextMenu.rename")}
           </ContextMenuItem>
-          <ContextMenuItem onClick={() => onDuplicateNote(note._id)}>
-            {t("contextMenu.duplicate")}
-          </ContextMenuItem>
+          <ConditionChecker condition={!isRoot}>
+            <ContextMenuItem onClick={() => onDuplicateNote(note._id)}>
+              {t("contextMenu.duplicate")}
+            </ContextMenuItem>
+          </ConditionChecker>
           <ConditionChecker condition={!isRoot}>
             <ContextMenuItem variant="destructive" onClick={onDelete}>
               {t("contextMenu.delete")}
