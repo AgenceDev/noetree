@@ -10,6 +10,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { useDebouncedCallback } from "use-debounce";
@@ -46,6 +47,7 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
   const { selectedNote, onUpdateNoteContent } = useTreeContext();
 
   const [saveStatus, setSaveStatus] = useState<saveStatusType>("idle");
+  const lastNoteIdRef = useRef<string | undefined>(undefined);
 
   let initialContent: Content = "";
   try {
@@ -126,6 +128,13 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
     if (!editor || editor.isDestroyed) return;
 
     debouncedSave.cancel();
+
+    const isNoteChanged = lastNoteIdRef.current !== selectedNote?._id;
+    lastNoteIdRef.current = selectedNote?._id;
+
+    if (isNoteChanged) {
+      setSaveStatus("idle");
+    }
 
     if (!selectedNote) {
       if (editor.getText() !== "") {
