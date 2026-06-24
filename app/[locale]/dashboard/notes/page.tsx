@@ -80,9 +80,21 @@ import {
 
 const customSensors = [
   PointerSensor.configure({
-    activationConstraints: [
-      new PointerActivationConstraints.Distance({ value: 5 }),
-    ],
+    activationConstraints: event => {
+      if (event.pointerType === "touch") {
+        return [
+          new PointerActivationConstraints.Delay({
+            value: 250,
+            tolerance: 10,
+          }),
+        ];
+      }
+      return [
+        new PointerActivationConstraints.Distance({
+          value: 5,
+        }),
+      ];
+    },
     preventActivation: event => {
       const target = event.target as Element;
       return !!(
@@ -748,7 +760,7 @@ export default function Notes() {
               }
             }}
           >
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full max-w-6xl">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4 md:gap-6 w-full max-w-6xl">
               {filteredTrees?.map((tree, index) => (
                 <DashboardSortableItem
                   key={tree._id}

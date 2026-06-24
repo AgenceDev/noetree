@@ -35,26 +35,36 @@ const items = [
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { setOpen } = useSidebar();
+  const { setOpen, setOpenMobile, isMobile } = useSidebar();
   const lastPath = useRef("");
   const t = useTranslations("Sidebar");
 
   const { data: trees } = useQuery(convexQuery(api.notes.getTreesByMe, {}));
   const pinnedTrees = trees?.filter(t => t.isPinned).slice(0, 10) || [];
 
-  useEffect(() => {
-    const isEditorPage =
-      pathname.startsWith("/dashboard/notes/") &&
-      pathname !== "/dashboard/notes" &&
-      pathname !== "/dashboard/notes/";
+  const handleItemClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
-    if (isEditorPage && lastPath.current !== pathname) {
-      setOpen(false);
-      lastPath.current = pathname;
-    } else if (lastPath.current !== pathname) {
+  useEffect(() => {
+    if (lastPath.current !== pathname) {
+      if (isMobile) {
+        setOpenMobile(false);
+      } else {
+        const isEditorPage =
+          pathname.startsWith("/dashboard/notes/") &&
+          pathname !== "/dashboard/notes" &&
+          pathname !== "/dashboard/notes/";
+
+        if (isEditorPage) {
+          setOpen(false);
+        }
+      }
       lastPath.current = pathname;
     }
-  }, [pathname, setOpen]);
+  }, [pathname, isMobile, setOpen, setOpenMobile]);
 
   return (
     <Sidebar collapsible="icon">
@@ -65,7 +75,7 @@ export function AppSidebar() {
             {items.map(item => (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton asChild tooltip={t(item.title)}>
-                  <Link href={item.url}>
+                  <Link href={item.url} onClick={handleItemClick}>
                     <item.icon />
                     <span>{t(item.title)}</span>
                   </Link>
@@ -82,7 +92,10 @@ export function AppSidebar() {
               {pinnedTrees.map(tree => (
                 <SidebarMenuItem key={tree._id}>
                   <SidebarMenuButton asChild tooltip={tree.title}>
-                    <Link href={`/dashboard/notes/${tree._id}`}>
+                    <Link
+                      href={`/dashboard/notes/${tree._id}`}
+                      onClick={handleItemClick}
+                    >
                       <Pin className="h-4 w-4 -rotate-45" />
                       <span className="truncate">{tree.title}</span>
                     </Link>

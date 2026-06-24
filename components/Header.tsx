@@ -24,15 +24,9 @@ export default function Header() {
         )}
       </div>
 
-      {search && (
-        <div className="flex-1 max-w-xs md:max-w-md mx-2 sm:mx-4 hidden sm:block">
-          {search}
-        </div>
-      )}
+      {search && <div className="flex-1 max-w-xs mx-2 sm:mx-4">{search}</div>}
 
       <div className="flex items-center gap-3 shrink-0">
-        {/* Render search on mobile screen only if it exists and screen is extra small, but keep header clean */}
-        {search && <div className="sm:hidden">{search}</div>}
         {action}
         <ConditionChecker condition={!isLoading}>
           <ConditionChecker condition={!isAuthenticated}>
