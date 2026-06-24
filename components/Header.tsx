@@ -1,7 +1,7 @@
 "use client";
 import { useStoreUserEffect } from "@/hooks/useStoreUserEffect";
 import ConditionChecker from "@/components/helpers/ConditionChecker";
-import { SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { SignInButton, SignUpButton } from "@clerk/nextjs";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function Header() {
@@ -13,9 +13,6 @@ export default function Header() {
       </div>
       <div className="flex items-center gap-4">
         <ConditionChecker condition={!isLoading}>
-          <ConditionChecker condition={isAuthenticated}>
-            <UserButton />
-          </ConditionChecker>
           <ConditionChecker condition={!isAuthenticated}>
             <SignInButton />
             <SignUpButton />
