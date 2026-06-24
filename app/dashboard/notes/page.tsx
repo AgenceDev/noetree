@@ -257,6 +257,26 @@ function DashboardSortableItem({
   );
 }
 
+interface SearchableNote {
+  title: string;
+  childNotes?: (SearchableNote | string | unknown)[] | undefined;
+}
+
+const matchNote = (note: SearchableNote, query: string): boolean => {
+  if (note.title.toLowerCase().includes(query.toLowerCase())) {
+    return true;
+  }
+  if (note.childNotes && Array.isArray(note.childNotes)) {
+    return note.childNotes.some(child => {
+      if (typeof child === "object" && child !== null && "title" in child) {
+        return matchNote(child as SearchableNote, query);
+      }
+      return false;
+    });
+  }
+  return false;
+};
+
 export default function Notes() {
   const [newTreeDialogOpen, setNewTreeDialogOpen] = useState(false);
   const [titleError, setTitleError] = useState<string | null>(null);
@@ -274,15 +294,13 @@ export default function Notes() {
   const [noteToDelete, setNoteToDelete] = useState<Id<"notes"> | null>(null);
 
   const queryClient = useQueryClient();
-  const queryKey = convexQuery(api.notes.getTreesByMe, { deep: 2 }).queryKey;
+  const queryKey = convexQuery(api.notes.getTreesByMe, { deep: 10 }).queryKey;
 
   const { data, isPending, error } = useQuery(
-    convexQuery(api.notes.getTreesByMe, { deep: 2 }),
+    convexQuery(api.notes.getTreesByMe, { deep: 10 }),
   );
 
-  const filteredTrees = data?.filter(tree =>
-    tree.title.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const filteredTrees = data?.filter(tree => matchNote(tree, searchQuery));
 
   const updateNoteTitleMutate = useConvexMutation(api.notes.updateNoteTitle);
   const { mutate: updateNoteTitle } = useMutation<

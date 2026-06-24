@@ -177,11 +177,10 @@ export const getTreesByMe = query({
 
         // Process each note at the current level
         for (const currentNote of currentLevelNotes) {
-          // Fetch its children
-          const childrenNotes = await ctx.db
-            .query("notes")
-            .withIndex("by_parent", q => q.eq("parentNote", currentNote._id))
-            .collect();
+          // Find its children in memory from allNotes
+          const childrenNotes = allNotes.filter(
+            n => n.parentNote === currentNote._id,
+          );
 
           if (childrenNotes.length > 0) {
             const orderedIds = currentNote.childNotes as Id<"notes">[];

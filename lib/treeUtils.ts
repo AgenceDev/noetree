@@ -9,7 +9,7 @@ export interface DashboardTreeItem {
   _creationTime: number;
   title: string;
   content: string;
-  childNotes?: unknown[] | undefined;
+  childNotes?: DashboardTreeItem[] | undefined;
   nestedNotesCount?: number;
   index?: number;
 }
