@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import "./globals.css";
+import "../globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ConvexClientProvider } from "@/providers/ConvexClientProvider";
@@ -7,6 +7,10 @@ import { ThemeProvider } from "next-themes";
 import Header from "@/components/Header";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages } from "next-intl/server";
+import { routing } from "@/i18n/routing";
+import { notFound } from "next/navigation";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 
@@ -20,30 +24,44 @@ export const metadata: Metadata = {
   description: "NoeTree app",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+  params,
+}: Readonly<{
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
+}>) {
+  const { locale } = await params;
+
+  if (!(routing.locales as readonly string[]).includes(locale)) {
+    notFound();
+  }
+
+  const messages = await getMessages();
+
   return (
     <ClerkProvider>
       <ConvexClientProvider>
-        <html lang="en" suppressHydrationWarning>
+        <html lang={locale} suppressHydrationWarning>
           <body
             className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-primary selection:text-white`}
           >
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              <SidebarProvider>
-                <AppSidebar />
-                <SidebarInset className="flex flex-col h-screen overflow-hidden bg-background">
-                  <Header />
-                  <main className="flex-1 overflow-y-auto">{children}</main>
-                </SidebarInset>
-              </SidebarProvider>
-            </ThemeProvider>
+            <NextIntlClientProvider messages={messages}>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                disableTransitionOnChange
+              >
+                <SidebarProvider>
+                  <AppSidebar />
+                  <SidebarInset className="flex flex-col h-screen overflow-hidden bg-background">
+                    <Header />
+                    <main className="flex-1 overflow-y-auto">{children}</main>
+                  </SidebarInset>
+                </SidebarProvider>
+              </ThemeProvider>
+            </NextIntlClientProvider>
           </body>
         </html>
       </ConvexClientProvider>

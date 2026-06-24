@@ -1,9 +1,12 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
+import { getTranslations } from "next-intl/server";
 
-export default function Dashboard() {
+export default async function Dashboard() {
+  const t = await getTranslations("Dashboard");
+
   return (
     <div className="flex flex-col justify-center items-center gap-8 p-6">
-      <h1 className="text-8xl font-bold">Dashboard</h1>
+      <h1 className="text-8xl font-bold">{t("title")}</h1>
       <Link href="/dashboard/notes">Notes</Link>
     </div>
   );

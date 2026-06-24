@@ -1,9 +1,23 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import createMiddleware from "next-intl/middleware";
+import { routing } from "./i18n/routing";
 
-const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
+const intlMiddleware = createMiddleware(routing);
+
+const isProtectedRoute = createRouteMatcher([
+  "/dashboard(.*)",
+  "/:locale/dashboard(.*)",
+]);
 
 export default clerkMiddleware(async (auth, req) => {
   if (isProtectedRoute(req)) await auth.protect();
+
+  // Skip running next-intl for API routes
+  if (req.nextUrl.pathname.startsWith("/api")) {
+    return;
+  }
+
+  return intlMiddleware(req);
 });
 
 export const config = {

@@ -1,4 +1,6 @@
 allowBuilds:
+  "@parcel/watcher": true
+  "@swc/core": true
   cypress: true
   esbuild: true
   sharp: true

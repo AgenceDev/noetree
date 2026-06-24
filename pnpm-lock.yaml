@@ -88,6 +88,9 @@ importers:
       next:
         specifier: ^16.2.7
         version: 16.2.9(@babel/core@7.29.7)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      next-intl:
+        specifier: ^4.13.0
+        version: 4.13.0(next@16.2.9(@babel/core@7.29.7)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)(typescript@6.0.3)
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -187,7 +190,7 @@ importers:
         version: 9.1.7
       jest:
         specifier: ^30.4.2
-        version: 30.4.2(@types/node@25.9.2)(ts-node@10.9.2(@types/node@25.9.2)(typescript@6.0.3))
+        version: 30.4.2(@types/node@25.9.2)(ts-node@10.9.2(@swc/core@1.15.43)(@types/node@25.9.2)(typescript@6.0.3))
       jest-environment-jsdom:
         specifier: ^30.4.1
         version: 30.4.1
@@ -208,7 +211,7 @@ importers:
         version: 4.3.0
       ts-node:
         specifier: ^10.9.2
-        version: 10.9.2(@types/node@25.9.2)(typescript@6.0.3)
+        version: 10.9.2(@swc/core@1.15.43)(@types/node@25.9.2)(typescript@6.0.3)
       typescript:
         specifier: ^6
         version: 6.0.3
@@ -1036,6 +1039,30 @@ packages:
         integrity: sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==,
       }
 
+  "@formatjs/fast-memoize@3.1.6":
+    resolution:
+      {
+        integrity: sha512-H5aexk1Le7T9TPmscacZ+1pR6CTa2n1wq+HDVGXhH8TzUlQQpeXzZs91dRtmFHrbeNbjPFPfQujUqm7MHgVoXQ==,
+      }
+
+  "@formatjs/icu-messageformat-parser@3.5.11":
+    resolution:
+      {
+        integrity: sha512-NVsuNsc2dUVG9+4HBJ/srScxtA/18LqGgwtop/tuN/OIBjVl6QA+0KhfZQddDD9sEh2LeVjLFPGVU3ixa3blcA==,
+      }
+
+  "@formatjs/icu-skeleton-parser@2.1.10":
+    resolution:
+      {
+        integrity: sha512-XuSva+8ZGawk8VnD5VD6UeH8KarQ/Z022zgjHDoHmlNiAewstXuuzXc0Hk5pGFSdG+nNw5bfJKXqj1ZXHn9yUA==,
+      }
+
+  "@formatjs/intl-localematcher@0.8.10":
+    resolution:
+      {
+        integrity: sha512-P/IC3qws3jH+1fEs+o0RIFgXKRaQlFehjS5W0FPAqdo6hgzawLl+eD0q0JjheQ3XtoOe5n8WSYfX06KQZI/QJA==,
+      }
+
   "@hapi/address@5.1.1":
     resolution:
       {
@@ -1676,6 +1703,136 @@ packages:
         integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==,
       }
     engines: { node: ">=12.4.0" }
+
+  "@parcel/watcher-android-arm64@2.5.6":
+    resolution:
+      {
+        integrity: sha512-YQxSS34tPF/6ZG7r/Ih9xy+kP/WwediEUsqmtf0cuCV5TPPKw/PQHRhueUo6JdeFJaqV3pyjm0GdYjZotbRt/A==,
+      }
+    engines: { node: ">= 10.0.0" }
+    cpu: [arm64]
+    os: [android]
+
+  "@parcel/watcher-darwin-arm64@2.5.6":
+    resolution:
+      {
+        integrity: sha512-Z2ZdrnwyXvvvdtRHLmM4knydIdU9adO3D4n/0cVipF3rRiwP+3/sfzpAwA/qKFL6i1ModaabkU7IbpeMBgiVEA==,
+      }
+    engines: { node: ">= 10.0.0" }
+    cpu: [arm64]
+    os: [darwin]
+
+  "@parcel/watcher-darwin-x64@2.5.6":
+    resolution:
+      {
+        integrity: sha512-HgvOf3W9dhithcwOWX9uDZyn1lW9R+7tPZ4sug+NGrGIo4Rk1hAXLEbcH1TQSqxts0NYXXlOWqVpvS1SFS4fRg==,
+      }
+    engines: { node: ">= 10.0.0" }
+    cpu: [x64]
+    os: [darwin]
+
+  "@parcel/watcher-freebsd-x64@2.5.6":
+    resolution:
+      {
+        integrity: sha512-vJVi8yd/qzJxEKHkeemh7w3YAn6RJCtYlE4HPMoVnCpIXEzSrxErBW5SJBgKLbXU3WdIpkjBTeUNtyBVn8TRng==,
+      }
+    engines: { node: ">= 10.0.0" }
+    cpu: [x64]
+    os: [freebsd]
+
+  "@parcel/watcher-linux-arm-glibc@2.5.6":
+    resolution:
+      {
+        integrity: sha512-9JiYfB6h6BgV50CCfasfLf/uvOcJskMSwcdH1PHH9rvS1IrNy8zad6IUVPVUfmXr+u+Km9IxcfMLzgdOudz9EQ==,
+      }
+    engines: { node: ">= 10.0.0" }
+    cpu: [arm]
+    os: [linux]
+    libc: [glibc]
+
+  "@parcel/watcher-linux-arm-musl@2.5.6":
+    resolution:
+      {
+        integrity: sha512-Ve3gUCG57nuUUSyjBq/MAM0CzArtuIOxsBdQ+ftz6ho8n7s1i9E1Nmk/xmP323r2YL0SONs1EuwqBp2u1k5fxg==,
+      }
+    engines: { node: ">= 10.0.0" }
+    cpu: [arm]
+    os: [linux]
+    libc: [musl]
+
+  "@parcel/watcher-linux-arm64-glibc@2.5.6":
+    resolution:
+      {
+        integrity: sha512-f2g/DT3NhGPdBmMWYoxixqYr3v/UXcmLOYy16Bx0TM20Tchduwr4EaCbmxh1321TABqPGDpS8D/ggOTaljijOA==,
+      }
+    engines: { node: ">= 10.0.0" }
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
+
+  "@parcel/watcher-linux-arm64-musl@2.5.6":
+    resolution:
+      {
+        integrity: sha512-qb6naMDGlbCwdhLj6hgoVKJl2odL34z2sqkC7Z6kzir8b5W65WYDpLB6R06KabvZdgoHI/zxke4b3zR0wAbDTA==,
+      }
+    engines: { node: ">= 10.0.0" }
+    cpu: [arm64]
+    os: [linux]
+    libc: [musl]
+
+  "@parcel/watcher-linux-x64-glibc@2.5.6":
+    resolution:
+      {
+        integrity: sha512-kbT5wvNQlx7NaGjzPFu8nVIW1rWqV780O7ZtkjuWaPUgpv2NMFpjYERVi0UYj1msZNyCzGlaCWEtzc+exjMGbQ==,
+      }
+    engines: { node: ">= 10.0.0" }
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
+  "@parcel/watcher-linux-x64-musl@2.5.6":
+    resolution:
+      {
+        integrity: sha512-1JRFeC+h7RdXwldHzTsmdtYR/Ku8SylLgTU/reMuqdVD7CtLwf0VR1FqeprZ0eHQkO0vqsbvFLXUmYm/uNKJBg==,
+      }
+    engines: { node: ">= 10.0.0" }
+    cpu: [x64]
+    os: [linux]
+    libc: [musl]
+
+  "@parcel/watcher-win32-arm64@2.5.6":
+    resolution:
+      {
+        integrity: sha512-3ukyebjc6eGlw9yRt678DxVF7rjXatWiHvTXqphZLvo7aC5NdEgFufVwjFfY51ijYEWpXbqF5jtrK275z52D4Q==,
+      }
+    engines: { node: ">= 10.0.0" }
+    cpu: [arm64]
+    os: [win32]
+
+  "@parcel/watcher-win32-ia32@2.5.6":
+    resolution:
+      {
+        integrity: sha512-k35yLp1ZMwwee3Ez/pxBi5cf4AoBKYXj00CZ80jUz5h8prpiaQsiRPKQMxoLstNuqe2vR4RNPEAEcjEFzhEz/g==,
+      }
+    engines: { node: ">= 10.0.0" }
+    cpu: [ia32]
+    os: [win32]
+
+  "@parcel/watcher-win32-x64@2.5.6":
+    resolution:
+      {
+        integrity: sha512-hbQlYcCq5dlAX9Qx+kFb0FHue6vbjlf0FrNzSKdYK2APUf7tGfGxQCk2ihEREmbR6ZMc0MVAD5RIX/41gpUzTw==,
+      }
+    engines: { node: ">= 10.0.0" }
+    cpu: [x64]
+    os: [win32]
+
+  "@parcel/watcher@2.5.6":
+    resolution:
+      {
+        integrity: sha512-tmmZ3lQxAe/k/+rNnXQRawJ4NjxO2hqiOLTHvWchtGZULp4RyFeh6aU4XdOYBFe2KE1oShQTv4AblOs2iOrNnQ==,
+      }
+    engines: { node: ">= 10.0.0" }
 
   "@pkgjs/parseargs@0.11.0":
     resolution:
@@ -2579,6 +2736,12 @@ packages:
         integrity: sha512-TvZbIpeKqGQQ7X0zSCvPH9riMSFQFSggnfBjFZ1mEoILW+UuXCKwOoPcgjMwiUtRqFZ8jWhPJc4um14vC6I4ag==,
       }
 
+  "@schummar/icu-type-parser@1.21.5":
+    resolution:
+      {
+        integrity: sha512-bXHSaW5jRTmke9Vd0h5P7BtWZG9Znqb8gSDxZnxaGSJnGwPLDPfS+3g0BKzeWqzgZPsIVZkM7m2tbo18cm5HBw==,
+      }
+
   "@sinclair/typebox@0.34.49":
     resolution:
       {
@@ -2615,10 +2778,148 @@ packages:
         integrity: sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==,
       }
 
+  "@swc/core-darwin-arm64@1.15.43":
+    resolution:
+      {
+        integrity: sha512-v1aVuvXdo/BHxJzco9V2xpHrvwWmhfS8t6gziY5wJxd+Z2h8AeJRnAwPD8itCDaGXVBwJ/CaKfxEzTkG0Va0OA==,
+      }
+    engines: { node: ">=10" }
+    cpu: [arm64]
+    os: [darwin]
+
+  "@swc/core-darwin-x64@1.15.43":
+    resolution:
+      {
+        integrity: sha512-lp3d4Lamc8dt5huYdGLSR+9hLxmfr1jb0l+4XXG2zPqZwYWRN9R0U2qYoTrggiU2RWW0oV9VbWM3kBnqIc2kdQ==,
+      }
+    engines: { node: ">=10" }
+    cpu: [x64]
+    os: [darwin]
+
+  "@swc/core-linux-arm-gnueabihf@1.15.43":
+    resolution:
+      {
+        integrity: sha512-JWTQQELtsG5GgphDrr/XqqmM2pDN3cZqbMS0Mrg+iTiXL3F74sn/S2IyYE/5u4h2KLkTf9qQ7dXyxsbx7YzkeA==,
+      }
+    engines: { node: ">=10" }
+    cpu: [arm]
+    os: [linux]
+
+  "@swc/core-linux-arm64-gnu@1.15.43":
+    resolution:
+      {
+        integrity: sha512-B4otJRdPWIsmiSBf0uG7Z/+vMWmkufjz5MmYxubwKuZazDW14Zd3symga1N62QR4RT+kEFeHEgsXfZGyn/w0hw==,
+      }
+    engines: { node: ">=10" }
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
+
+  "@swc/core-linux-arm64-musl@1.15.43":
+    resolution:
+      {
+        integrity: sha512-6zB6OnpViBxYy4tgY3v2i6AZY9fwkcHZ032UOwtwUuW1d19sdT07qF0kZe6/3UR1tUaK6jjg2rmVcUIBCEYVjQ==,
+      }
+    engines: { node: ">=10" }
+    cpu: [arm64]
+    os: [linux]
+    libc: [musl]
+
+  "@swc/core-linux-ppc64-gnu@1.15.43":
+    resolution:
+      {
+        integrity: sha512-coxE1ZWdB3uSDVNoEtYNrRi/1epvckZx9cTJ8ICUxTMTxGk+yvQ/Twacp3ruZSaMPGCriUjP86C37VhaT6nyRg==,
+      }
+    engines: { node: ">=10" }
+    cpu: [ppc64]
+    os: [linux]
+    libc: [glibc]
+
+  "@swc/core-linux-s390x-gnu@1.15.43":
+    resolution:
+      {
+        integrity: sha512-lXfLhs+LpBsD5inuYx+YDH5WsPPBQ95KPUiy8P5wq9ob9xKDZFqwNfU2QW6bGO8NqRO/H9JQomTSt5Yyh+FGfA==,
+      }
+    engines: { node: ">=10" }
+    cpu: [s390x]
+    os: [linux]
+    libc: [glibc]
+
+  "@swc/core-linux-x64-gnu@1.15.43":
+    resolution:
+      {
+        integrity: sha512-07XnKwTmKy8TGOZG3D9fRnLWGynxPjwQnZLVmBFbo6F+7vHYzBIOuwXEhemrChBWb6yDNZsVCcMWCPX6FDD2xg==,
+      }
+    engines: { node: ">=10" }
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
+  "@swc/core-linux-x64-musl@1.15.43":
+    resolution:
+      {
+        integrity: sha512-TJc+bsSIaBh+hZvZ5GRtW/K1bw66TJ9vsUwvVIsZdiWxU5ObLwZvfcnZ3UpgVfMnFibRes9uriJrQNBHEEogRQ==,
+      }
+    engines: { node: ">=10" }
+    cpu: [x64]
+    os: [linux]
+    libc: [musl]
+
+  "@swc/core-win32-arm64-msvc@1.15.43":
+    resolution:
+      {
+        integrity: sha512-jfd7s2/bUQYkOHLs+LWQNKZdmDa8+sufKLllhpWAhVQ2GDCwsHe3vR/j+OSiItZNtkzFuaawa3+SAKz9y5gYfw==,
+      }
+    engines: { node: ">=10" }
+    cpu: [arm64]
+    os: [win32]
+
+  "@swc/core-win32-ia32-msvc@1.15.43":
+    resolution:
+      {
+        integrity: sha512-rLAE8JvucqEW1ZGohxPQrQWPBQeJG4+ypKbWfdlU/qmKScvCkxf9/Jxnzki1dkUQCQ7P5Enp13RlvqOlvx/32g==,
+      }
+    engines: { node: ">=10" }
+    cpu: [ia32]
+    os: [win32]
+
+  "@swc/core-win32-x64-msvc@1.15.43":
+    resolution:
+      {
+        integrity: sha512-h8MLDHZcfIukwQWj03rIJZx1I0E81AYj2X7J/nGErG4nz+QAv6G1Z+peotvinL3lqpbo32tLYSMFo32/ySzxKg==,
+      }
+    engines: { node: ">=10" }
+    cpu: [x64]
+    os: [win32]
+
+  "@swc/core@1.15.43":
+    resolution:
+      {
+        integrity: sha512-1CuKjFkPxIgGdeHVuNbkxmBxkcbdc08u0aiI43pFq6yY1tTVKmXT9hFEooyyKs/sJ3xf1GPHyEwTtk9Xl8dvQw==,
+      }
+    engines: { node: ">=10" }
+    peerDependencies:
+      "@swc/helpers": ">=0.5.17"
+    peerDependenciesMeta:
+      "@swc/helpers":
+        optional: true
+
+  "@swc/counter@0.1.3":
+    resolution:
+      {
+        integrity: sha512-e2BR4lsJkkRlKZ/qCHPw9ZaSxc0MVUd7gtbtaB7aMvHeJVYe8sOB8DBZkP2DtISHGSku9sCK6T6cnY0CtXrOCQ==,
+      }
+
   "@swc/helpers@0.5.15":
     resolution:
       {
         integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==,
+      }
+
+  "@swc/types@0.1.27":
+    resolution:
+      {
+        integrity: sha512-K6h3iUlqeM946U4sXFYeahefR1YBbXJvko+hv8WS8/0BNJ4OHiHRywMnQUJCqkR7Y9+hqQ1TvEpiKqUhz7NEFg==,
       }
 
   "@tailwindcss/node@4.3.0":
@@ -5345,6 +5646,12 @@ packages:
       }
     engines: { node: ">=0.10.0" }
 
+  icu-minify@4.13.0:
+    resolution:
+      {
+        integrity: sha512-SIFMeUHZJjzS5RvIGvybKvWoHjDm9cGVEs2EpJ8PmywOdJLWyblPm7TdPLLoUtkJtwQD7iGhl2WMptZ+N0on+w==,
+      }
+
   ieee754@1.2.1:
     resolution:
       {
@@ -5420,6 +5727,12 @@ packages:
         integrity: sha512-4gd7VpWNQNB4UKKCFFVcp1AVv+FMOgs9NKzjHKusc8jTMhd5eL1NqQqOpE0KzMds804/yHlglp3uxgluOqAPLw==,
       }
     engines: { node: ">= 0.4" }
+
+  intl-messageformat@11.2.8:
+    resolution:
+      {
+        integrity: sha512-l323RCl3qJDVQ8U9j74ut/hVMdg3VPsOHpVMDvFfz9qiq4dPO5ooVYFNVUzzrpgG39a+RLzcXyJb8VFgIU+tUA==,
+      }
 
   is-array-buffer@3.0.5:
     resolution:
@@ -6506,6 +6819,32 @@ packages:
         integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==,
       }
 
+  negotiator@1.0.0:
+    resolution:
+      {
+        integrity: sha512-8Ofs/AUQh8MaEcrlq5xOX0CQ9ypTF5dl78mjlMNfOK08fzpgTHQRQPBxcPlEtIw0yRpws+Zo/3r+5WRby7u3Gg==,
+      }
+    engines: { node: ">= 0.6" }
+
+  next-intl-swc-plugin-extractor@4.13.0:
+    resolution:
+      {
+        integrity: sha512-6S/fJI0KXvLCL8nhBo9P8eGaJPzmwJBTCzX0NaUIj0VyU8U89d//T+vjMLdNIXl5MlLaYH7B9MbAjb8Mvu+tqQ==,
+      }
+
+  next-intl@4.13.0:
+    resolution:
+      {
+        integrity: sha512-OvNq2v5XLx4EkQOsAhVE9g+6zdb83XHusADCXXtIW4LILYnjEVaeINdr1lkVWKSjzwNUiMSlH5N4K0OQTRiv6A==,
+      }
+    peerDependencies:
+      next: ^12.0.0 || ^13.0.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || >=19.0.0-rc <19.0.0 || ^19.0.0
+      typescript: "*"
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
   next-themes@0.4.6:
     resolution:
       {
@@ -6538,6 +6877,12 @@ packages:
         optional: true
       sass:
         optional: true
+
+  node-addon-api@7.1.1:
+    resolution:
+      {
+        integrity: sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ==,
+      }
 
   node-exports-info@1.6.0:
     resolution:
@@ -6828,6 +7173,12 @@ packages:
         integrity: sha512-HRDzbaKjC+AOWVXxAU/x54COGeIv9eb+6CkDSQoNTt4XyWoIJvuPsXizxu/Fr23EiekbtZwmh1IcIG/l/a10GQ==,
       }
     engines: { node: ">=8" }
+
+  po-parser@2.1.1:
+    resolution:
+      {
+        integrity: sha512-ECF4zHLbUItpUgE3OTtLKlPjeBN+fKEczj2zYjDfCGOzicNs0GK3Vg2IoAYwx7LH/XYw43fZQP6xnZ4TkNxSLQ==,
+      }
 
   possible-typed-array-names@1.1.0:
     resolution:
@@ -7996,6 +8347,14 @@ packages:
     peerDependencies:
       react: "*"
 
+  use-intl@4.13.0:
+    resolution:
+      {
+        integrity: sha512-fAFDrWaASxlhXOipcOyb5VDD+YONqj6+8O8EcG/J7RBoOUF3A8YahRWLN+mBxYMrlMQB8N6Voqk5X+YC+HSL0A==,
+      }
+    peerDependencies:
+      react: ^17.0.0 || ^18.0.0 || >=19.0.0-rc <19.0.0 || ^19.0.0
+
   use-sidecar@1.1.3:
     resolution:
       {
@@ -8805,6 +9164,18 @@ snapshots:
 
   "@floating-ui/utils@0.2.11": {}
 
+  "@formatjs/fast-memoize@3.1.6": {}
+
+  "@formatjs/icu-messageformat-parser@3.5.11":
+    dependencies:
+      "@formatjs/icu-skeleton-parser": 2.1.10
+
+  "@formatjs/icu-skeleton-parser@2.1.10": {}
+
+  "@formatjs/intl-localematcher@0.8.10":
+    dependencies:
+      "@formatjs/fast-memoize": 3.1.6
+
   "@hapi/address@5.1.1":
     dependencies:
       "@hapi/hoek": 11.0.7
@@ -8967,7 +9338,7 @@ snapshots:
       jest-util: 30.4.1
       slash: 3.0.0
 
-  "@jest/core@30.4.2(ts-node@10.9.2(@types/node@25.9.2)(typescript@6.0.3))":
+  "@jest/core@30.4.2(ts-node@10.9.2(@swc/core@1.15.43)(@types/node@25.9.2)(typescript@6.0.3))":
     dependencies:
       "@jest/console": 30.4.1
       "@jest/pattern": 30.4.0
@@ -8983,7 +9354,7 @@ snapshots:
       fast-json-stable-stringify: 2.1.0
       graceful-fs: 4.2.11
       jest-changed-files: 30.4.1
-      jest-config: 30.4.2(@types/node@25.9.2)(ts-node@10.9.2(@types/node@25.9.2)(typescript@6.0.3))
+      jest-config: 30.4.2(@types/node@25.9.2)(ts-node@10.9.2(@swc/core@1.15.43)(@types/node@25.9.2)(typescript@6.0.3))
       jest-haste-map: 30.4.1
       jest-message-util: 30.4.1
       jest-regex-util: 30.4.0
@@ -9221,6 +9592,66 @@ snapshots:
       fastq: 1.20.1
 
   "@nolyfill/is-core-module@1.0.39": {}
+
+  "@parcel/watcher-android-arm64@2.5.6":
+    optional: true
+
+  "@parcel/watcher-darwin-arm64@2.5.6":
+    optional: true
+
+  "@parcel/watcher-darwin-x64@2.5.6":
+    optional: true
+
+  "@parcel/watcher-freebsd-x64@2.5.6":
+    optional: true
+
+  "@parcel/watcher-linux-arm-glibc@2.5.6":
+    optional: true
+
+  "@parcel/watcher-linux-arm-musl@2.5.6":
+    optional: true
+
+  "@parcel/watcher-linux-arm64-glibc@2.5.6":
+    optional: true
+
+  "@parcel/watcher-linux-arm64-musl@2.5.6":
+    optional: true
+
+  "@parcel/watcher-linux-x64-glibc@2.5.6":
+    optional: true
+
+  "@parcel/watcher-linux-x64-musl@2.5.6":
+    optional: true
+
+  "@parcel/watcher-win32-arm64@2.5.6":
+    optional: true
+
+  "@parcel/watcher-win32-ia32@2.5.6":
+    optional: true
+
+  "@parcel/watcher-win32-x64@2.5.6":
+    optional: true
+
+  "@parcel/watcher@2.5.6":
+    dependencies:
+      detect-libc: 2.1.2
+      is-glob: 4.0.3
+      node-addon-api: 7.1.1
+      picomatch: 4.0.4
+    optionalDependencies:
+      "@parcel/watcher-android-arm64": 2.5.6
+      "@parcel/watcher-darwin-arm64": 2.5.6
+      "@parcel/watcher-darwin-x64": 2.5.6
+      "@parcel/watcher-freebsd-x64": 2.5.6
+      "@parcel/watcher-linux-arm-glibc": 2.5.6
+      "@parcel/watcher-linux-arm-musl": 2.5.6
+      "@parcel/watcher-linux-arm64-glibc": 2.5.6
+      "@parcel/watcher-linux-arm64-musl": 2.5.6
+      "@parcel/watcher-linux-x64-glibc": 2.5.6
+      "@parcel/watcher-linux-x64-musl": 2.5.6
+      "@parcel/watcher-win32-arm64": 2.5.6
+      "@parcel/watcher-win32-ia32": 2.5.6
+      "@parcel/watcher-win32-x64": 2.5.6
 
   "@pkgjs/parseargs@0.11.0":
     optional: true
@@ -9978,6 +10409,8 @@ snapshots:
 
   "@rushstack/eslint-patch@1.16.1": {}
 
+  "@schummar/icu-type-parser@1.21.5": {}
+
   "@sinclair/typebox@0.34.49": {}
 
   "@sinonjs/commons@3.0.1":
@@ -9994,9 +10427,69 @@ snapshots:
 
   "@standard-schema/utils@0.3.0": {}
 
+  "@swc/core-darwin-arm64@1.15.43":
+    optional: true
+
+  "@swc/core-darwin-x64@1.15.43":
+    optional: true
+
+  "@swc/core-linux-arm-gnueabihf@1.15.43":
+    optional: true
+
+  "@swc/core-linux-arm64-gnu@1.15.43":
+    optional: true
+
+  "@swc/core-linux-arm64-musl@1.15.43":
+    optional: true
+
+  "@swc/core-linux-ppc64-gnu@1.15.43":
+    optional: true
+
+  "@swc/core-linux-s390x-gnu@1.15.43":
+    optional: true
+
+  "@swc/core-linux-x64-gnu@1.15.43":
+    optional: true
+
+  "@swc/core-linux-x64-musl@1.15.43":
+    optional: true
+
+  "@swc/core-win32-arm64-msvc@1.15.43":
+    optional: true
+
+  "@swc/core-win32-ia32-msvc@1.15.43":
+    optional: true
+
+  "@swc/core-win32-x64-msvc@1.15.43":
+    optional: true
+
+  "@swc/core@1.15.43":
+    dependencies:
+      "@swc/counter": 0.1.3
+      "@swc/types": 0.1.27
+    optionalDependencies:
+      "@swc/core-darwin-arm64": 1.15.43
+      "@swc/core-darwin-x64": 1.15.43
+      "@swc/core-linux-arm-gnueabihf": 1.15.43
+      "@swc/core-linux-arm64-gnu": 1.15.43
+      "@swc/core-linux-arm64-musl": 1.15.43
+      "@swc/core-linux-ppc64-gnu": 1.15.43
+      "@swc/core-linux-s390x-gnu": 1.15.43
+      "@swc/core-linux-x64-gnu": 1.15.43
+      "@swc/core-linux-x64-musl": 1.15.43
+      "@swc/core-win32-arm64-msvc": 1.15.43
+      "@swc/core-win32-ia32-msvc": 1.15.43
+      "@swc/core-win32-x64-msvc": 1.15.43
+
+  "@swc/counter@0.1.3": {}
+
   "@swc/helpers@0.5.15":
     dependencies:
       tslib: 2.8.1
+
+  "@swc/types@0.1.27":
+    dependencies:
+      "@swc/counter": 0.1.3
 
   "@tailwindcss/node@4.3.0":
     dependencies:
@@ -11817,6 +12310,10 @@ snapshots:
     dependencies:
       safer-buffer: 2.1.2
 
+  icu-minify@4.13.0:
+    dependencies:
+      "@formatjs/icu-messageformat-parser": 3.5.11
+
   ieee754@1.2.1: {}
 
   ignore@5.3.2: {}
@@ -11851,6 +12348,11 @@ snapshots:
       es-errors: 1.3.0
       hasown: 2.0.4
       side-channel: 1.1.1
+
+  intl-messageformat@11.2.8:
+    dependencies:
+      "@formatjs/fast-memoize": 3.1.6
+      "@formatjs/icu-messageformat-parser": 3.5.11
 
   is-array-buffer@3.0.5:
     dependencies:
@@ -12073,15 +12575,15 @@ snapshots:
       - babel-plugin-macros
       - supports-color
 
-  jest-cli@30.4.2(@types/node@25.9.2)(ts-node@10.9.2(@types/node@25.9.2)(typescript@6.0.3)):
+  jest-cli@30.4.2(@types/node@25.9.2)(ts-node@10.9.2(@swc/core@1.15.43)(@types/node@25.9.2)(typescript@6.0.3)):
     dependencies:
-      "@jest/core": 30.4.2(ts-node@10.9.2(@types/node@25.9.2)(typescript@6.0.3))
+      "@jest/core": 30.4.2(ts-node@10.9.2(@swc/core@1.15.43)(@types/node@25.9.2)(typescript@6.0.3))
       "@jest/test-result": 30.4.1
       "@jest/types": 30.4.1
       chalk: 4.1.2
       exit-x: 0.2.2
       import-local: 3.2.0
-      jest-config: 30.4.2(@types/node@25.9.2)(ts-node@10.9.2(@types/node@25.9.2)(typescript@6.0.3))
+      jest-config: 30.4.2(@types/node@25.9.2)(ts-node@10.9.2(@swc/core@1.15.43)(@types/node@25.9.2)(typescript@6.0.3))
       jest-util: 30.4.1
       jest-validate: 30.4.1
       yargs: 17.7.2
@@ -12092,7 +12594,7 @@ snapshots:
       - supports-color
       - ts-node
 
-  jest-config@30.4.2(@types/node@25.9.2)(ts-node@10.9.2(@types/node@25.9.2)(typescript@6.0.3)):
+  jest-config@30.4.2(@types/node@25.9.2)(ts-node@10.9.2(@swc/core@1.15.43)(@types/node@25.9.2)(typescript@6.0.3)):
     dependencies:
       "@babel/core": 7.29.7
       "@jest/get-type": 30.1.0
@@ -12119,7 +12621,7 @@ snapshots:
       strip-json-comments: 3.1.1
     optionalDependencies:
       "@types/node": 25.9.2
-      ts-node: 10.9.2(@types/node@25.9.2)(typescript@6.0.3)
+      ts-node: 10.9.2(@swc/core@1.15.43)(@types/node@25.9.2)(typescript@6.0.3)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -12350,12 +12852,12 @@ snapshots:
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
-  jest@30.4.2(@types/node@25.9.2)(ts-node@10.9.2(@types/node@25.9.2)(typescript@6.0.3)):
+  jest@30.4.2(@types/node@25.9.2)(ts-node@10.9.2(@swc/core@1.15.43)(@types/node@25.9.2)(typescript@6.0.3)):
     dependencies:
-      "@jest/core": 30.4.2(ts-node@10.9.2(@types/node@25.9.2)(typescript@6.0.3))
+      "@jest/core": 30.4.2(ts-node@10.9.2(@swc/core@1.15.43)(@types/node@25.9.2)(typescript@6.0.3))
       "@jest/types": 30.4.1
       import-local: 3.2.0
-      jest-cli: 30.4.2(@types/node@25.9.2)(ts-node@10.9.2(@types/node@25.9.2)(typescript@6.0.3))
+      jest-cli: 30.4.2(@types/node@25.9.2)(ts-node@10.9.2(@swc/core@1.15.43)(@types/node@25.9.2)(typescript@6.0.3))
     transitivePeerDependencies:
       - "@types/node"
       - babel-plugin-macros
@@ -12661,6 +13163,27 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
+  negotiator@1.0.0: {}
+
+  next-intl-swc-plugin-extractor@4.13.0: {}
+
+  next-intl@4.13.0(next@16.2.9(@babel/core@7.29.7)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)(typescript@6.0.3):
+    dependencies:
+      "@formatjs/intl-localematcher": 0.8.10
+      "@parcel/watcher": 2.5.6
+      "@swc/core": 1.15.43
+      icu-minify: 4.13.0
+      negotiator: 1.0.0
+      next: 16.2.9(@babel/core@7.29.7)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      next-intl-swc-plugin-extractor: 4.13.0
+      po-parser: 2.1.1
+      react: 19.2.7
+      use-intl: 4.13.0(react@19.2.7)
+    optionalDependencies:
+      typescript: 6.0.3
+    transitivePeerDependencies:
+      - "@swc/helpers"
+
   next-themes@0.4.6(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
     dependencies:
       react: 19.2.7
@@ -12689,6 +13212,8 @@ snapshots:
     transitivePeerDependencies:
       - "@babel/core"
       - babel-plugin-macros
+
+  node-addon-api@7.1.1: {}
 
   node-exports-info@1.6.0:
     dependencies:
@@ -12847,6 +13372,8 @@ snapshots:
   pkg-dir@4.2.0:
     dependencies:
       find-up: 4.1.0
+
+  po-parser@2.1.1: {}
 
   possible-typed-array-names@1.1.0: {}
 
@@ -13542,7 +14069,7 @@ snapshots:
     dependencies:
       typescript: 6.0.3
 
-  ts-node@10.9.2(@types/node@25.9.2)(typescript@6.0.3):
+  ts-node@10.9.2(@swc/core@1.15.43)(@types/node@25.9.2)(typescript@6.0.3):
     dependencies:
       "@cspotcode/source-map-support": 0.8.1
       "@tsconfig/node10": 1.0.12
@@ -13559,6 +14086,8 @@ snapshots:
       typescript: 6.0.3
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
+    optionalDependencies:
+      "@swc/core": 1.15.43
 
   tsconfig-paths@3.15.0:
     dependencies:
@@ -13681,6 +14210,14 @@ snapshots:
 
   use-debounce@10.1.1(react@19.2.7):
     dependencies:
+      react: 19.2.7
+
+  use-intl@4.13.0(react@19.2.7):
+    dependencies:
+      "@formatjs/fast-memoize": 3.1.6
+      "@schummar/icu-type-parser": 1.21.5
+      icu-minify: 4.13.0
+      intl-messageformat: 11.2.8
       react: 19.2.7
 
   use-sidecar@1.1.3(@types/react@19.2.17)(react@19.2.7):

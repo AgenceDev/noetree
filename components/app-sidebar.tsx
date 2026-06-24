@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
+import { Link, usePathname } from "@/i18n/routing";
 import {
   Sidebar,
   SidebarContent,
@@ -14,7 +14,6 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Home, FileText } from "lucide-react";
-import Link from "next/link";
 
 const items = [
   {
