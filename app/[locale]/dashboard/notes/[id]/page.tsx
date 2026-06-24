@@ -9,19 +9,47 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useTreeContext } from "@/providers/TreeProvider";
+
+function MobileDrawer() {
+  const { isDrawerOpen, setIsDrawerOpen } = useTreeContext();
+
+  return (
+    <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+      <DrawerContent className="h-[85vh] flex flex-col">
+        <div className="flex-1 overflow-auto px-4 pb-4">
+          <NoteContent />
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+}
 
 const NotePageContent = () => {
+  const isMobile = useIsMobile();
+
   return (
     <EditorProvider>
-      <ResizablePanelGroup orientation="horizontal">
-        <ResizablePanel defaultSize="60%" minSize="250px">
-          <NoteTree />
-        </ResizablePanel>
-        <ResizableHandle withHandle />
-        <ResizablePanel defaultSize="40%" minSize="400px" className="p-4">
-          <NoteContent />
-        </ResizablePanel>
-      </ResizablePanelGroup>
+      {isMobile ? (
+        <>
+          <div className="h-full w-full overflow-auto">
+            <NoteTree />
+          </div>
+          <MobileDrawer />
+        </>
+      ) : (
+        <ResizablePanelGroup orientation="horizontal">
+          <ResizablePanel defaultSize="60%" minSize="250px">
+            <NoteTree />
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel defaultSize="40%" minSize="400px" className="p-4">
+            <NoteContent />
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      )}
     </EditorProvider>
   );
 };

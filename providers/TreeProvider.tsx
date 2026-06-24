@@ -37,6 +37,8 @@ interface Action {
 interface TreeContextType {
   tree: NoteTree | null;
   selectedNote: NoteTree | null;
+  isDrawerOpen: boolean;
+  setIsDrawerOpen: (open: boolean) => void;
   onSelectNote: (
     note: NoteTree,
     getCurrentEditorContent?: () => string | null,
@@ -69,6 +71,8 @@ interface TreeContextType {
 const TreeContext = createContext<TreeContextType>({
   tree: null,
   selectedNote: null,
+  isDrawerOpen: false,
+  setIsDrawerOpen: () => {},
   onSelectNote: () => {},
   onUpdateNoteTitle: () => {},
   onUpdateNoteContent: () => {},
@@ -98,6 +102,7 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
   const params = useParams();
   const noteId = params.id as Id<"notes">;
   const [selectedNoteId, setSelectedNoteId] = useState<Id<"notes">>(noteId);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const [history, setHistory] = useState<{
     undoStack: Action[];
@@ -198,10 +203,13 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
     () => ({
       tree: tree as unknown as NoteTree,
       selectedNote,
+      isDrawerOpen,
+      setIsDrawerOpen,
       onSelectNote: (
         note: NoteTree,
         getCurrentEditorContent?: () => string | null,
       ) => {
+        setIsDrawerOpen(true);
         if (selectedNoteId === note._id) return;
 
         if (selectedNote && getCurrentEditorContent) {
@@ -362,6 +370,8 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
       tree,
       selectedNote,
       selectedNoteId,
+      isDrawerOpen,
+      setIsDrawerOpen,
       updateNoteTitle,
       updateNoteContent,
       createNote,
