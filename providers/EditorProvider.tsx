@@ -14,24 +14,7 @@ import React, {
 } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { useTreeContext } from "./TreeProvider";
-
-const editorConfig = {
-  content: "",
-  extensions: [
-    StarterKit,
-    Placeholder.configure({
-      placeholder: "Write something…",
-    }),
-    Link,
-    Image,
-  ],
-  editorProps: {
-    attributes: {
-      class: "flex-1 overflow-y-auto border rounded-md p-4",
-    },
-  },
-  immediatelyRender: false,
-};
+import { useTranslations } from "next-intl";
 
 type saveStatusType = "idle" | "unsaved" | "saving" | "success" | "error";
 
@@ -59,14 +42,15 @@ interface EditorProviderProps {
 }
 
 export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
+  const t = useTranslations("Editor");
   const { selectedNote, onUpdateNoteContent } = useTreeContext();
 
   const [saveStatus, setSaveStatus] = useState<saveStatusType>("idle");
 
-  let initialContent: any = "";
+  let initialContent: Content = "";
   try {
     if (selectedNote?.content && typeof selectedNote.content === "string") {
-      initialContent = JSON.parse(selectedNote.content);
+      initialContent = JSON.parse(selectedNote.content) as Content;
     } else if (selectedNote?.content) {
       initialContent = selectedNote.content;
     }
@@ -74,12 +58,25 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
     console.warn("Failed to parse note content, using empty content:", error);
   }
 
-  let editor = useEditor(
+  const editor = useEditor(
     {
-      ...editorConfig,
       content: initialContent,
+      extensions: [
+        StarterKit,
+        Placeholder.configure({
+          placeholder: t("placeholder"),
+        }),
+        Link,
+        Image,
+      ],
+      editorProps: {
+        attributes: {
+          class: "flex-1 overflow-y-auto border rounded-md p-4",
+        },
+      },
+      immediatelyRender: false,
     },
-    [selectedNote?._id],
+    [selectedNote?._id, t],
   );
 
   const saveContent = useCallback(
@@ -162,6 +159,7 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
     editor.commands.setContent(content, { emitUpdate: false });
 
     setSaveStatus("idle");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor, selectedNote?._id, selectedNote?.content, debouncedSave]);
 
   useEffect(() => {

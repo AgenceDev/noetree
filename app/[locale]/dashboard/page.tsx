@@ -7,7 +7,7 @@ export default async function Dashboard() {
   return (
     <div className="flex flex-col justify-center items-center gap-8 p-6">
       <h1 className="text-8xl font-bold">{t("title")}</h1>
-      <Link href="/dashboard/notes">Notes</Link>
+      <Link href="/dashboard/notes">{t("notesLink")}</Link>
     </div>
   );
 }

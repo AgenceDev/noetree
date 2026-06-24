@@ -12,6 +12,7 @@ import { Plus, Trash2, Copy } from "lucide-react";
 import { NoteTree, useTreeContext } from "@/providers/TreeProvider";
 import { useEditorContext } from "@/providers/EditorProvider";
 import ConditionChecker from "./helpers/ConditionChecker";
+import { useTranslations } from "next-intl";
 
 interface NoteCardProps {
   note: NoteTree;
@@ -34,6 +35,7 @@ export function NoteCard({
   targetRef,
   isNestingHovered,
 }: NoteCardProps) {
+  const t = useTranslations("NoteCard");
   const { onSelectNote, onUpdateNoteTitle, onDuplicateNote, selectedNote } =
     useTreeContext();
   const { getCurrentContent } = useEditorContext();
@@ -146,7 +148,7 @@ export function NoteCard({
                     e.stopPropagation();
                     onAddChild();
                   }}
-                  title="Add child note"
+                  title={t("tooltips.addChild")}
                 >
                   <Plus className="h-3 w-3" />
                 </Button>
@@ -158,7 +160,7 @@ export function NoteCard({
                     e.stopPropagation();
                     onDuplicateNote(note._id);
                   }}
-                  title="Duplicate note"
+                  title={t("tooltips.duplicate")}
                 >
                   <Copy className="h-3 w-3" />
                 </Button>
@@ -171,7 +173,7 @@ export function NoteCard({
                       e.stopPropagation();
                       onDelete();
                     }}
-                    title="Delete note"
+                    title={t("tooltips.delete")}
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
@@ -182,17 +184,17 @@ export function NoteCard({
         </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem onClick={onAddChild}>
-            Add a child note
+            {t("contextMenu.addChild")}
           </ContextMenuItem>
           <ContextMenuItem onClick={() => setIsRenaming(true)}>
-            Rename
+            {t("contextMenu.rename")}
           </ContextMenuItem>
           <ContextMenuItem onClick={() => onDuplicateNote(note._id)}>
-            Duplicate
+            {t("contextMenu.duplicate")}
           </ContextMenuItem>
           <ConditionChecker condition={!isRoot}>
             <ContextMenuItem variant="destructive" onClick={onDelete}>
-              Delete
+              {t("contextMenu.delete")}
             </ContextMenuItem>
           </ConditionChecker>
         </ContextMenuContent>

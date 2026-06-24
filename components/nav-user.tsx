@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useUser, useClerk } from "@clerk/nextjs";
 import { useRouter, usePathname } from "@/i18n/routing";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 
 export function NavUser() {
@@ -43,6 +43,7 @@ export function NavUser() {
   const router = useRouter();
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+  const t = useTranslations("NavUser");
 
   if (!isLoaded || !user) {
     return null;
@@ -101,7 +102,7 @@ export function NavUser() {
             <DropdownMenuGroup>
               <DropdownMenuItem onClick={() => openUserProfile()}>
                 <User />
-                Account
+                {t("account")}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
@@ -109,7 +110,7 @@ export function NavUser() {
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
                   <Globe />
-                  <span>Language</span>
+                  <span>{t("language")}</span>
                 </DropdownMenuSubTrigger>
                 <DropdownMenuPortal>
                   <DropdownMenuSubContent>
@@ -132,7 +133,7 @@ export function NavUser() {
                 <DropdownMenuSubTrigger>
                   <Sun className="dark:hidden" />
                   <Moon className="hidden dark:block" />
-                  <span>Theme</span>
+                  <span>{t("theme")}</span>
                 </DropdownMenuSubTrigger>
                 <DropdownMenuPortal>
                   <DropdownMenuSubContent>
@@ -141,21 +142,22 @@ export function NavUser() {
                       disabled={theme === "light"}
                     >
                       <Sun />
-                      <span>Light</span> {theme === "light" && "✓"}
+                      <span>{t("themeLight")}</span> {theme === "light" && "✓"}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => setTheme("dark")}
                       disabled={theme === "dark"}
                     >
                       <Moon />
-                      <span>Dark</span> {theme === "dark" && "✓"}
+                      <span>{t("themeDark")}</span> {theme === "dark" && "✓"}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => setTheme("system")}
                       disabled={theme === "system"}
                     >
                       <Laptop />
-                      <span>System</span> {theme === "system" && "✓"}
+                      <span>{t("themeSystem")}</span>{" "}
+                      {theme === "system" && "✓"}
                     </DropdownMenuItem>
                   </DropdownMenuSubContent>
                 </DropdownMenuPortal>
@@ -164,7 +166,7 @@ export function NavUser() {
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => signOut()}>
               <LogOut />
-              Log out
+              {t("logout")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

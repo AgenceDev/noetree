@@ -15,15 +15,16 @@ import {
 } from "@/components/ui/sidebar";
 import { Home, FileText } from "lucide-react";
 import { NavUser } from "@/components/nav-user";
+import { useTranslations } from "next-intl";
 
 const items = [
   {
-    title: "Dashboard",
+    title: "dashboard",
     url: "/dashboard",
     icon: Home,
   },
   {
-    title: "Notes",
+    title: "notes",
     url: "/dashboard/notes",
     icon: FileText,
   },
@@ -33,6 +34,7 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { setOpen } = useSidebar();
   const lastPath = useRef("");
+  const t = useTranslations("Sidebar");
 
   useEffect(() => {
     const isEditorPage =
@@ -52,14 +54,14 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>NoeTree</SidebarGroupLabel>
+          <SidebarGroupLabel>{t("title")}</SidebarGroupLabel>
           <SidebarMenu>
             {items.map(item => (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton asChild>
                   <Link href={item.url}>
                     <item.icon />
-                    <span>{item.title}</span>
+                    <span>{t(item.title)}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

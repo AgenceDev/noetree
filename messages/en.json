@@ -1,5 +1,135 @@
 {
+  "Metadata": {
+    "title": "NoeTree",
+    "description": "Visualize and manage your hierarchical notes."
+  },
+  "Landing": {
+    "welcome": "Welcome to NoeTree, the site is under construction, thank you for your understanding.",
+    "dashboardLink": "Dashboard"
+  },
+  "Sidebar": {
+    "title": "NoeTree",
+    "dashboard": "Dashboard",
+    "notes": "Notes"
+  },
+  "NavUser": {
+    "account": "Account",
+    "language": "Language",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "logout": "Log out"
+  },
   "Dashboard": {
-    "title": "Dashboard"
+    "title": "Dashboard",
+    "notesLink": "Notes"
+  },
+  "Notes": {
+    "title": "Trees",
+    "searchPlaceholder": "Search trees...",
+    "searchAria": "Search",
+    "loading": "Loading trees...",
+    "noTrees": "You have no trees.",
+    "noMatch": "No trees match your search.",
+    "nestedNotes": "{count, plural, =0 {no nested notes} =1 {1 nested note} other {# nested notes}}",
+    "error": "Error loading trees.",
+    "createButton": "Create a new tree",
+    "createTitle": "Create a new tree",
+    "createDesc": "Fill in the form below to create a new tree",
+    "formTitleLabel": "Title",
+    "formTitlePlaceholder": "Enter tree title",
+    "formTitleDesc": "This is your tree title.",
+    "close": "Close",
+    "create": "Create",
+    "renameTitle": "Rename tree",
+    "renameDesc": "Enter a new title for \"{title}\"",
+    "renamePlaceholder": "Enter tree title",
+    "cancel": "Cancel",
+    "save": "Save",
+    "deleteConfirmTitle": "Are you absolutely sure?",
+    "deleteConfirmDesc": "This action cannot be undone. This will permanently delete this tree and all of its nested notes.",
+    "delete": "Delete",
+    "validation": {
+      "required": "Title is required",
+      "tooShort": "Title must be at least 3 characters",
+      "tooLong": "Title is too long",
+      "exists": "A note with this title already exists"
+    },
+    "actions": {
+      "edit": "Rename",
+      "duplicate": "Duplicate",
+      "delete": "Delete"
+    }
+  },
+  "NoteCard": {
+    "newNotePlaceholder": "New note title...",
+    "tooltips": {
+      "addChild": "Add child note",
+      "duplicate": "Duplicate note",
+      "delete": "Delete note"
+    },
+    "contextMenu": {
+      "addChild": "Add a child note",
+      "rename": "Rename",
+      "duplicate": "Duplicate",
+      "delete": "Delete"
+    }
+  },
+  "NoteContent": {
+    "status": {
+      "failed": "Save failed",
+      "saved": "Saved",
+      "saving": "Saving...",
+      "unsaved": "Unsaved changes"
+    }
+  },
+  "NotesTree": {
+    "dropHere": "Drop here",
+    "recenter": "Recenter on active note",
+    "deleteConfirmTitle": "Are you absolutely sure?",
+    "deleteConfirmDesc": "This action cannot be undone. This will permanently delete this note and all of its child notes.",
+    "cancel": "Cancel",
+    "continue": "Continue"
+  },
+  "Editor": {
+    "placeholder": "Write something...",
+    "tooltips": {
+      "undo": "Undo (Ctrl+Z)",
+      "redo": "Redo (Ctrl+Shift+Z)",
+      "heading-1": "Heading 1",
+      "heading-2": "Heading 2",
+      "heading-3": "Heading 3",
+      "heading-4": "Heading 4",
+      "heading-5": "Heading 5",
+      "heading-6": "Heading 6",
+      "bold": "Bold (Ctrl+B)",
+      "italic": "Italic (Ctrl+I)",
+      "strike": "Strikethrough",
+      "code": "Inline Code (Ctrl+E)",
+      "bulletList": "Bullet List",
+      "orderedList": "Ordered List",
+      "blockquote": "Blockquote",
+      "codeBlock": "Code Block",
+      "hardBreak": "Hard Break",
+      "horizontalRule": "Horizontal Rule",
+      "link": "Insert Link (Ctrl+K)",
+      "image": "Insert Image"
+    },
+    "dialogs": {
+      "linkTitle": "Insert Link",
+      "linkDesc": "Enter the URL and optional link text",
+      "url": "URL",
+      "linkText": "Link Text",
+      "linkTextPlaceholder": "Optional text to display",
+      "insertLink": "Insert Link",
+      "imageTitle": "Insert Image",
+      "imageDesc": "Enter the image URL and optional alt text",
+      "imageUrl": "Image URL",
+      "imageAlt": "Alt Text",
+      "imageAltPlaceholder": "Image description for accessibility",
+      "insertImage": "Insert Image",
+      "cancel": "Cancel"
+    }
   }
 }

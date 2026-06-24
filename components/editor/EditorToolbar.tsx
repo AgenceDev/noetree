@@ -29,8 +29,10 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { useState } from "react";
 import { useEditorContext } from "@/providers/EditorProvider";
+import { useTranslations } from "next-intl";
 
 export default function EditorToolbar() {
+  const t = useTranslations("Editor");
   const { editor } = useEditorContext();
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
@@ -139,12 +141,12 @@ export default function EditorToolbar() {
         <ToolbarButton
           onClick={openLinkDialog}
           active={editor?.isActive("link")}
-          tooltip="Insert Link (Ctrl+K)"
+          tooltip={t("tooltips.link")}
           icon={<LinkIcon className="h-4 w-4" />}
         />
         <ToolbarButton
           onClick={openImageDialog}
-          tooltip="Insert Image"
+          tooltip={t("tooltips.image")}
           icon={<ImageIcon className="h-4 w-4" />}
         />
 
@@ -152,14 +154,12 @@ export default function EditorToolbar() {
         <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Insert Link</DialogTitle>
-              <DialogDescription>
-                Enter the URL and optional link text
-              </DialogDescription>
+              <DialogTitle>{t("dialogs.linkTitle")}</DialogTitle>
+              <DialogDescription>{t("dialogs.linkDesc")}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-2">
               <div className="grid gap-2">
-                <Label htmlFor="url">URL</Label>
+                <Label htmlFor="url">{t("dialogs.url")}</Label>
                 <Input
                   id="url"
                   placeholder="https://example.com"
@@ -168,10 +168,10 @@ export default function EditorToolbar() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="linkText">Link Text</Label>
+                <Label htmlFor="linkText">{t("dialogs.linkText")}</Label>
                 <Input
                   id="linkText"
-                  placeholder="Optional text to display"
+                  placeholder={t("dialogs.linkTextPlaceholder")}
                   value={linkText}
                   onChange={e => setLinkText(e.target.value)}
                 />
@@ -183,11 +183,11 @@ export default function EditorToolbar() {
                 variant="outline"
                 onClick={() => setLinkDialogOpen(false)}
               >
-                Cancel
+                {t("dialogs.cancel")}
               </Button>
               <Button type="button" onClick={insertLink} className="gap-1">
                 <Check className="h-4 w-4" />
-                Insert Link
+                {t("dialogs.insertLink")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -197,14 +197,12 @@ export default function EditorToolbar() {
         <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Insert Image</DialogTitle>
-              <DialogDescription>
-                Enter the image URL and optional alt text
-              </DialogDescription>
+              <DialogTitle>{t("dialogs.imageTitle")}</DialogTitle>
+              <DialogDescription>{t("dialogs.imageDesc")}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-2">
               <div className="grid gap-2">
-                <Label htmlFor="imageUrl">Image URL</Label>
+                <Label htmlFor="imageUrl">{t("dialogs.imageUrl")}</Label>
                 <Input
                   id="imageUrl"
                   placeholder="https://example.com/image.jpg"
@@ -213,10 +211,10 @@ export default function EditorToolbar() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="imageAlt">Alt Text</Label>
+                <Label htmlFor="imageAlt">{t("dialogs.imageAlt")}</Label>
                 <Input
                   id="imageAlt"
-                  placeholder="Image description for accessibility"
+                  placeholder={t("dialogs.imageAltPlaceholder")}
                   value={imageAlt}
                   onChange={e => setImageAlt(e.target.value)}
                 />
@@ -228,11 +226,11 @@ export default function EditorToolbar() {
                 variant="outline"
                 onClick={() => setImageDialogOpen(false)}
               >
-                Cancel
+                {t("dialogs.cancel")}
               </Button>
               <Button type="button" onClick={insertImage} className="gap-1">
                 <Check className="h-4 w-4" />
-                Insert Image
+                {t("dialogs.insertImage")}
               </Button>
             </DialogFooter>
           </DialogContent>

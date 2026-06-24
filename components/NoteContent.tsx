@@ -7,8 +7,10 @@ import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { useEditorContext } from "@/providers/EditorProvider";
 import { useTreeContext } from "@/providers/TreeProvider";
 import { Skeleton } from "./ui/skeleton";
+import { useTranslations } from "next-intl";
 
 export default function NoteContent() {
+  const t = useTranslations("NoteContent");
   const { selectedNote } = useTreeContext();
 
   const { editor, saveStatus } = useEditorContext();
@@ -26,24 +28,26 @@ export default function NoteContent() {
               <ConditionChecker condition={saveStatus === "error"}>
                 <div className="flex items-center text-destructive gap-1">
                   <AlertCircle className="h-4 w-4" />
-                  <span className="text-sm">Save failed</span>
+                  <span className="text-sm">{t("status.failed")}</span>
                 </div>
               </ConditionChecker>
               <ConditionChecker condition={saveStatus === "success"}>
                 <div className="flex items-center text-green-600 gap-1">
                   <CheckCircle2 className="h-4 w-4" />
-                  <span className="text-sm">Saved</span>
+                  <span className="text-sm">{t("status.saved")}</span>
                 </div>
               </ConditionChecker>
               <ConditionChecker condition={saveStatus === "saving"}>
                 <span className="text-sm text-gray-500 animate-pulse">
-                  Saving...
+                  {t("status.saving")}
                 </span>
               </ConditionChecker>
               <ConditionChecker
                 condition={saveStatus === "unsaved" && !!selectedNote}
               >
-                <span className="text-sm text-amber-500">Unsaved changes</span>
+                <span className="text-sm text-amber-500">
+                  {t("status.unsaved")}
+                </span>
               </ConditionChecker>
             </div>
           </>

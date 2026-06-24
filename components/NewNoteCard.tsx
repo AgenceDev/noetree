@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import { Card } from "./ui/card";
+import { useTranslations } from "next-intl";
 
 interface NewNoteCardProps {
   onSave: (title: string) => void;
@@ -7,6 +8,7 @@ interface NewNoteCardProps {
 }
 
 export function NewNoteCard({ onSave, onCancel }: NewNoteCardProps) {
+  const t = useTranslations("NoteCard");
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -31,7 +33,7 @@ export function NewNoteCard({ onSave, onCancel }: NewNoteCardProps) {
     <Card className="border-border shadow-md min-w-[120px] max-w-[240px] p-3 bg-background border-dashed border-2">
       <textarea
         ref={inputRef}
-        placeholder="New note title..."
+        placeholder={t("newNotePlaceholder")}
         rows={1}
         onKeyDown={handleKeyDown}
         onBlur={onCancel}

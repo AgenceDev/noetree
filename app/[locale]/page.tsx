@@ -1,14 +1,14 @@
 import { Link } from "@/i18n/routing";
+import { getTranslations } from "next-intl/server";
 
-export default function Home() {
+export default async function Home() {
+  const t = await getTranslations("Landing");
+
   return (
     <div className="flex flex-col justify-center items-center gap-8">
       <h1 className="text-8xl font-bold">NoeTree</h1>
-      <p>
-        Bienvenue sur NoeTree, le site est en construction, merci de votre
-        compréhension.
-      </p>
-      <Link href="/dashboard">Dashboard</Link>
+      <p>{t("welcome")}</p>
+      <Link href="/dashboard">{t("dashboardLink")}</Link>
     </div>
   );
 }

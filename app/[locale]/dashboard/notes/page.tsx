@@ -32,6 +32,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 import {
   Form,
   FormControl,
@@ -74,14 +75,6 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-
-const newTreeFormSchema = z.object({
-  title: z
-    .string()
-    .nonempty("Title is required")
-    .max(50, "Title is too long")
-    .min(3, "Title is too short"),
-});
 
 const customSensors = [
   PointerSensor.configure({
@@ -129,6 +122,7 @@ function DashboardSortableItem({
   setNoteToDelete,
   setDeleteAlertDialogOpen,
 }: DashboardSortableItemProps) {
+  const t = useTranslations("Notes");
   const { ref, isDragging } = useSortable({
     id: tree._id,
     index,
@@ -158,7 +152,7 @@ function DashboardSortableItem({
                     {tree.title}
                   </CardTitle>
                   <CardDescription>
-                    {tree.nestedNotesCount ?? 0} nested note(s)
+                    {t("nestedNotes", { count: tree.nestedNotesCount ?? 0 })}
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -194,7 +188,7 @@ function DashboardSortableItem({
                     }}
                   >
                     <Edit className="mr-2 h-4 w-4" />
-                    Modifier
+                    {t("actions.edit")}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => {
@@ -202,7 +196,7 @@ function DashboardSortableItem({
                     }}
                   >
                     <Copy className="mr-2 h-4 w-4" />
-                    Dupliquer
+                    {t("actions.duplicate")}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -213,7 +207,7 @@ function DashboardSortableItem({
                     }}
                   >
                     <Trash className="mr-2 h-4 w-4" />
-                    Supprimer
+                    {t("actions.delete")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -230,7 +224,7 @@ function DashboardSortableItem({
             }}
           >
             <Edit className="mr-2 h-4 w-4" />
-            Modifier
+            {t("actions.edit")}
           </ContextMenuItem>
           <ContextMenuItem
             onClick={() => {
@@ -238,7 +232,7 @@ function DashboardSortableItem({
             }}
           >
             <Copy className="mr-2 h-4 w-4" />
-            Dupliquer
+            {t("actions.duplicate")}
           </ContextMenuItem>
           <ContextMenuSeparator />
           <ContextMenuItem
@@ -249,7 +243,7 @@ function DashboardSortableItem({
             }}
           >
             <Trash className="mr-2 h-4 w-4" />
-            Supprimer
+            {t("actions.delete")}
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
@@ -278,6 +272,16 @@ const matchNote = (note: SearchableNote, query: string): boolean => {
 };
 
 export default function Notes() {
+  const t = useTranslations("Notes");
+
+  const newTreeFormSchema = z.object({
+    title: z
+      .string()
+      .nonempty(t("validation.required"))
+      .max(50, t("validation.tooLong"))
+      .min(3, t("validation.tooShort")),
+  });
+
   const [newTreeDialogOpen, setNewTreeDialogOpen] = useState(false);
   const [titleError, setTitleError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -411,11 +415,11 @@ export default function Notes() {
     e.preventDefault();
     const cleanTitle = newTitle.trim();
     if (!cleanTitle || cleanTitle.length < 3) {
-      setRenameError("Title must be at least 3 characters");
+      setRenameError(t("validation.tooShort"));
       return;
     }
     if (cleanTitle.length > 50) {
-      setRenameError("Title is too long");
+      setRenameError(t("validation.tooLong"));
       return;
     }
 
@@ -426,7 +430,7 @@ export default function Notes() {
     );
 
     if (titleExists) {
-      setRenameError("A note with this title already exists");
+      setRenameError(t("validation.exists"));
       return;
     }
 
@@ -482,7 +486,7 @@ export default function Notes() {
     );
 
     if (titleExists) {
-      setTitleError("A note with this title already exists");
+      setTitleError(t("validation.exists"));
       return;
     }
 
@@ -492,7 +496,7 @@ export default function Notes() {
 
   return (
     <div className="flex flex-col justify-center items-center gap-8 p-6">
-      <h1 className="text-8xl font-bold">Trees</h1>
+      <h1 className="text-8xl font-bold">{t("title")}</h1>
 
       <ConditionChecker
         condition={!isPending && !error && !!data && data.length > 0}
@@ -500,23 +504,23 @@ export default function Notes() {
         <ButtonGroup>
           <Input
             type="search"
-            placeholder="Search trees..."
+            placeholder={t("searchPlaceholder")}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
           />
-          <Button variant="outline" aria-label="Search" type="button">
+          <Button variant="outline" aria-label={t("searchAria")} type="button">
             <Search />
           </Button>
         </ButtonGroup>
       </ConditionChecker>
 
       <ConditionChecker condition={!!isPending}>
-        <p>Loading trees...</p>
+        <p>{t("loading")}</p>
       </ConditionChecker>
 
       <ConditionChecker condition={!isPending && !error && !!data}>
         <ConditionChecker condition={!!data && data.length === 0}>
-          <p>You have no trees.</p>
+          <p>{t("noTrees")}</p>
         </ConditionChecker>
 
         <ConditionChecker
@@ -527,7 +531,7 @@ export default function Notes() {
             filteredTrees.length === 0
           }
         >
-          <p className="text-muted-foreground">No trees match your search.</p>
+          <p className="text-muted-foreground">{t("noMatch")}</p>
         </ConditionChecker>
 
         <ConditionChecker
@@ -590,21 +594,19 @@ export default function Notes() {
       </ConditionChecker>
 
       <ConditionChecker condition={!!error}>
-        <p>Error loading trees.</p>
+        <p>{t("error")}</p>
       </ConditionChecker>
 
       <Dialog open={newTreeDialogOpen} onOpenChange={setNewTreeDialogOpen}>
         <DialogTrigger asChild>
-          <Button>Create a new tree</Button>
+          <Button>{t("createButton")}</Button>
         </DialogTrigger>
         <DialogContent>
           <Form {...newTreeForm}>
             <form onSubmit={handleSubmit} className="contents">
               <DialogHeader>
-                <DialogTitle>Create a new tree</DialogTitle>
-                <DialogDescription>
-                  Fill in the form below to create a new tree
-                </DialogDescription>
+                <DialogTitle>{t("createTitle")}</DialogTitle>
+                <DialogDescription>{t("createDesc")}</DialogDescription>
               </DialogHeader>
               <div className="space-y-8">
                 <FormField
@@ -612,13 +614,14 @@ export default function Notes() {
                   name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Title</FormLabel>
+                      <FormLabel>{t("formTitleLabel")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter tree title" {...field} />
+                        <Input
+                          placeholder={t("formTitlePlaceholder")}
+                          {...field}
+                        />
                       </FormControl>
-                      <FormDescription>
-                        This is your tree title.
-                      </FormDescription>
+                      <FormDescription>{t("formTitleDesc")}</FormDescription>
                       <FormMessage />
                       {titleError && (
                         <p className="text-sm font-medium text-destructive mt-1">
@@ -632,11 +635,11 @@ export default function Notes() {
               <DialogFooter>
                 <DialogClose asChild>
                   <Button type="button" variant="secondary">
-                    Close
+                    {t("close")}
                   </Button>
                 </DialogClose>
                 <Button type="submit" disabled={isNotePending}>
-                  <span>Create</span>
+                  <span>{t("create")}</span>
                   <ConditionChecker condition={isNotePending}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -709,14 +712,14 @@ export default function Notes() {
         <DialogContent>
           <form onSubmit={handleRenameSubmit} className="space-y-4">
             <DialogHeader>
-              <DialogTitle>Rename tree</DialogTitle>
+              <DialogTitle>{t("renameTitle")}</DialogTitle>
               <DialogDescription>
-                Enter a new title for &quot;{noteToRename?.title}&quot;
+                {t("renameDesc", { title: noteToRename?.title || "" })}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-2">
               <Input
-                placeholder="Enter tree title"
+                placeholder={t("renamePlaceholder")}
                 value={newTitle}
                 onChange={e => setNewTitle(e.target.value)}
               />
@@ -732,9 +735,9 @@ export default function Notes() {
                 variant="secondary"
                 onClick={() => setRenameDialogOpen(false)}
               >
-                Cancel
+                {t("cancel")}
               </Button>
-              <Button type="submit">Save</Button>
+              <Button type="submit">{t("save")}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -746,10 +749,9 @@ export default function Notes() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteConfirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete this
-              tree and all of its nested notes.
+              {t("deleteConfirmDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -759,7 +761,7 @@ export default function Notes() {
                 setNoteToDelete(null);
               }}
             >
-              Cancel
+              {t("cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
@@ -769,7 +771,7 @@ export default function Notes() {
                 }
               }}
             >
-              Delete
+              {t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

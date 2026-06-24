@@ -18,6 +18,7 @@ import { useEditorContext } from "@/providers/EditorProvider";
 import { Skeleton } from "./ui/skeleton";
 import { NoteCard } from "./NoteCard";
 import { NewNoteCard } from "./NewNoteCard";
+import { useTranslations } from "next-intl";
 import {
   DragDropProvider,
   PointerSensor,
@@ -209,6 +210,7 @@ function TreeSortableBranch({
 }
 
 export default function NotesTree() {
+  const t = useTranslations("NotesTree");
   const {
     tree,
     selectedNote,
@@ -405,7 +407,7 @@ export default function NotesTree() {
                   className="w-45 h-20 border-2 border-dashed border-primary/30 rounded-lg flex items-center justify-center bg-primary/5 hover:bg-primary/10 hover:border-primary/50 opacity-70"
                 >
                   <span className="text-xs text-muted-foreground font-medium">
-                    Déposer ici
+                    {t("dropHere")}
                   </span>
                 </div>
               )}
@@ -580,7 +582,7 @@ export default function NotesTree() {
           size="icon"
           onClick={scrollToSelected}
           className="absolute bottom-4 right-4 z-10 h-9 w-9 rounded-full shadow-lg backdrop-blur-sm bg-background/80 border-border/60 hover:bg-accent hover:scale-110 transition-all duration-200"
-          title="Recentrer sur la note active"
+          title={t("recenter")}
         >
           <Crosshair className="h-4 w-4" />
         </Button>
@@ -591,15 +593,14 @@ export default function NotesTree() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteConfirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete this
-              note and all of its child notes.
+              {t("deleteConfirmDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setNoteToDelete(null)}>
-              Cancel
+              {t("cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
@@ -609,7 +610,7 @@ export default function NotesTree() {
                 }
               }}
             >
-              Continue
+              {t("continue")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

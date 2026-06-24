@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import "../globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -8,7 +7,7 @@ import Header from "@/components/Header";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
+import { getMessages, getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { notFound } from "next/navigation";
 
@@ -19,10 +18,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "NoeTree",
-  description: "NoeTree app",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "Metadata" });
+  return {
+    title: t("title"),
+    description: t("description"),
+  };
+}
 
 export default async function RootLayout({
   children,
