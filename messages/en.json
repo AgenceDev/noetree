@@ -24,7 +24,8 @@
   },
   "Dashboard": {
     "title": "Dashboard",
-    "notesLink": "Notes"
+    "notesLink": "Notes",
+    "welcomeText": "Welcome to your dashboard. Access your note trees to start writing."
   },
   "Notes": {
     "title": "Trees",

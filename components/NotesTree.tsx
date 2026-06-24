@@ -19,6 +19,7 @@ import { Skeleton } from "./ui/skeleton";
 import { NoteCard } from "./NoteCard";
 import { NewNoteCard } from "./NewNoteCard";
 import { useTranslations } from "next-intl";
+import { useHeaderConfig } from "@/providers/HeaderProvider";
 import {
   DragDropProvider,
   PointerSensor,
@@ -219,6 +220,10 @@ export default function NotesTree() {
     onUpdateChildNotesOrder,
     onMoveNote,
   } = useTreeContext();
+
+  useHeaderConfig({
+    title: tree?.title || "",
+  });
   const { getCurrentContent } = useEditorContext();
   const { source, target } = useDragOperation();
   const isDraggingActive = !!source;

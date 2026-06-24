@@ -1,4 +1,5 @@
 "use client";
+
 import { DragDropProvider, PointerSensor } from "@dnd-kit/react";
 import { PointerActivationConstraints } from "@dnd-kit/dom";
 import { useSortable, isSortable } from "@dnd-kit/react/sortable";
@@ -6,7 +7,6 @@ import { cn } from "@/lib/utils";
 
 import ConditionChecker from "@/components/helpers/ConditionChecker";
 import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
 import {
   Card,
   CardDescription,
@@ -33,6 +33,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
+import { useHeaderConfig } from "@/providers/HeaderProvider";
 import {
   Form,
   FormControl,
@@ -578,26 +579,95 @@ export default function Notes() {
     createNote(formData);
   });
 
-  return (
-    <div className="flex flex-col justify-center items-center gap-8 p-6">
-      <h1 className="text-8xl font-bold">{t("title")}</h1>
-
-      <ConditionChecker
-        condition={!isPending && !error && !!data && data.length > 0}
-      >
-        <ButtonGroup>
+  useHeaderConfig({
+    title: t("title"),
+    search:
+      !isPending && !error && !!data && data.length > 0 ? (
+        <div className="relative w-full max-w-50 xs:max-w-xs sm:max-w-md">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder={t("searchPlaceholder")}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
+            className="pl-8 h-9 w-full bg-muted/40 focus:bg-background transition-colors"
           />
-          <Button variant="outline" aria-label={t("searchAria")} type="button">
-            <Search />
+        </div>
+      ) : null,
+    action: (
+      <Dialog open={newTreeDialogOpen} onOpenChange={setNewTreeDialogOpen}>
+        <DialogTrigger asChild>
+          <Button size="sm">
+            <span className="hidden sm:inline">{t("createButton")}</span>
+            <span className="sm:hidden text-lg font-bold">+</span>
           </Button>
-        </ButtonGroup>
-      </ConditionChecker>
+        </DialogTrigger>
+        <DialogContent>
+          <Form {...newTreeForm}>
+            <form onSubmit={handleSubmit} className="contents">
+              <DialogHeader>
+                <DialogTitle>{t("createTitle")}</DialogTitle>
+                <DialogDescription>{t("createDesc")}</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-8">
+                <FormField
+                  control={newTreeForm.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("formTitleLabel")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={t("formTitlePlaceholder")}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>{t("formTitleDesc")}</FormDescription>
+                      <FormMessage />
+                      {titleError && (
+                        <p className="text-sm font-medium text-destructive mt-1">
+                          {titleError}
+                        </p>
+                      )}
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button type="button" variant="secondary">
+                    {t("close")}
+                  </Button>
+                </DialogClose>
+                <Button type="submit" disabled={isNotePending}>
+                  <span>{t("create")}</span>
+                  <ConditionChecker condition={isNotePending}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 200 200"
+                      className="w-4 h-4 animate-spin ml-2 inline-block"
+                    >
+                      <circle
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="15"
+                        r="15"
+                        cx="40"
+                        cy="65"
+                      />
+                    </svg>
+                  </ConditionChecker>
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    ),
+  });
 
+  return (
+    <div className="flex flex-col justify-center items-center gap-8 p-6">
       <ConditionChecker condition={!!isPending}>
         <p>{t("loading")}</p>
       </ConditionChecker>
@@ -702,117 +772,6 @@ export default function Notes() {
       <ConditionChecker condition={!!error}>
         <p>{t("error")}</p>
       </ConditionChecker>
-
-      <Dialog open={newTreeDialogOpen} onOpenChange={setNewTreeDialogOpen}>
-        <DialogTrigger asChild>
-          <Button>{t("createButton")}</Button>
-        </DialogTrigger>
-        <DialogContent>
-          <Form {...newTreeForm}>
-            <form onSubmit={handleSubmit} className="contents">
-              <DialogHeader>
-                <DialogTitle>{t("createTitle")}</DialogTitle>
-                <DialogDescription>{t("createDesc")}</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-8">
-                <FormField
-                  control={newTreeForm.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("formTitleLabel")}</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder={t("formTitlePlaceholder")}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>{t("formTitleDesc")}</FormDescription>
-                      <FormMessage />
-                      {titleError && (
-                        <p className="text-sm font-medium text-destructive mt-1">
-                          {titleError}
-                        </p>
-                      )}
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button type="button" variant="secondary">
-                    {t("close")}
-                  </Button>
-                </DialogClose>
-                <Button type="submit" disabled={isNotePending}>
-                  <span>{t("create")}</span>
-                  <ConditionChecker condition={isNotePending}>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 200 200"
-                    >
-                      <circle
-                        fill="currentcolor"
-                        stroke="currentcolor"
-                        strokeWidth="15"
-                        r="15"
-                        cx="40"
-                        cy="65"
-                      >
-                        <animate
-                          attributeName="cy"
-                          calcMode="spline"
-                          dur="1"
-                          values="65;135;65;"
-                          keySplines=".5 0 .5 1;.5 0 .5 1"
-                          repeatCount="indefinite"
-                          begin="-.4"
-                        ></animate>
-                      </circle>
-                      <circle
-                        fill="currentcolor"
-                        stroke="currentcolor"
-                        strokeWidth="15"
-                        r="15"
-                        cx="100"
-                        cy="65"
-                      >
-                        <animate
-                          attributeName="cy"
-                          calcMode="spline"
-                          dur="1"
-                          values="65;135;65;"
-                          keySplines=".5 0 .5 1;.5 0 .5 1"
-                          repeatCount="indefinite"
-                          begin="-.2"
-                        ></animate>
-                      </circle>
-                      <circle
-                        fill="currentcolor"
-                        stroke="currentcolor"
-                        strokeWidth="15"
-                        r="15"
-                        cx="160"
-                        cy="65"
-                      >
-                        <animate
-                          attributeName="cy"
-                          calcMode="spline"
-                          dur="1"
-                          values="65;135;65;"
-                          keySplines=".5 0 .5 1;.5 0 .5 1"
-                          repeatCount="indefinite"
-                          begin="0"
-                        ></animate>
-                      </circle>
-                    </svg>
-                  </ConditionChecker>
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
         <DialogContent>
