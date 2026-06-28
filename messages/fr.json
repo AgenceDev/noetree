@@ -48,6 +48,9 @@
     "deleteConfirmTitle": "Êtes-vous absolument sûr ?",
     "deleteConfirmDesc": "Cette action ne peut pas être annulée. Cela supprimera définitivement cette arborescence et toutes ses notes associées.",
     "delete": "Supprimer",
+    "leaveConfirmTitle": "Quitter le partage ?",
+    "leaveConfirmDesc": "Êtes-vous sûr de vouloir quitter ce partage ? Vous n'aurez plus accès à cette note et ses enfants.",
+    "leave": "Quitter",
     "validation": {
       "required": "Le titre est requis",
       "tooShort": "Le titre doit faire au moins 3 caractères",
@@ -59,7 +62,9 @@
       "duplicate": "Dupliquer",
       "delete": "Supprimer",
       "pin": "Épingler",
-      "unpin": "Désépingler"
+      "unpin": "Désépingler",
+      "share": "Partager",
+      "leave": "Quitter le partage"
     }
   },
   "NoteCard": {
@@ -67,13 +72,16 @@
     "tooltips": {
       "addChild": "Ajouter une note enfant",
       "duplicate": "Dupliquer la note",
-      "delete": "Supprimer la note"
+      "delete": "Supprimer la note",
+      "share": "Partager la note"
     },
     "contextMenu": {
       "addChild": "Ajouter une note enfant",
       "rename": "Renommer",
       "duplicate": "Dupliquer",
-      "delete": "Supprimer"
+      "delete": "Supprimer",
+      "share": "Partager",
+      "leave": "Quitter le partage"
     }
   },
   "NoteContent": {
@@ -83,6 +91,24 @@
       "saving": "Sauvegarde...",
       "unsaved": "Modifications non enregistrées"
     }
+  },
+  "ShareDialog": {
+    "title": "Partager la note",
+    "desc": "Invitez d'autres utilisateurs à accéder à cette note et à toutes ses notes enfants.",
+    "inputLabel": "Adresse e-mail",
+    "inputPlaceholder": "utilisateur@exemple.com",
+    "invite": "Inviter",
+    "loading": "Chargement...",
+    "errorUserNotFound": "Aucun utilisateur trouvé avec cette adresse e-mail.",
+    "errorAlreadyShared": "Cette note est déjà partagée avec cet utilisateur.",
+    "errorSelfInvite": "Vous ne pouvez pas vous inviter vous-même.",
+    "errorGeneric": "Une erreur est survenue.",
+    "sharedWith": "Partagé avec",
+    "noShares": "Cette note n'est partagée avec personne.",
+    "remove": "Retirer",
+    "successInvite": "Utilisateur invité avec succès.",
+    "buttonTooltip": "Partager cette note",
+    "pending": "Invitation en attente"
   },
   "NotesTree": {
     "dropHere": "Déposer ici",

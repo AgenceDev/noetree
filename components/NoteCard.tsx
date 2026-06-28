@@ -5,14 +5,30 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "./ui/context-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { cn } from "@/lib/utils";
-import { Plus, Trash2, Copy } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Copy,
+  UserPlus,
+  MoreVertical,
+  Edit,
+  LogOut,
+} from "lucide-react";
 import { NoteTree, useTreeContext } from "@/providers/TreeProvider";
 import { useEditorContext } from "@/providers/EditorProvider";
 import ConditionChecker from "./helpers/ConditionChecker";
 import { useTranslations } from "next-intl";
+import ShareDialog from "@/components/ShareDialog";
 
 interface NoteCardProps {
   note: NoteTree;
@@ -41,6 +57,7 @@ export function NoteCard({
   const { getCurrentContent } = useEditorContext();
 
   const [isRenaming, setIsRenaming] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
   const [editedTitle, setEditedTitle] = useState(note.title);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -143,43 +160,93 @@ export function NoteCard({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6"
                   onClick={e => {
                     e.stopPropagation();
                     onAddChild();
                   }}
                   title={t("tooltips.addChild")}
                 >
-                  <Plus className="h-3 w-3" />
+                  <Plus />
                 </Button>
-                <ConditionChecker condition={!isRoot}>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={e => {
-                      e.stopPropagation();
-                      onDuplicateNote(note._id);
-                    }}
-                    title={t("tooltips.duplicate")}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={e => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                      }}
+                    >
+                      <MoreVertical />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="start"
+                    onClick={e => e.stopPropagation()}
                   >
-                    <Copy className="h-3 w-3" />
-                  </Button>
-                </ConditionChecker>
-                <ConditionChecker condition={!isRoot}>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 hover:text-destructive"
-                    onClick={e => {
-                      e.stopPropagation();
-                      onDelete();
-                    }}
-                    title={t("tooltips.delete")}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </ConditionChecker>
+                    {!note.isShared && (
+                      <DropdownMenuItem
+                        onClick={e => {
+                          e.stopPropagation();
+                          setIsShareOpen(true);
+                        }}
+                      >
+                        <UserPlus />
+                        {t("contextMenu.share")}
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem
+                      onClick={e => {
+                        e.stopPropagation();
+                        setIsRenaming(true);
+                      }}
+                    >
+                      <Edit />
+                      {t("contextMenu.rename")}
+                    </DropdownMenuItem>
+                    {isRoot && note.isShared ? (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          variant="destructive"
+                          onClick={e => {
+                            e.stopPropagation();
+                            onDelete();
+                          }}
+                        >
+                          <LogOut />
+                          {t("contextMenu.leave")}
+                        </DropdownMenuItem>
+                      </>
+                    ) : (
+                      <ConditionChecker condition={!isRoot}>
+                        <>
+                          <DropdownMenuItem
+                            onClick={e => {
+                              e.stopPropagation();
+                              onDuplicateNote(note._id);
+                            }}
+                          >
+                            <Copy />
+                            {t("contextMenu.duplicate")}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={e => {
+                              e.stopPropagation();
+                              onDelete();
+                            }}
+                          >
+                            <Trash2 />
+                            {t("contextMenu.delete")}
+                          </DropdownMenuItem>
+                        </>
+                      </ConditionChecker>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </Card>
@@ -191,18 +258,38 @@ export function NoteCard({
           <ContextMenuItem onClick={() => setIsRenaming(true)}>
             {t("contextMenu.rename")}
           </ContextMenuItem>
-          <ConditionChecker condition={!isRoot}>
-            <ContextMenuItem onClick={() => onDuplicateNote(note._id)}>
-              {t("contextMenu.duplicate")}
+          {!note.isShared && (
+            <ContextMenuItem onClick={() => setIsShareOpen(true)}>
+              {t("contextMenu.share")}
             </ContextMenuItem>
-          </ConditionChecker>
-          <ConditionChecker condition={!isRoot}>
+          )}
+          {isRoot && note.isShared ? (
             <ContextMenuItem variant="destructive" onClick={onDelete}>
-              {t("contextMenu.delete")}
+              {t("contextMenu.leave")}
             </ContextMenuItem>
-          </ConditionChecker>
+          ) : (
+            <>
+              <ConditionChecker condition={!isRoot}>
+                <ContextMenuItem onClick={() => onDuplicateNote(note._id)}>
+                  {t("contextMenu.duplicate")}
+                </ContextMenuItem>
+              </ConditionChecker>
+              <ConditionChecker condition={!isRoot}>
+                <ContextMenuItem variant="destructive" onClick={onDelete}>
+                  {t("contextMenu.delete")}
+                </ContextMenuItem>
+              </ConditionChecker>
+            </>
+          )}
         </ContextMenuContent>
       </ContextMenu>
+      {!isTemp && (
+        <ShareDialog
+          noteId={note._id}
+          open={isShareOpen}
+          onOpenChange={setIsShareOpen}
+        />
+      )}
     </div>
   );
 }

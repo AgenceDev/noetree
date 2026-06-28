@@ -1,6 +1,9 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Crosshair } from "lucide-react";
 import { Button } from "./ui/button";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { useRouter } from "next/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -224,6 +227,9 @@ function TreeSortableBranch({
 
 export default function NotesTree() {
   const t = useTranslations("NotesTree");
+  const tNotes = useTranslations("Notes");
+  const router = useRouter();
+  const leaveShareMutation = useMutation(api.notes.removeShare);
   const {
     tree,
     selectedNote,
@@ -604,34 +610,56 @@ export default function NotesTree() {
           <Crosshair className="h-4 w-4" />
         </Button>
       )}
-      <AlertDialog
-        open={noteToDelete !== null}
-        onOpenChange={open => !open && setNoteToDelete(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("deleteConfirmTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("deleteConfirmDesc")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setNoteToDelete(null)}>
-              {t("cancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (noteToDelete) {
-                  onDeleteNote(noteToDelete);
-                  setNoteToDelete(null);
-                }
-              }}
-            >
-              {t("continue")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {(() => {
+        const isLeaving = noteToDelete === tree?._id && tree?.isShared;
+
+        return (
+          <AlertDialog
+            open={noteToDelete !== null}
+            onOpenChange={open => !open && setNoteToDelete(null)}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {isLeaving
+                    ? tNotes("leaveConfirmTitle")
+                    : t("deleteConfirmTitle")}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {isLeaving
+                    ? tNotes("leaveConfirmDesc")
+                    : t("deleteConfirmDesc")}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setNoteToDelete(null)}>
+                  {t("cancel")}
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                  onClick={async () => {
+                    if (noteToDelete) {
+                      if (isLeaving && tree?.shareId) {
+                        try {
+                          await leaveShareMutation({ shareId: tree.shareId });
+                          router.push("/notes");
+                        } catch (err) {
+                          console.error(err);
+                        }
+                      } else {
+                        onDeleteNote(noteToDelete);
+                      }
+                      setNoteToDelete(null);
+                    }
+                  }}
+                >
+                  {isLeaving ? tNotes("leave") : t("continue")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        );
+      })()}
     </div>
   );
 }

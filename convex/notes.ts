@@ -1,4 +1,4 @@
-import { query, mutation } from "./_generated/server";
+import { query, mutation, QueryCtx, MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { getUser } from "./helpers/helper";
 import { Doc, Id } from "./_generated/dataModel";
@@ -8,6 +8,57 @@ type Notes = Doc<"notes">;
 interface NotesToSend extends Omit<Notes, "childNotes"> {
   childNotes: NotesToSend[] | Id<"notes">[] | undefined;
   nestedNotesCount?: number;
+  shareId?: Id<"shares">;
+  isShared?: boolean;
+}
+
+async function hasAccess(
+  ctx: QueryCtx | MutationCtx,
+  noteId: Id<"notes">,
+  userId: Id<"users">,
+): Promise<boolean> {
+  const note = await ctx.db.get(noteId);
+  if (!note) return false;
+  if (note.owner === userId) return true;
+
+  // Check direct share by userId
+  const shareByUserId = await ctx.db
+    .query("shares")
+    .withIndex("by_user_note", q => q.eq("userId", userId).eq("noteId", noteId))
+    .first();
+  if (shareByUserId) return true;
+
+  // Check direct share by email
+  const user = await ctx.db.get(userId);
+  if (user && user.email) {
+    const email = user.email.trim().toLowerCase();
+    const shareByEmail = await ctx.db
+      .query("shares")
+      .withIndex("by_email_note", q =>
+        q.eq("email", email).eq("noteId", noteId),
+      )
+      .first();
+    if (shareByEmail) return true;
+  }
+
+  if (note.parentNote) {
+    return await hasAccess(ctx, note.parentNote, userId);
+  }
+  return false;
+}
+
+async function isOwnerOrAncestorOwner(
+  ctx: QueryCtx | MutationCtx,
+  noteId: Id<"notes">,
+  userId: Id<"users">,
+): Promise<boolean> {
+  const note = await ctx.db.get(noteId);
+  if (!note) return false;
+  if (note.owner === userId) return true;
+  if (note.parentNote) {
+    return await isOwnerOrAncestorOwner(ctx, note.parentNote, userId);
+  }
+  return false;
 }
 
 export const getTreeById = query({
@@ -25,21 +76,50 @@ export const getTreeById = query({
     }
 
     //step 3 Get the note
-    const note = await ctx.db
-      .query("notes")
-      .filter(q => q.eq(q.field("owner"), user._id))
-      .filter(q => q.eq(q.field("_id"), args.id))
-      .first();
+    const note = await ctx.db.get(args.id);
 
-    // step 4 Check if note exists
+    // step 4 Check if note exists and if user has access
     if (!note) {
       throw new Error("Note not found");
+    }
+
+    const userHasAccess = await hasAccess(ctx, args.id, user._id);
+    if (!userHasAccess) {
+      throw new Error("Unauthorized access to this note");
+    }
+
+    let shareId: Id<"shares"> | undefined = undefined;
+    let isShared = false;
+    if (note.owner !== user._id) {
+      const shareByUserId = await ctx.db
+        .query("shares")
+        .withIndex("by_user_note", q =>
+          q.eq("userId", user._id).eq("noteId", args.id),
+        )
+        .first();
+      if (shareByUserId) {
+        shareId = shareByUserId._id;
+        isShared = true;
+      } else if (user.email) {
+        const shareByEmail = await ctx.db
+          .query("shares")
+          .withIndex("by_email_note", q =>
+            q.eq("email", user.email!).eq("noteId", args.id),
+          )
+          .first();
+        if (shareByEmail) {
+          shareId = shareByEmail._id;
+          isShared = true;
+        }
+      }
     }
 
     //step 5 - map current notes to be as NotesToSend
     const noteToSend: NotesToSend = {
       ...note,
       childNotes: note.childNotes || [],
+      shareId,
+      isShared,
     };
 
     //step 6 - check if deep is provided and if so, get the children notes until deep level
@@ -67,6 +147,8 @@ export const getTreeById = query({
               childNote => ({
                 ...childNote,
                 childNotes: childNote.childNotes || [],
+                shareId: currentNote.shareId,
+                isShared: currentNote.isShared,
               }),
             );
 
@@ -116,13 +198,61 @@ export const getTreesByMe = query({
       throw new Error("User not found");
     }
 
-    //step 3 - get all top parent notes
-    const notes = await ctx.db
+    //step 3 - get all top parent notes owned by me
+    const ownedRootNotes = await ctx.db
       .query("notes")
       .withIndex("by_owner", q =>
         q.eq("owner", user._id).eq("parentNote", undefined),
       )
       .collect();
+
+    // get notes shared with me by userId
+    const userShares = await ctx.db
+      .query("shares")
+      .withIndex("by_user", q => q.eq("userId", user._id))
+      .collect();
+
+    // get notes shared with me by email
+    const email = user.email?.trim().toLowerCase();
+    const emailShares = email
+      ? await ctx.db
+          .query("shares")
+          .withIndex("by_email", q => q.eq("email", email))
+          .collect()
+      : [];
+
+    const allShares = [...userShares];
+    for (const es of emailShares) {
+      if (!allShares.some(s => s._id === es._id)) {
+        allShares.push(es);
+      }
+    }
+
+    const sharedNotes: (Doc<"notes"> & {
+      shareId?: Id<"shares">;
+      isShared?: boolean;
+    })[] = [];
+    for (const share of allShares) {
+      const sharedNote = await ctx.db.get(share.noteId);
+      if (sharedNote) {
+        sharedNotes.push({
+          ...sharedNote,
+          shareId: share._id,
+          isShared: true,
+        });
+      }
+    }
+
+    // Combine both sets
+    const notes: (Doc<"notes"> & {
+      shareId?: Id<"shares">;
+      isShared?: boolean;
+    })[] = [...ownedRootNotes];
+    for (const s of sharedNotes) {
+      if (!notes.some(n => n._id === s._id)) {
+        notes.push(s);
+      }
+    }
 
     // Sort notes by pinned status first, then by index (falling back to _creationTime if index is not defined)
     notes.sort((a, b) => {
@@ -136,14 +266,63 @@ export const getTreesByMe = query({
       return indexA - indexB;
     });
 
-    // Fetch all user notes to compute total nested notes count recursively
-    const allNotes = await ctx.db
+    // Fetch all accessible notes to compute total nested notes count recursively
+    const ownedNotes = await ctx.db
       .query("notes")
       .withIndex("by_owner", q => q.eq("owner", user._id))
       .collect();
 
+    const sharedNotesDescendants: (Doc<"notes"> & {
+      shareId?: Id<"shares">;
+      isShared?: boolean;
+    })[] = [];
+    const collectDescendants = async (
+      noteId: Id<"notes">,
+      parentShareId?: Id<"shares">,
+    ) => {
+      const children = await ctx.db
+        .query("notes")
+        .withIndex("by_parent", q => q.eq("parentNote", noteId))
+        .collect();
+      for (const child of children) {
+        sharedNotesDescendants.push({
+          ...child,
+          shareId: parentShareId,
+          isShared: true,
+        });
+        await collectDescendants(child._id, parentShareId);
+      }
+    };
+
+    for (const share of allShares) {
+      const sharedNote = await ctx.db.get(share.noteId);
+      if (sharedNote) {
+        if (!sharedNotesDescendants.some(n => n._id === sharedNote._id)) {
+          sharedNotesDescendants.push({
+            ...sharedNote,
+            shareId: share._id,
+            isShared: true,
+          });
+        }
+        await collectDescendants(sharedNote._id, share._id);
+      }
+    }
+
+    const allNotes: (Doc<"notes"> & {
+      shareId?: Id<"shares">;
+      isShared?: boolean;
+    })[] = [...ownedNotes];
+    for (const n of sharedNotesDescendants) {
+      if (!allNotes.some(x => x._id === n._id)) {
+        allNotes.push(n);
+      }
+    }
+
     // Map parent note to its children
-    const childMap = new Map<string, Doc<"notes">[]>();
+    const childMap = new Map<
+      string,
+      (Doc<"notes"> & { shareId?: Id<"shares">; isShared?: boolean })[]
+    >();
     for (const n of allNotes) {
       if (n.parentNote) {
         const parentId = n.parentNote;
@@ -169,6 +348,8 @@ export const getTreesByMe = query({
       ...note,
       childNotes: note.childNotes || [],
       nestedNotesCount: countDescendants(note._id),
+      shareId: note.shareId,
+      isShared: note.isShared,
     }));
 
     //step 5 - check if deep is provided and if so, get the children notes until deep level
@@ -195,6 +376,8 @@ export const getTreesByMe = query({
               childNote => ({
                 ...childNote,
                 childNotes: childNote.childNotes || [],
+                shareId: childNote.shareId,
+                isShared: childNote.isShared,
               }),
             );
 
@@ -245,6 +428,13 @@ export const createNote = mutation({
       throw new Error("User not found");
     }
 
+    if (args.parentNote) {
+      const parentAccess = await hasAccess(ctx, args.parentNote, user._id);
+      if (!parentAccess) {
+        throw new Error("Unauthorized to create child note under this parent");
+      }
+    }
+
     // Check if a note with the same title exists for this user
     const existingNote = await ctx.db
       .query("notes")
@@ -282,6 +472,14 @@ export const updateNote = mutation({
     childNotes: v.optional(v.array(v.id("notes"))),
   },
   handler: async (ctx, args) => {
+    const user = await getUser(ctx);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    const access = await hasAccess(ctx, args.id, user._id);
+    if (!access) {
+      throw new Error("Unauthorized");
+    }
     const note = await ctx.db.patch(args.id, {
       title: args.title,
       content: args.content,
@@ -299,6 +497,14 @@ export const updateNoteTitle = mutation({
     title: v.string(),
   },
   handler: async (ctx, args) => {
+    const user = await getUser(ctx);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    const access = await hasAccess(ctx, args.id, user._id);
+    if (!access) {
+      throw new Error("Unauthorized");
+    }
     const note = await ctx.db.patch(args.id, {
       title: args.title,
       updated_at: new Date().toISOString(),
@@ -317,9 +523,9 @@ export const updateNoteIndex = mutation({
     if (!user) {
       throw new Error("User not found");
     }
-    const note = await ctx.db.get(args.id);
-    if (!note || note.owner !== user._id) {
-      throw new Error("Note not found or unauthorized");
+    const access = await hasAccess(ctx, args.id, user._id);
+    if (!access) {
+      throw new Error("Unauthorized");
     }
     const updatedNote = await ctx.db.patch(args.id, {
       index: args.index,
@@ -335,6 +541,14 @@ export const updateNoteContent = mutation({
     content: v.any(),
   },
   handler: async (ctx, args) => {
+    const user = await getUser(ctx);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    const access = await hasAccess(ctx, args.id, user._id);
+    if (!access) {
+      throw new Error("Unauthorized");
+    }
     const note = await ctx.db.patch(args.id, {
       content: args.content,
       updated_at: new Date().toISOString(),
@@ -352,8 +566,20 @@ export const deleteNote = mutation({
     }
 
     const rootNote = await ctx.db.get(args.id);
-    if (!rootNote || rootNote.owner !== user._id) {
-      throw new Error("Note not found or unauthorized");
+    if (!rootNote) {
+      throw new Error("Note not found");
+    }
+
+    if (!rootNote.parentNote) {
+      const isOwner = await isOwnerOrAncestorOwner(ctx, args.id, user._id);
+      if (!isOwner) {
+        throw new Error("Unauthorized");
+      }
+    } else {
+      const access = await hasAccess(ctx, args.id, user._id);
+      if (!access) {
+        throw new Error("Unauthorized");
+      }
     }
 
     const deleteRecursive = async (noteId: Id<"notes">) => {
@@ -366,6 +592,15 @@ export const deleteNote = mutation({
         await deleteRecursive(child._id);
       }
       await ctx.db.delete(noteId);
+
+      // Delete any shares associated with the deleted note
+      const shares = await ctx.db
+        .query("shares")
+        .withIndex("by_note", q => q.eq("noteId", noteId))
+        .collect();
+      for (const share of shares) {
+        await ctx.db.delete(share._id);
+      }
     };
 
     if (rootNote.parentNote) {
@@ -394,8 +629,12 @@ export const duplicateNote = mutation({
     }
 
     const sourceNote = await ctx.db.get(args.id);
-    if (!sourceNote || sourceNote.owner !== user._id) {
-      throw new Error("Note not found or unauthorized");
+    if (!sourceNote) {
+      throw new Error("Note not found");
+    }
+    const access = await hasAccess(ctx, args.id, user._id);
+    if (!access) {
+      throw new Error("Unauthorized");
     }
 
     const duplicateRecursive = async (
@@ -488,6 +727,14 @@ export const updateParentNote = mutation({
     parentNote: v.optional(v.id("notes")),
   },
   handler: async (ctx, args) => {
+    const user = await getUser(ctx);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    const access = await hasAccess(ctx, args.id, user._id);
+    if (!access) {
+      throw new Error("Unauthorized");
+    }
     const note = await ctx.db.patch(args.id, {
       parentNote: args.parentNote,
       updated_at: new Date().toISOString(),
@@ -502,6 +749,14 @@ export const updateChildNotes = mutation({
     childNotes: v.optional(v.array(v.id("notes"))),
   },
   handler: async (ctx, args) => {
+    const user = await getUser(ctx);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    const access = await hasAccess(ctx, args.id, user._id);
+    if (!access) {
+      throw new Error("Unauthorized");
+    }
     const note = await ctx.db.patch(args.id, {
       childNotes: args.childNotes,
       updated_at: new Date().toISOString(),
@@ -518,16 +773,20 @@ export const moveNote = mutation({
     index: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    // remove from childNotes of from
-    const noteFrom = await ctx.db
-      .query("notes")
-      .filter(q => q.eq(q.field("_id"), args.from))
-      .first();
+    const user = await getUser(ctx);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    const accessId = await hasAccess(ctx, args.id, user._id);
+    const accessFrom = await hasAccess(ctx, args.from, user._id);
+    const accessTo = await hasAccess(ctx, args.to, user._id);
+    if (!accessId || !accessFrom || !accessTo) {
+      throw new Error("Unauthorized");
+    }
 
-    const noteTo = await ctx.db
-      .query("notes")
-      .filter(q => q.eq(q.field("_id"), args.to))
-      .first();
+    // remove from childNotes of from
+    const noteFrom = await ctx.db.get(args.from);
+    const noteTo = await ctx.db.get(args.to);
 
     if (!noteFrom || !noteTo) {
       throw new Error("Note not found");
@@ -571,11 +830,16 @@ export const moveNote = mutation({
 export const fetchNoteContent = query({
   args: { id: v.id("notes") },
   handler: async (ctx, args) => {
-    const note = await ctx.db
-      .query("notes")
-      .filter(q => q.eq(q.field("_id"), args.id))
-      .first();
+    const user = await getUser(ctx);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    const access = await hasAccess(ctx, args.id, user._id);
+    if (!access) {
+      throw new Error("Unauthorized");
+    }
 
+    const note = await ctx.db.get(args.id);
     if (!note) {
       throw new Error("Note not found");
     }
@@ -593,14 +857,150 @@ export const togglePinNote = mutation({
     if (!user) {
       throw new Error("User not found");
     }
+    const access = await hasAccess(ctx, args.id, user._id);
+    if (!access) {
+      throw new Error("Unauthorized");
+    }
     const note = await ctx.db.get(args.id);
-    if (!note || note.owner !== user._id) {
-      throw new Error("Note not found or unauthorized");
+    if (!note) {
+      throw new Error("Note not found");
     }
     const updatedNote = await ctx.db.patch(args.id, {
       isPinned: !note.isPinned,
       updated_at: new Date().toISOString(),
     });
     return updatedNote;
+  },
+});
+
+export const inviteUser = mutation({
+  args: {
+    noteId: v.id("notes"),
+    email: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await getUser(ctx);
+    if (!user) {
+      return { success: false, error: "UNAUTHORIZED" };
+    }
+
+    const ownerCheck = await isOwnerOrAncestorOwner(ctx, args.noteId, user._id);
+    if (!ownerCheck) {
+      return { success: false, error: "UNAUTHORIZED" };
+    }
+
+    const targetUser = await ctx.db
+      .query("users")
+      .withIndex("by_email", q => q.eq("email", args.email))
+      .first();
+
+    if (targetUser && targetUser._id === user._id) {
+      return { success: false, error: "CANNOT_INVITE_SELF" };
+    }
+
+    const existingShare = await ctx.db
+      .query("shares")
+      .withIndex("by_email_note", q =>
+        q.eq("email", args.email).eq("noteId", args.noteId),
+      )
+      .first();
+
+    if (existingShare) {
+      return { success: false, error: "ALREADY_SHARED" };
+    }
+
+    const shareId = await ctx.db.insert("shares", {
+      noteId: args.noteId,
+      userId: targetUser ? targetUser._id : undefined,
+      email: args.email,
+    });
+
+    return {
+      success: true,
+      share: {
+        _id: shareId,
+        noteId: args.noteId,
+        userId: targetUser ? targetUser._id : undefined,
+        email: args.email,
+      },
+    };
+  },
+});
+
+export const getNoteShares = query({
+  args: {
+    noteId: v.id("notes"),
+  },
+  handler: async (ctx, args) => {
+    const user = await getUser(ctx);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const access = await hasAccess(ctx, args.noteId, user._id);
+    if (!access) {
+      throw new Error("Unauthorized");
+    }
+
+    const shares = await ctx.db
+      .query("shares")
+      .withIndex("by_note", q => q.eq("noteId", args.noteId))
+      .collect();
+
+    const sharedUsers = [];
+    for (const share of shares) {
+      if (share.userId) {
+        const u = await ctx.db.get(share.userId);
+        if (u) {
+          sharedUsers.push({
+            _id: u._id,
+            shareId: share._id,
+            name: u.name,
+            email: u.email,
+            picture: u.picture,
+            registered: true,
+          });
+          continue;
+        }
+      }
+
+      sharedUsers.push({
+        _id: share._id as unknown as Id<"users">,
+        shareId: share._id,
+        name: undefined,
+        email: share.email,
+        picture: undefined,
+        registered: false,
+      });
+    }
+
+    return sharedUsers;
+  },
+});
+
+export const removeShare = mutation({
+  args: {
+    shareId: v.id("shares"),
+  },
+  handler: async (ctx, args) => {
+    const user = await getUser(ctx);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const share = await ctx.db.get(args.shareId);
+    if (!share) {
+      throw new Error("Share not found");
+    }
+
+    const isOwner = await isOwnerOrAncestorOwner(ctx, share.noteId, user._id);
+    const isSelfRevoke = share.userId === user._id;
+
+    if (!isOwner && !isSelfRevoke) {
+      throw new Error("Unauthorized to remove this share");
+    }
+
+    await ctx.db.delete(share._id);
+    return true;
   },
 });
