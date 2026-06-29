@@ -16,7 +16,7 @@
     "test-cypress": "start-server-and-test start http://localhost:3000 cy:run"
   },
   "dependencies": {
-    "@clerk/nextjs": "^6.12.4",
+    "@clerk/nextjs": "^6.39.2",
     "@radix-ui/react-alert-dialog": "^1.1.6",
     "@radix-ui/react-context-menu": "^2.2.6",
     "@radix-ui/react-dialog": "^1.1.6",
@@ -37,7 +37,7 @@
     "convex": "^1.19.5",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.477.0",
-    "next": "15.1.6",
+    "next": "15.5.19",
     "next-themes": "^0.4.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
