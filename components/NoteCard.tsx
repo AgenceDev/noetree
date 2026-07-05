@@ -23,6 +23,7 @@ import {
   MoreVertical,
   Edit,
   LogOut,
+  Users,
 } from "lucide-react";
 import { NoteTree, useTreeContext } from "@/providers/TreeProvider";
 import { useEditorContext } from "@/providers/EditorProvider";
@@ -151,9 +152,19 @@ export function NoteCard({
                 />
               </ConditionChecker>
               <ConditionChecker condition={!isRenaming}>
-                <span className="text-sm font-semibold text-center">
-                  {note.title}
-                </span>
+                <>
+                  <span className="text-sm font-semibold text-center">
+                    {note.title}
+                  </span>
+                  {note.isShared && (
+                    <div
+                      className="absolute top-2 right-2 text-blue-500"
+                      title={t("tooltips.shared")}
+                    >
+                      <Users className="w-3.5 h-3.5" />
+                    </div>
+                  )}
+                </>
               </ConditionChecker>
 
               <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center justify-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">

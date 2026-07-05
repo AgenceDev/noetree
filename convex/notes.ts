@@ -47,6 +47,42 @@ async function hasAccess(
   return false;
 }
 
+async function getNoteShareInfo(
+  ctx: QueryCtx,
+  note: Doc<"notes">,
+  user: Doc<"users">,
+): Promise<{ isShared: boolean; shareId?: Id<"shares"> }> {
+  if (note.owner !== user._id) {
+    const shareByUserId = await ctx.db
+      .query("shares")
+      .withIndex("by_user_note", q =>
+        q.eq("userId", user._id).eq("noteId", note._id),
+      )
+      .first();
+    if (shareByUserId) {
+      return { isShared: true, shareId: shareByUserId._id };
+    }
+    if (user.email) {
+      const shareByEmail = await ctx.db
+        .query("shares")
+        .withIndex("by_email_note", q =>
+          q.eq("email", user.email!).eq("noteId", note._id),
+        )
+        .first();
+      if (shareByEmail) {
+        return { isShared: true, shareId: shareByEmail._id };
+      }
+    }
+    return { isShared: false };
+  } else {
+    const shares = await ctx.db
+      .query("shares")
+      .withIndex("by_note", q => q.eq("noteId", note._id))
+      .first();
+    return { isShared: shares !== null };
+  }
+}
+
 async function isOwnerOrAncestorOwner(
   ctx: QueryCtx | MutationCtx,
   noteId: Id<"notes">,
@@ -88,31 +124,9 @@ export const getTreeById = query({
       throw new Error("Unauthorized access to this note");
     }
 
-    let shareId: Id<"shares"> | undefined = undefined;
-    let isShared = false;
-    if (note.owner !== user._id) {
-      const shareByUserId = await ctx.db
-        .query("shares")
-        .withIndex("by_user_note", q =>
-          q.eq("userId", user._id).eq("noteId", args.id),
-        )
-        .first();
-      if (shareByUserId) {
-        shareId = shareByUserId._id;
-        isShared = true;
-      } else if (user.email) {
-        const shareByEmail = await ctx.db
-          .query("shares")
-          .withIndex("by_email_note", q =>
-            q.eq("email", user.email!).eq("noteId", args.id),
-          )
-          .first();
-        if (shareByEmail) {
-          shareId = shareByEmail._id;
-          isShared = true;
-        }
-      }
-    }
+    const shareInfo = await getNoteShareInfo(ctx, note, user);
+    const isShared = shareInfo.isShared;
+    const shareId = shareInfo.shareId;
 
     //step 5 - map current notes to be as NotesToSend
     const noteToSend: NotesToSend = {
@@ -143,12 +157,23 @@ export const getTreeById = query({
             const orderedIds = currentNote.childNotes as Id<"notes">[];
 
             // Convert children to NotesToSend format
-            const childrenNotesToSend: NotesToSend[] = childrenNotes.map(
-              childNote => ({
-                ...childNote,
-                childNotes: childNote.childNotes || [],
-                shareId: currentNote.shareId,
-                isShared: currentNote.isShared,
+            const childrenNotesToSend: NotesToSend[] = await Promise.all(
+              childrenNotes.map(async childNote => {
+                let childIsShared = currentNote.isShared;
+                let childShareId = currentNote.shareId;
+
+                if (!childIsShared) {
+                  const info = await getNoteShareInfo(ctx, childNote, user);
+                  childIsShared = info.isShared;
+                  childShareId = info.shareId;
+                }
+
+                return {
+                  ...childNote,
+                  childNotes: childNote.childNotes || [],
+                  shareId: childShareId,
+                  isShared: childIsShared,
+                };
               }),
             );
 
@@ -344,13 +369,24 @@ export const getTreesByMe = query({
     };
 
     //step 4 - map current notes to be as NotesToSend
-    const notesToSend: NotesToSend[] = notes.map(note => ({
-      ...note,
-      childNotes: note.childNotes || [],
-      nestedNotesCount: countDescendants(note._id),
-      shareId: note.shareId,
-      isShared: note.isShared,
-    }));
+    const notesToSend: NotesToSend[] = await Promise.all(
+      notes.map(async note => {
+        let isShared = note.isShared;
+        let shareId = note.shareId;
+        if (!isShared) {
+          const info = await getNoteShareInfo(ctx, note, user);
+          isShared = info.isShared;
+          shareId = info.shareId;
+        }
+        return {
+          ...note,
+          childNotes: note.childNotes || [],
+          nestedNotesCount: countDescendants(note._id),
+          shareId,
+          isShared,
+        };
+      }),
+    );
 
     //step 5 - check if deep is provided and if so, get the children notes until deep level
     if (args.deep) {
@@ -372,12 +408,23 @@ export const getTreesByMe = query({
             const orderedIds = currentNote.childNotes as Id<"notes">[];
 
             // Convert children to NotesToSend format
-            const childrenNotesToSend: NotesToSend[] = childrenNotes.map(
-              childNote => ({
-                ...childNote,
-                childNotes: childNote.childNotes || [],
-                shareId: childNote.shareId,
-                isShared: childNote.isShared,
+            const childrenNotesToSend: NotesToSend[] = await Promise.all(
+              childrenNotes.map(async childNote => {
+                let childIsShared = currentNote.isShared || childNote.isShared;
+                let childShareId = childNote.shareId;
+
+                if (!childIsShared) {
+                  const info = await getNoteShareInfo(ctx, childNote, user);
+                  childIsShared = info.isShared;
+                  childShareId = info.shareId;
+                }
+
+                return {
+                  ...childNote,
+                  childNotes: childNote.childNotes || [],
+                  shareId: childShareId,
+                  isShared: childIsShared,
+                };
               }),
             );
 

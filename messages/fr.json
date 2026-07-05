@@ -73,7 +73,8 @@
       "addChild": "Ajouter une note enfant",
       "duplicate": "Dupliquer la note",
       "delete": "Supprimer la note",
-      "share": "Partager la note"
+      "share": "Partager la note",
+      "shared": "Note partagée"
     },
     "contextMenu": {
       "addChild": "Ajouter une note enfant",

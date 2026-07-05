@@ -73,14 +73,16 @@
       "addChild": "Add child note",
       "duplicate": "Duplicate note",
       "delete": "Delete note",
-      "share": "Share note"
+      "share": "Share note",
+      "shared": "Shared note"
     },
     "contextMenu": {
       "addChild": "Add a child note",
       "rename": "Rename",
       "duplicate": "Duplicate",
       "delete": "Delete",
-      "share": "Share"
+      "share": "Share",
+      "leave": "Leave share"
     }
   },
   "NoteContent": {
