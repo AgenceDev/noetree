@@ -271,8 +271,11 @@ export default function NotesTree() {
         : targetIdStr
     ) as Id<"notes">;
 
+    const targetNote = noteId && tree ? findNoteInTree(noteId, tree) : null;
+
     if (
       noteId &&
+      targetNote?.role !== "view" &&
       !isSelfOrDescendantOfDragged(
         noteId,
         source?.id as Id<"notes"> | undefined,
@@ -488,14 +491,23 @@ export default function NotesTree() {
                   "empty-placeholder-",
                   "",
                 ) as Id<"notes">;
-                setDropIndicator({ noteId, position: "child" });
+                const targetNote = tree ? findNoteInTree(noteId, tree) : null;
+                if (targetNote && targetNote.role !== "view") {
+                  setDropIndicator({ noteId, position: "child" });
+                } else {
+                  setDropIndicator(null);
+                }
               } else {
                 const targetId = target.id as Id<"notes">;
                 if (targetIdStr === "root-droppable") {
-                  setDropIndicator({
-                    noteId: tree?._id as Id<"notes">,
-                    position: "child",
-                  });
+                  if (tree && tree.role !== "view") {
+                    setDropIndicator({
+                      noteId: tree._id as Id<"notes">,
+                      position: "child",
+                    });
+                  } else {
+                    setDropIndicator(null);
+                  }
                   return;
                 }
 
@@ -504,12 +516,36 @@ export default function NotesTree() {
                   const relativeX =
                     (operation.position.current.x - rect.left) / rect.width;
 
+                  const targetNote = tree
+                    ? findNoteInTree(targetId, tree)
+                    : null;
+                  const parentId = target.data.parentId as
+                    | Id<"notes">
+                    | undefined;
+                  const parentNote =
+                    parentId && tree ? findNoteInTree(parentId, tree) : null;
+
                   if (relativeX < 0.15) {
-                    setDropIndicator({ noteId: targetId, position: "before" });
+                    if (parentNote && parentNote.role !== "view") {
+                      setDropIndicator({
+                        noteId: targetId,
+                        position: "before",
+                      });
+                    } else {
+                      setDropIndicator(null);
+                    }
                   } else if (relativeX > 0.85) {
-                    setDropIndicator({ noteId: targetId, position: "after" });
+                    if (parentNote && parentNote.role !== "view") {
+                      setDropIndicator({ noteId: targetId, position: "after" });
+                    } else {
+                      setDropIndicator(null);
+                    }
                   } else {
-                    setDropIndicator({ noteId: targetId, position: "child" });
+                    if (targetNote && targetNote.role !== "view") {
+                      setDropIndicator({ noteId: targetId, position: "child" });
+                    } else {
+                      setDropIndicator(null);
+                    }
                   }
                 }
               }
@@ -529,6 +565,10 @@ export default function NotesTree() {
                   "empty-placeholder-",
                   "",
                 ) as Id<"notes">;
+                const parentNote = tree
+                  ? findNoteInTree(newParentId, tree)
+                  : null;
+                if (!parentNote || parentNote.role === "view") return;
 
                 if (oldParentId !== newParentId) {
                   onMoveNote(draggedId, oldParentId, newParentId, 0);
@@ -544,7 +584,12 @@ export default function NotesTree() {
 
                 // Find target index in the parent's children list
                 const parentNote = findNoteInTree(newParentId, tree);
-                if (!parentNote || !parentNote.childNotes) return;
+                if (
+                  !parentNote ||
+                  !parentNote.childNotes ||
+                  parentNote.role === "view"
+                )
+                  return;
 
                 const childIds = parentNote.childNotes.map(c => c._id);
                 const targetIndex = childIds.indexOf(targetId);

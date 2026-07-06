@@ -82,7 +82,8 @@
       "duplicate": "Dupliquer",
       "delete": "Supprimer",
       "share": "Partager",
-      "leave": "Quitter le partage"
+      "leave": "Quitter le partage",
+      "noActions": "Aucune action"
     }
   },
   "NoteContent": {

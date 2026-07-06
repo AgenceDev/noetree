@@ -1,9 +1,16 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
+  ContextMenuSeparator,
 } from "./ui/context-menu";
 import {
   DropdownMenu,
@@ -64,6 +71,81 @@ export function NoteCard({
 
   const isSelected = selectedNote?._id === note._id;
   const isTemp = typeof note._id === "string" && note._id.startsWith("temp-");
+  const menuActions = useMemo(() => {
+    return [
+      {
+        id: "addChild",
+        label: t("contextMenu.addChild"),
+        icon: <Plus />,
+        onClick: (e: React.MouseEvent) => {
+          e.stopPropagation();
+          onAddChild();
+        },
+        show: note.role !== "view",
+      },
+      {
+        id: "rename",
+        label: t("contextMenu.rename"),
+        icon: <Edit />,
+        onClick: (e: React.MouseEvent) => {
+          e.stopPropagation();
+          setIsRenaming(true);
+        },
+        show: note.role !== "view",
+      },
+      {
+        id: "share",
+        label: t("contextMenu.share"),
+        icon: <UserPlus />,
+        onClick: (e: React.MouseEvent) => {
+          e.stopPropagation();
+          setIsShareOpen(true);
+        },
+        show: note.role === "owner" || note.role === "admin",
+      },
+      {
+        id: "duplicate",
+        label: t("contextMenu.duplicate"),
+        icon: <Copy />,
+        onClick: (e: React.MouseEvent) => {
+          e.stopPropagation();
+          onDuplicateNote(note._id);
+        },
+        show: !isRoot && note.role !== "view",
+      },
+      {
+        id: "leave",
+        label: t("contextMenu.leave"),
+        icon: <LogOut />,
+        onClick: (e: React.MouseEvent) => {
+          e.stopPropagation();
+          onDelete();
+        },
+        variant: "destructive" as const,
+        show: isRoot && !!note.isShared,
+      },
+      {
+        id: "delete",
+        label: t("contextMenu.delete"),
+        icon: <Trash2 />,
+        onClick: (e: React.MouseEvent) => {
+          e.stopPropagation();
+          onDelete();
+        },
+        variant: "destructive" as const,
+        show: !isRoot && note.role !== "view",
+      },
+    ].filter(action => action.show);
+  }, [
+    note.role,
+    note._id,
+    isRoot,
+    note.isShared,
+    onAddChild,
+    onDuplicateNote,
+    onDelete,
+    t,
+  ]);
 
   const combinedRef = useCallback(
     (el: HTMLDivElement | null) => {
@@ -200,69 +282,30 @@ export function NoteCard({
                     align="start"
                     onClick={e => e.stopPropagation()}
                   >
-                    {(note.role === "owner" || note.role === "admin") && (
+                    {menuActions.length === 0 ? (
                       <DropdownMenuItem
-                        onClick={e => {
-                          e.stopPropagation();
-                          setIsShareOpen(true);
-                        }}
+                        disabled
+                        className="text-muted-foreground italic"
                       >
-                        <UserPlus />
-                        {t("contextMenu.share")}
+                        {t("contextMenu.noActions")}
                       </DropdownMenuItem>
-                    )}
-                    {note.role !== "view" && (
-                      <DropdownMenuItem
-                        onClick={e => {
-                          e.stopPropagation();
-                          setIsRenaming(true);
-                        }}
-                      >
-                        <Edit />
-                        {t("contextMenu.rename")}
-                      </DropdownMenuItem>
-                    )}
-                    {isRoot && note.isShared ? (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          variant="destructive"
-                          onClick={e => {
-                            e.stopPropagation();
-                            onDelete();
-                          }}
-                        >
-                          <LogOut />
-                          {t("contextMenu.leave")}
-                        </DropdownMenuItem>
-                      </>
                     ) : (
-                      <ConditionChecker
-                        condition={!isRoot && note.role !== "view"}
-                      >
-                        <>
-                          <DropdownMenuItem
-                            onClick={e => {
-                              e.stopPropagation();
-                              onDuplicateNote(note._id);
-                            }}
-                          >
-                            <Copy />
-                            {t("contextMenu.duplicate")}
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            variant="destructive"
-                            onClick={e => {
-                              e.stopPropagation();
-                              onDelete();
-                            }}
-                          >
-                            <Trash2 />
-                            {t("contextMenu.delete")}
-                          </DropdownMenuItem>
-                        </>
-                      </ConditionChecker>
+                      menuActions.map((action, idx) => {
+                        const showSeparator =
+                          action.variant === "destructive" && idx > 0;
+                        return (
+                          <React.Fragment key={action.id}>
+                            {showSeparator && <DropdownMenuSeparator />}
+                            <DropdownMenuItem
+                              variant={action.variant}
+                              onClick={action.onClick}
+                            >
+                              {action.icon}
+                              {action.label}
+                            </DropdownMenuItem>
+                          </React.Fragment>
+                        );
+                      })
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -271,38 +314,26 @@ export function NoteCard({
           </Card>
         </ContextMenuTrigger>
         <ContextMenuContent>
-          {note.role !== "view" && (
-            <ContextMenuItem onClick={onAddChild}>
-              {t("contextMenu.addChild")}
-            </ContextMenuItem>
-          )}
-          {note.role !== "view" && (
-            <ContextMenuItem onClick={() => setIsRenaming(true)}>
-              {t("contextMenu.rename")}
-            </ContextMenuItem>
-          )}
-          {(note.role === "owner" || note.role === "admin") && (
-            <ContextMenuItem onClick={() => setIsShareOpen(true)}>
-              {t("contextMenu.share")}
-            </ContextMenuItem>
-          )}
-          {isRoot && note.isShared ? (
-            <ContextMenuItem variant="destructive" onClick={onDelete}>
-              {t("contextMenu.leave")}
+          {menuActions.length === 0 ? (
+            <ContextMenuItem disabled className="text-muted-foreground italic">
+              {t("contextMenu.noActions")}
             </ContextMenuItem>
           ) : (
-            <>
-              <ConditionChecker condition={!isRoot && note.role !== "view"}>
-                <ContextMenuItem onClick={() => onDuplicateNote(note._id)}>
-                  {t("contextMenu.duplicate")}
-                </ContextMenuItem>
-              </ConditionChecker>
-              <ConditionChecker condition={!isRoot && note.role !== "view"}>
-                <ContextMenuItem variant="destructive" onClick={onDelete}>
-                  {t("contextMenu.delete")}
-                </ContextMenuItem>
-              </ConditionChecker>
-            </>
+            menuActions.map((action, idx) => {
+              const showSeparator = action.variant === "destructive" && idx > 0;
+              return (
+                <React.Fragment key={action.id}>
+                  {showSeparator && <ContextMenuSeparator />}
+                  <ContextMenuItem
+                    variant={action.variant}
+                    onClick={action.onClick}
+                  >
+                    {action.icon}
+                    {action.label}
+                  </ContextMenuItem>
+                </React.Fragment>
+              );
+            })
           )}
         </ContextMenuContent>
       </ContextMenu>
