@@ -109,7 +109,11 @@
     "remove": "Remove",
     "successInvite": "User invited successfully.",
     "buttonTooltip": "Share this note",
-    "pending": "Invitation pending"
+    "pending": "Invitation pending",
+    "roleView": "Viewer",
+    "roleEdit": "Editor",
+    "roleAdmin": "Admin",
+    "roleOwner": "Owner"
   },
   "NotesTree": {
     "dropHere": "Drop here",

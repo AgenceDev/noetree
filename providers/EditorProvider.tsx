@@ -188,6 +188,17 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
     };
   }, [editor, selectedNote, debouncedSave]);
 
+  // Dynamically set editor editable status based on note role / permissions
+  useEffect(() => {
+    if (!editor || editor.isDestroyed) return;
+    const isEditable = selectedNote
+      ? selectedNote.role !== "view" // owner, admin, and edit are editable; view is not
+      : false;
+    if (editor.isEditable !== isEditable) {
+      editor.setEditable(isEditable);
+    }
+  }, [editor, selectedNote, selectedNote?.role]);
+
   const getCurrentContent = () => {
     if (!editor || editor.isDestroyed) return null;
     return JSON.stringify(editor.getJSON());

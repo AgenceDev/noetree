@@ -10,9 +10,10 @@ interface NotesToSend extends Omit<Notes, "childNotes"> {
   nestedNotesCount?: number;
   shareId?: Id<"shares">;
   isShared?: boolean;
+  role?: "owner" | "admin" | "edit" | "view";
 }
 
-async function hasAccess(
+async function isOwnerOrAncestorOwner(
   ctx: QueryCtx | MutationCtx,
   noteId: Id<"notes">,
   userId: Id<"users">,
@@ -20,31 +21,84 @@ async function hasAccess(
   const note = await ctx.db.get(noteId);
   if (!note) return false;
   if (note.owner === userId) return true;
-
-  // Check direct share by userId
-  const shareByUserId = await ctx.db
-    .query("shares")
-    .withIndex("by_user_note", q => q.eq("userId", userId).eq("noteId", noteId))
-    .first();
-  if (shareByUserId) return true;
-
-  // Check direct share by email
-  const user = await ctx.db.get(userId);
-  if (user && user.email) {
-    const email = user.email.trim().toLowerCase();
-    const shareByEmail = await ctx.db
-      .query("shares")
-      .withIndex("by_email_note", q =>
-        q.eq("email", email).eq("noteId", noteId),
-      )
-      .first();
-    if (shareByEmail) return true;
-  }
-
   if (note.parentNote) {
-    return await hasAccess(ctx, note.parentNote, userId);
+    return await isOwnerOrAncestorOwner(ctx, note.parentNote, userId);
   }
   return false;
+}
+
+async function getUserPermission(
+  ctx: QueryCtx | MutationCtx,
+  noteId: Id<"notes">,
+  userId: Id<"users">,
+): Promise<"owner" | "admin" | "edit" | "view" | null> {
+  const note = await ctx.db.get(noteId);
+  if (!note) return null;
+
+  // Check if owner or ancestor owner
+  const isOwner = await isOwnerOrAncestorOwner(ctx, noteId, userId);
+  if (isOwner) return "owner";
+
+  // Helper function to find share permission bottom-up
+  const findSharePermission = async (
+    currNoteId: Id<"notes">,
+  ): Promise<"admin" | "edit" | "view" | null> => {
+    const currNote = await ctx.db.get(currNoteId);
+    if (!currNote) return null;
+
+    // Check direct share by userId
+    const shareByUserId = await ctx.db
+      .query("shares")
+      .withIndex("by_user_note", q =>
+        q.eq("userId", userId).eq("noteId", currNoteId),
+      )
+      .first();
+    if (shareByUserId) {
+      return (shareByUserId.role as "admin" | "edit" | "view") || "view";
+    }
+
+    // Check direct share by email
+    const user = await ctx.db.get(userId);
+    if (user && user.email) {
+      const email = user.email.trim().toLowerCase();
+      const shareByEmail = await ctx.db
+        .query("shares")
+        .withIndex("by_email_note", q =>
+          q.eq("email", email).eq("noteId", currNoteId),
+        )
+        .first();
+      if (shareByEmail) {
+        return (shareByEmail.role as "admin" | "edit" | "view") || "view";
+      }
+    }
+
+    if (currNote.parentNote) {
+      return await findSharePermission(currNote.parentNote);
+    }
+    return null;
+  };
+
+  return await findSharePermission(noteId);
+}
+
+async function hasAccess(
+  ctx: QueryCtx | MutationCtx,
+  noteId: Id<"notes">,
+  userId: Id<"users">,
+): Promise<boolean> {
+  const role = await getUserPermission(ctx, noteId, userId);
+  return role !== null;
+}
+
+async function requireEditAccess(
+  ctx: QueryCtx | MutationCtx,
+  noteId: Id<"notes">,
+  userId: Id<"users">,
+): Promise<void> {
+  const role = await getUserPermission(ctx, noteId, userId);
+  if (role !== "owner" && role !== "admin" && role !== "edit") {
+    throw new Error("Unauthorized: Edit access required");
+  }
 }
 
 async function getNoteShareInfo(
@@ -83,20 +137,6 @@ async function getNoteShareInfo(
   }
 }
 
-async function isOwnerOrAncestorOwner(
-  ctx: QueryCtx | MutationCtx,
-  noteId: Id<"notes">,
-  userId: Id<"users">,
-): Promise<boolean> {
-  const note = await ctx.db.get(noteId);
-  if (!note) return false;
-  if (note.owner === userId) return true;
-  if (note.parentNote) {
-    return await isOwnerOrAncestorOwner(ctx, note.parentNote, userId);
-  }
-  return false;
-}
-
 export const getTreeById = query({
   args: {
     id: v.id("notes"),
@@ -127,6 +167,7 @@ export const getTreeById = query({
     const shareInfo = await getNoteShareInfo(ctx, note, user);
     const isShared = shareInfo.isShared;
     const shareId = shareInfo.shareId;
+    const role = await getUserPermission(ctx, args.id, user._id);
 
     //step 5 - map current notes to be as NotesToSend
     const noteToSend: NotesToSend = {
@@ -134,6 +175,7 @@ export const getTreeById = query({
       childNotes: note.childNotes || [],
       shareId,
       isShared,
+      role: role || undefined,
     };
 
     //step 6 - check if deep is provided and if so, get the children notes until deep level
@@ -168,11 +210,18 @@ export const getTreeById = query({
                   childShareId = info.shareId;
                 }
 
+                const resolvedRole = await getUserPermission(
+                  ctx,
+                  childNote._id,
+                  user._id,
+                );
+
                 return {
                   ...childNote,
                   childNotes: childNote.childNotes || [],
                   shareId: childShareId,
                   isShared: childIsShared,
+                  role: resolvedRole || undefined,
                 };
               }),
             );
@@ -378,12 +427,14 @@ export const getTreesByMe = query({
           isShared = info.isShared;
           shareId = info.shareId;
         }
+        const role = await getUserPermission(ctx, note._id, user._id);
         return {
           ...note,
           childNotes: note.childNotes || [],
           nestedNotesCount: countDescendants(note._id),
           shareId,
           isShared,
+          role: role || undefined,
         };
       }),
     );
@@ -419,11 +470,18 @@ export const getTreesByMe = query({
                   childShareId = info.shareId;
                 }
 
+                const resolvedRole = await getUserPermission(
+                  ctx,
+                  childNote._id,
+                  user._id,
+                );
+
                 return {
                   ...childNote,
                   childNotes: childNote.childNotes || [],
                   shareId: childShareId,
                   isShared: childIsShared,
+                  role: resolvedRole || undefined,
                 };
               }),
             );
@@ -476,10 +534,7 @@ export const createNote = mutation({
     }
 
     if (args.parentNote) {
-      const parentAccess = await hasAccess(ctx, args.parentNote, user._id);
-      if (!parentAccess) {
-        throw new Error("Unauthorized to create child note under this parent");
-      }
+      await requireEditAccess(ctx, args.parentNote, user._id);
     }
 
     // Check if a note with the same title exists for this user
@@ -523,10 +578,7 @@ export const updateNote = mutation({
     if (!user) {
       throw new Error("User not found");
     }
-    const access = await hasAccess(ctx, args.id, user._id);
-    if (!access) {
-      throw new Error("Unauthorized");
-    }
+    await requireEditAccess(ctx, args.id, user._id);
     const note = await ctx.db.patch(args.id, {
       title: args.title,
       content: args.content,
@@ -548,10 +600,7 @@ export const updateNoteTitle = mutation({
     if (!user) {
       throw new Error("User not found");
     }
-    const access = await hasAccess(ctx, args.id, user._id);
-    if (!access) {
-      throw new Error("Unauthorized");
-    }
+    await requireEditAccess(ctx, args.id, user._id);
     const note = await ctx.db.patch(args.id, {
       title: args.title,
       updated_at: new Date().toISOString(),
@@ -570,10 +619,7 @@ export const updateNoteIndex = mutation({
     if (!user) {
       throw new Error("User not found");
     }
-    const access = await hasAccess(ctx, args.id, user._id);
-    if (!access) {
-      throw new Error("Unauthorized");
-    }
+    await requireEditAccess(ctx, args.id, user._id);
     const updatedNote = await ctx.db.patch(args.id, {
       index: args.index,
       updated_at: new Date().toISOString(),
@@ -592,10 +638,7 @@ export const updateNoteContent = mutation({
     if (!user) {
       throw new Error("User not found");
     }
-    const access = await hasAccess(ctx, args.id, user._id);
-    if (!access) {
-      throw new Error("Unauthorized");
-    }
+    await requireEditAccess(ctx, args.id, user._id);
     const note = await ctx.db.patch(args.id, {
       content: args.content,
       updated_at: new Date().toISOString(),
@@ -618,15 +661,12 @@ export const deleteNote = mutation({
     }
 
     if (!rootNote.parentNote) {
-      const isOwner = await isOwnerOrAncestorOwner(ctx, args.id, user._id);
-      if (!isOwner) {
-        throw new Error("Unauthorized");
+      const role = await getUserPermission(ctx, args.id, user._id);
+      if (role !== "owner") {
+        throw new Error("Unauthorized: Only owner can delete root note");
       }
     } else {
-      const access = await hasAccess(ctx, args.id, user._id);
-      if (!access) {
-        throw new Error("Unauthorized");
-      }
+      await requireEditAccess(ctx, args.id, user._id);
     }
 
     const deleteRecursive = async (noteId: Id<"notes">) => {
@@ -679,9 +719,9 @@ export const duplicateNote = mutation({
     if (!sourceNote) {
       throw new Error("Note not found");
     }
-    const access = await hasAccess(ctx, args.id, user._id);
-    if (!access) {
-      throw new Error("Unauthorized");
+    await requireEditAccess(ctx, args.id, user._id);
+    if (sourceNote.parentNote) {
+      await requireEditAccess(ctx, sourceNote.parentNote, user._id);
     }
 
     const duplicateRecursive = async (
@@ -778,10 +818,7 @@ export const updateParentNote = mutation({
     if (!user) {
       throw new Error("User not found");
     }
-    const access = await hasAccess(ctx, args.id, user._id);
-    if (!access) {
-      throw new Error("Unauthorized");
-    }
+    await requireEditAccess(ctx, args.id, user._id);
     const note = await ctx.db.patch(args.id, {
       parentNote: args.parentNote,
       updated_at: new Date().toISOString(),
@@ -800,10 +837,7 @@ export const updateChildNotes = mutation({
     if (!user) {
       throw new Error("User not found");
     }
-    const access = await hasAccess(ctx, args.id, user._id);
-    if (!access) {
-      throw new Error("Unauthorized");
-    }
+    await requireEditAccess(ctx, args.id, user._id);
     const note = await ctx.db.patch(args.id, {
       childNotes: args.childNotes,
       updated_at: new Date().toISOString(),
@@ -824,12 +858,9 @@ export const moveNote = mutation({
     if (!user) {
       throw new Error("User not found");
     }
-    const accessId = await hasAccess(ctx, args.id, user._id);
-    const accessFrom = await hasAccess(ctx, args.from, user._id);
-    const accessTo = await hasAccess(ctx, args.to, user._id);
-    if (!accessId || !accessFrom || !accessTo) {
-      throw new Error("Unauthorized");
-    }
+    await requireEditAccess(ctx, args.id, user._id);
+    await requireEditAccess(ctx, args.from, user._id);
+    await requireEditAccess(ctx, args.to, user._id);
 
     // remove from childNotes of from
     const noteFrom = await ctx.db.get(args.from);
@@ -904,10 +935,7 @@ export const togglePinNote = mutation({
     if (!user) {
       throw new Error("User not found");
     }
-    const access = await hasAccess(ctx, args.id, user._id);
-    if (!access) {
-      throw new Error("Unauthorized");
-    }
+    await requireEditAccess(ctx, args.id, user._id);
     const note = await ctx.db.get(args.id);
     if (!note) {
       throw new Error("Note not found");
@@ -924,6 +952,7 @@ export const inviteUser = mutation({
   args: {
     noteId: v.id("notes"),
     email: v.string(),
+    role: v.union(v.literal("view"), v.literal("edit"), v.literal("admin")),
   },
   handler: async (ctx, args) => {
     const user = await getUser(ctx);
@@ -931,8 +960,8 @@ export const inviteUser = mutation({
       return { success: false, error: "UNAUTHORIZED" };
     }
 
-    const ownerCheck = await isOwnerOrAncestorOwner(ctx, args.noteId, user._id);
-    if (!ownerCheck) {
+    const role = await getUserPermission(ctx, args.noteId, user._id);
+    if (role !== "owner" && role !== "admin") {
       return { success: false, error: "UNAUTHORIZED" };
     }
 
@@ -960,6 +989,7 @@ export const inviteUser = mutation({
       noteId: args.noteId,
       userId: targetUser ? targetUser._id : undefined,
       email: args.email,
+      role: args.role,
     });
 
     return {
@@ -969,6 +999,7 @@ export const inviteUser = mutation({
         noteId: args.noteId,
         userId: targetUser ? targetUser._id : undefined,
         email: args.email,
+        role: args.role,
       },
     };
   },
@@ -989,13 +1020,50 @@ export const getNoteShares = query({
       throw new Error("Unauthorized");
     }
 
+    const currentUserPermission = await getUserPermission(
+      ctx,
+      args.noteId,
+      user._id,
+    );
+
+    const note = await ctx.db.get(args.noteId);
+    if (!note) {
+      throw new Error("Note not found");
+    }
+
+    const ownerUser = await ctx.db.get(note.owner);
+
     const shares = await ctx.db
       .query("shares")
       .withIndex("by_note", q => q.eq("noteId", args.noteId))
       .collect();
 
     const sharedUsers = [];
+
+    if (ownerUser) {
+      sharedUsers.push({
+        _id: ownerUser._id,
+        shareId: undefined, // Owner has no share record
+        name: ownerUser.name,
+        email: ownerUser.email,
+        picture: ownerUser.picture,
+        registered: true,
+        role: "owner",
+      });
+    }
+
     for (const share of shares) {
+      // Exclude owner if they somehow exist in the shares table
+      if (
+        ownerUser &&
+        (share.userId === ownerUser._id ||
+          (ownerUser.email &&
+            share.email.trim().toLowerCase() ===
+              ownerUser.email.trim().toLowerCase()))
+      ) {
+        continue;
+      }
+
       if (share.userId) {
         const u = await ctx.db.get(share.userId);
         if (u) {
@@ -1006,6 +1074,7 @@ export const getNoteShares = query({
             email: u.email,
             picture: u.picture,
             registered: true,
+            role: share.role || "view",
           });
           continue;
         }
@@ -1018,10 +1087,14 @@ export const getNoteShares = query({
         email: share.email,
         picture: undefined,
         registered: false,
+        role: share.role || "view",
       });
     }
 
-    return sharedUsers;
+    return {
+      shares: sharedUsers,
+      currentUserPermission,
+    };
   },
 });
 
@@ -1040,14 +1113,47 @@ export const removeShare = mutation({
       throw new Error("Share not found");
     }
 
-    const isOwner = await isOwnerOrAncestorOwner(ctx, share.noteId, user._id);
-    const isSelfRevoke = share.userId === user._id;
+    const userRole = await getUserPermission(ctx, share.noteId, user._id);
+    const isSelfRevoke =
+      share.userId === user._id ||
+      (!!user.email &&
+        share.email.trim().toLowerCase() === user.email.trim().toLowerCase());
 
-    if (!isOwner && !isSelfRevoke) {
+    if (userRole !== "owner" && userRole !== "admin" && !isSelfRevoke) {
       throw new Error("Unauthorized to remove this share");
     }
 
     await ctx.db.delete(share._id);
+    return true;
+  },
+});
+
+export const updateShareRole = mutation({
+  args: {
+    shareId: v.id("shares"),
+    role: v.union(v.literal("view"), v.literal("edit"), v.literal("admin")),
+  },
+  handler: async (ctx, args) => {
+    const user = await getUser(ctx);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const share = await ctx.db.get(args.shareId);
+    if (!share) {
+      throw new Error("Share not found");
+    }
+
+    const currentUserRole = await getUserPermission(
+      ctx,
+      share.noteId,
+      user._id,
+    );
+    if (currentUserRole !== "owner" && currentUserRole !== "admin") {
+      throw new Error("Unauthorized to modify share permissions");
+    }
+
+    await ctx.db.patch(args.shareId, { role: args.role });
     return true;
   },
 });

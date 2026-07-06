@@ -109,7 +109,11 @@
     "remove": "Retirer",
     "successInvite": "Utilisateur invité avec succès.",
     "buttonTooltip": "Partager cette note",
-    "pending": "Invitation en attente"
+    "pending": "Invitation en attente",
+    "roleView": "Lecture seule",
+    "roleEdit": "Modification",
+    "roleAdmin": "Administrateur",
+    "roleOwner": "Propriétaire"
   },
   "NotesTree": {
     "dropHere": "Déposer ici",

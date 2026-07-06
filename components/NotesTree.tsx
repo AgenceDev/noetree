@@ -185,6 +185,7 @@ interface TreeSortableBranchProps {
   parentId: Id<"notes">;
   hasChildren?: boolean;
   className?: string;
+  disabled?: boolean;
   children: (
     handleRef: (element: Element | null) => void,
     targetRef: (element: Element | null) => void,
@@ -197,6 +198,7 @@ function TreeSortableBranch({
   parentId,
   hasChildren,
   className,
+  disabled,
   children,
 }: TreeSortableBranchProps) {
   const { ref, handleRef, targetRef, isDragging } = useSortable({
@@ -207,6 +209,7 @@ function TreeSortableBranch({
       parentId,
       hasChildren,
     },
+    disabled,
     collisionDetector: customCollisionDetection as unknown as undefined,
     plugins: [],
   });
@@ -397,6 +400,7 @@ export default function NotesTree() {
                 id={childNote._id}
                 index={idx}
                 parentId={note._id}
+                disabled={childNote.role === "view"}
                 hasChildren={
                   !!(childNote.childNotes && childNote.childNotes.length > 0)
                 }

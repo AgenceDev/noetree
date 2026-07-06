@@ -130,7 +130,9 @@ export function NoteCard({
             onClick={() =>
               !isRenaming && !isTemp && onSelectNote(note, getCurrentContent)
             }
-            onDoubleClick={() => !isTemp && setIsRenaming(true)}
+            onDoubleClick={() =>
+              !isTemp && note.role !== "view" && setIsRenaming(true)
+            }
           >
             <div className="flex flex-col items-center p-3">
               <ConditionChecker condition={isRenaming}>
@@ -168,17 +170,19 @@ export function NoteCard({
               </ConditionChecker>
 
               <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center justify-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={e => {
-                    e.stopPropagation();
-                    onAddChild();
-                  }}
-                  title={t("tooltips.addChild")}
-                >
-                  <Plus />
-                </Button>
+                {note.role !== "view" && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={e => {
+                      e.stopPropagation();
+                      onAddChild();
+                    }}
+                    title={t("tooltips.addChild")}
+                  >
+                    <Plus />
+                  </Button>
+                )}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -196,7 +200,7 @@ export function NoteCard({
                     align="start"
                     onClick={e => e.stopPropagation()}
                   >
-                    {!note.isShared && (
+                    {(note.role === "owner" || note.role === "admin") && (
                       <DropdownMenuItem
                         onClick={e => {
                           e.stopPropagation();
@@ -207,15 +211,17 @@ export function NoteCard({
                         {t("contextMenu.share")}
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem
-                      onClick={e => {
-                        e.stopPropagation();
-                        setIsRenaming(true);
-                      }}
-                    >
-                      <Edit />
-                      {t("contextMenu.rename")}
-                    </DropdownMenuItem>
+                    {note.role !== "view" && (
+                      <DropdownMenuItem
+                        onClick={e => {
+                          e.stopPropagation();
+                          setIsRenaming(true);
+                        }}
+                      >
+                        <Edit />
+                        {t("contextMenu.rename")}
+                      </DropdownMenuItem>
+                    )}
                     {isRoot && note.isShared ? (
                       <>
                         <DropdownMenuSeparator />
@@ -231,7 +237,9 @@ export function NoteCard({
                         </DropdownMenuItem>
                       </>
                     ) : (
-                      <ConditionChecker condition={!isRoot}>
+                      <ConditionChecker
+                        condition={!isRoot && note.role !== "view"}
+                      >
                         <>
                           <DropdownMenuItem
                             onClick={e => {
@@ -263,13 +271,17 @@ export function NoteCard({
           </Card>
         </ContextMenuTrigger>
         <ContextMenuContent>
-          <ContextMenuItem onClick={onAddChild}>
-            {t("contextMenu.addChild")}
-          </ContextMenuItem>
-          <ContextMenuItem onClick={() => setIsRenaming(true)}>
-            {t("contextMenu.rename")}
-          </ContextMenuItem>
-          {!note.isShared && (
+          {note.role !== "view" && (
+            <ContextMenuItem onClick={onAddChild}>
+              {t("contextMenu.addChild")}
+            </ContextMenuItem>
+          )}
+          {note.role !== "view" && (
+            <ContextMenuItem onClick={() => setIsRenaming(true)}>
+              {t("contextMenu.rename")}
+            </ContextMenuItem>
+          )}
+          {(note.role === "owner" || note.role === "admin") && (
             <ContextMenuItem onClick={() => setIsShareOpen(true)}>
               {t("contextMenu.share")}
             </ContextMenuItem>
@@ -280,12 +292,12 @@ export function NoteCard({
             </ContextMenuItem>
           ) : (
             <>
-              <ConditionChecker condition={!isRoot}>
+              <ConditionChecker condition={!isRoot && note.role !== "view"}>
                 <ContextMenuItem onClick={() => onDuplicateNote(note._id)}>
                   {t("contextMenu.duplicate")}
                 </ContextMenuItem>
               </ConditionChecker>
-              <ConditionChecker condition={!isRoot}>
+              <ConditionChecker condition={!isRoot && note.role !== "view"}>
                 <ContextMenuItem variant="destructive" onClick={onDelete}>
                   {t("contextMenu.delete")}
                 </ContextMenuItem>
