@@ -537,21 +537,6 @@ export const createNote = mutation({
       await requireEditAccess(ctx, args.parentNote, user._id);
     }
 
-    // Check if a note with the same title exists for this user
-    const existingNote = await ctx.db
-      .query("notes")
-      .filter(q =>
-        q.and(
-          q.eq(q.field("owner"), user._id),
-          q.eq(q.field("title"), args.title),
-        ),
-      )
-      .first();
-
-    if (existingNote) {
-      throw new Error("A note with this title already exists");
-    }
-
     const note = await ctx.db.insert("notes", {
       owner: user._id,
       title: args.title,
