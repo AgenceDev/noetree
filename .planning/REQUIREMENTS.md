@@ -11,7 +11,7 @@
 - [ ] **PLAN-02**: Free tier user is blocked from creating more than 20 notes
 - [ ] **PLAN-03**: Pro tier user can create unlimited notes
 - [ ] **PLAN-04**: Free tier user sees an upgrade prompt when hitting note limit or accessing Pro features
-- [ ] **PLAN-05**: Pro tier includes a defined monthly AI credits quota
+- [x] **PLAN-05**: Pro tier includes a defined monthly AI credits quota
 
 ### Paiements
 
@@ -62,27 +62,27 @@
 
 ## Traceability
 
-| Requirement | Phase   | Status  |
-| ----------- | ------- | ------- |
-| PLAN-01     | Phase 3 | Pending |
-| PLAN-02     | Phase 4 | Pending |
-| PLAN-03     | Phase 4 | Pending |
-| PLAN-04     | Phase 4 | Pending |
-| PLAN-05     | Phase 1 | Pending |
-| PAY-01      | Phase 3 | Pending |
-| PAY-02      | Phase 3 | Pending |
-| PAY-03      | Phase 2 | Pending |
-| PAY-04      | Phase 6 | Pending |
-| PAY-05      | Phase 5 | Pending |
-| CRED-01     | Phase 2 | Pending |
-| CRED-02     | Phase 5 | Pending |
-| CRED-03     | Phase 5 | Pending |
-| CRED-04     | Phase 5 | Pending |
-| SET-01      | Phase 6 | Pending |
-| SET-02      | Phase 6 | Pending |
-| SET-03      | Phase 6 | Pending |
-| SET-04      | Phase 6 | Pending |
-| SET-05      | Phase 6 | Pending |
+| Requirement | Phase   | Status   |
+| ----------- | ------- | -------- |
+| PLAN-01     | Phase 3 | Pending  |
+| PLAN-02     | Phase 4 | Pending  |
+| PLAN-03     | Phase 4 | Pending  |
+| PLAN-04     | Phase 4 | Pending  |
+| PLAN-05     | Phase 1 | Complete |
+| PAY-01      | Phase 3 | Pending  |
+| PAY-02      | Phase 3 | Pending  |
+| PAY-03      | Phase 2 | Pending  |
+| PAY-04      | Phase 6 | Pending  |
+| PAY-05      | Phase 5 | Pending  |
+| CRED-01     | Phase 2 | Pending  |
+| CRED-02     | Phase 5 | Pending  |
+| CRED-03     | Phase 5 | Pending  |
+| CRED-04     | Phase 5 | Pending  |
+| SET-01      | Phase 6 | Pending  |
+| SET-02      | Phase 6 | Pending  |
+| SET-03      | Phase 6 | Pending  |
+| SET-04      | Phase 6 | Pending  |
+| SET-05      | Phase 6 | Pending  |
 
 **Coverage:**
 

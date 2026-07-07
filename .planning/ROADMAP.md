@@ -38,11 +38,11 @@ Plans:
 
 **Wave 1**
 
-- [ ] 01-01-PLAN.md — Convex schema (4 new tables + indexes) + typed stub files (convex/subscriptions.ts, convex/aiCredits.ts)
+- [x] 01-01-PLAN.md — Convex schema (4 new tables + indexes) + typed stub files (convex/subscriptions.ts, convex/aiCredits.ts)
 - [ ] 01-02-PLAN.md — Install stripe/@stripe/stripe-js, bump @clerk/nextjs (CVE-2026-41248 fix), patch middleware.ts to exclude webhook routes
 - [ ] 01-03-PLAN.md — Document .env.example (D-04/D-05), create Stripe test-mode products/prices via API, capture real Price IDs (D-03)
 
-**Wave 2** *(blocked on Wave 1 completion)*
+**Wave 2** _(blocked on Wave 1 completion)_
 
 - [ ] 01-04-PLAN.md — Propagate env vars to Vercel (local/staging/production) + create staging/production webhook secrets (SC-2 sign-off)
 
@@ -127,7 +127,7 @@ Plans:
 
 | Phase                                          | Plans Complete | Status      | Completed |
 | ---------------------------------------------- | -------------- | ----------- | --------- |
-| 1. Schema + Infrastructure Foundation          | 0/4            | Planned     | -         |
+| 1. Schema + Infrastructure Foundation          | 1/4            | In Progress |           |
 | 2. Webhook Handler + Convex Internal Mutations | 0/?            | Not started | -         |
 | 3. Checkout Flow + Pricing Page                | 0/?            | Not started | -         |
 | 4. Plan Enforcement                            | 0/?            | Not started | -         |
