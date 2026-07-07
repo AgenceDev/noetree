@@ -37,6 +37,43 @@ export default defineSchema({
     .index("by_owner", ["owner", "parentNote"])
     .index("by_parent", ["parentNote"]),
 
+  subscriptions: defineTable({
+    clerkUserId: v.string(),
+    stripeCustomerId: v.string(),
+    stripeSubscriptionId: v.string(),
+    status: v.union(
+      v.literal("active"),
+      v.literal("canceled"),
+      v.literal("past_due"),
+    ),
+    currentPeriodEnd: v.number(),
+    cancelAtPeriodEnd: v.boolean(),
+  }).index("by_clerkUserId", ["clerkUserId"]),
+
+  aiCredits: defineTable({
+    clerkUserId: v.string(),
+    balance: v.number(),
+    lastResetAt: v.number(),
+  }).index("by_clerkUserId", ["clerkUserId"]),
+
+  creditTransactions: defineTable({
+    clerkUserId: v.string(),
+    type: v.union(
+      v.literal("deduction"),
+      v.literal("topup"),
+      v.literal("reset"),
+    ),
+    amount: v.number(),
+    createdAt: v.number(),
+    stripePaymentIntentId: v.optional(v.string()),
+  }).index("by_clerkUserId", ["clerkUserId"]),
+
+  processedStripeEvents: defineTable({
+    stripeEventId: v.string(),
+    processedAt: v.number(),
+    eventType: v.string(),
+  }).index("by_stripeEventId", ["stripeEventId"]),
+
   shares: defineTable({
     noteId: v.id("notes"),
     userId: v.optional(v.id("users")),
