@@ -8,9 +8,10 @@ const isProtectedRoute = createRouteMatcher([
   "/notes(.*)",
   "/:locale/notes(.*)",
 ]);
+const isPublicRoute = createRouteMatcher(["/api/webhooks/(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) await auth.protect();
+  if (!isPublicRoute(req) && isProtectedRoute(req)) await auth.protect();
 
   // Skip running next-intl for API routes
   if (req.nextUrl.pathname.startsWith("/api")) {
