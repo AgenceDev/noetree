@@ -1,6 +1,9 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Crosshair } from "lucide-react";
 import { Button } from "./ui/button";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { useRouter } from "next/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -182,6 +185,7 @@ interface TreeSortableBranchProps {
   parentId: Id<"notes">;
   hasChildren?: boolean;
   className?: string;
+  disabled?: boolean;
   children: (
     handleRef: (element: Element | null) => void,
     targetRef: (element: Element | null) => void,
@@ -194,6 +198,7 @@ function TreeSortableBranch({
   parentId,
   hasChildren,
   className,
+  disabled,
   children,
 }: TreeSortableBranchProps) {
   const { ref, handleRef, targetRef, isDragging } = useSortable({
@@ -204,6 +209,7 @@ function TreeSortableBranch({
       parentId,
       hasChildren,
     },
+    disabled,
     collisionDetector: customCollisionDetection as unknown as undefined,
     plugins: [],
   });
@@ -224,6 +230,9 @@ function TreeSortableBranch({
 
 export default function NotesTree() {
   const t = useTranslations("NotesTree");
+  const tNotes = useTranslations("Notes");
+  const router = useRouter();
+  const leaveShareMutation = useMutation(api.notes.removeShare);
   const {
     tree,
     selectedNote,
@@ -262,8 +271,11 @@ export default function NotesTree() {
         : targetIdStr
     ) as Id<"notes">;
 
+    const targetNote = noteId && tree ? findNoteInTree(noteId, tree) : null;
+
     if (
       noteId &&
+      targetNote?.role !== "view" &&
       !isSelfOrDescendantOfDragged(
         noteId,
         source?.id as Id<"notes"> | undefined,
@@ -391,6 +403,7 @@ export default function NotesTree() {
                 id={childNote._id}
                 index={idx}
                 parentId={note._id}
+                disabled={childNote.role === "view"}
                 hasChildren={
                   !!(childNote.childNotes && childNote.childNotes.length > 0)
                 }
@@ -478,14 +491,23 @@ export default function NotesTree() {
                   "empty-placeholder-",
                   "",
                 ) as Id<"notes">;
-                setDropIndicator({ noteId, position: "child" });
+                const targetNote = tree ? findNoteInTree(noteId, tree) : null;
+                if (targetNote && targetNote.role !== "view") {
+                  setDropIndicator({ noteId, position: "child" });
+                } else {
+                  setDropIndicator(null);
+                }
               } else {
                 const targetId = target.id as Id<"notes">;
                 if (targetIdStr === "root-droppable") {
-                  setDropIndicator({
-                    noteId: tree?._id as Id<"notes">,
-                    position: "child",
-                  });
+                  if (tree && tree.role !== "view") {
+                    setDropIndicator({
+                      noteId: tree._id as Id<"notes">,
+                      position: "child",
+                    });
+                  } else {
+                    setDropIndicator(null);
+                  }
                   return;
                 }
 
@@ -494,12 +516,36 @@ export default function NotesTree() {
                   const relativeX =
                     (operation.position.current.x - rect.left) / rect.width;
 
+                  const targetNote = tree
+                    ? findNoteInTree(targetId, tree)
+                    : null;
+                  const parentId = target.data.parentId as
+                    | Id<"notes">
+                    | undefined;
+                  const parentNote =
+                    parentId && tree ? findNoteInTree(parentId, tree) : null;
+
                   if (relativeX < 0.15) {
-                    setDropIndicator({ noteId: targetId, position: "before" });
+                    if (parentNote && parentNote.role !== "view") {
+                      setDropIndicator({
+                        noteId: targetId,
+                        position: "before",
+                      });
+                    } else {
+                      setDropIndicator(null);
+                    }
                   } else if (relativeX > 0.85) {
-                    setDropIndicator({ noteId: targetId, position: "after" });
+                    if (parentNote && parentNote.role !== "view") {
+                      setDropIndicator({ noteId: targetId, position: "after" });
+                    } else {
+                      setDropIndicator(null);
+                    }
                   } else {
-                    setDropIndicator({ noteId: targetId, position: "child" });
+                    if (targetNote && targetNote.role !== "view") {
+                      setDropIndicator({ noteId: targetId, position: "child" });
+                    } else {
+                      setDropIndicator(null);
+                    }
                   }
                 }
               }
@@ -519,6 +565,10 @@ export default function NotesTree() {
                   "empty-placeholder-",
                   "",
                 ) as Id<"notes">;
+                const parentNote = tree
+                  ? findNoteInTree(newParentId, tree)
+                  : null;
+                if (!parentNote || parentNote.role === "view") return;
 
                 if (oldParentId !== newParentId) {
                   onMoveNote(draggedId, oldParentId, newParentId, 0);
@@ -534,7 +584,12 @@ export default function NotesTree() {
 
                 // Find target index in the parent's children list
                 const parentNote = findNoteInTree(newParentId, tree);
-                if (!parentNote || !parentNote.childNotes) return;
+                if (
+                  !parentNote ||
+                  !parentNote.childNotes ||
+                  parentNote.role === "view"
+                )
+                  return;
 
                 const childIds = parentNote.childNotes.map(c => c._id);
                 const targetIndex = childIds.indexOf(targetId);
@@ -604,34 +659,56 @@ export default function NotesTree() {
           <Crosshair className="h-4 w-4" />
         </Button>
       )}
-      <AlertDialog
-        open={noteToDelete !== null}
-        onOpenChange={open => !open && setNoteToDelete(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("deleteConfirmTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("deleteConfirmDesc")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setNoteToDelete(null)}>
-              {t("cancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (noteToDelete) {
-                  onDeleteNote(noteToDelete);
-                  setNoteToDelete(null);
-                }
-              }}
-            >
-              {t("continue")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {(() => {
+        const isLeaving = noteToDelete === tree?._id && tree?.isShared;
+
+        return (
+          <AlertDialog
+            open={noteToDelete !== null}
+            onOpenChange={open => !open && setNoteToDelete(null)}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {isLeaving
+                    ? tNotes("leaveConfirmTitle")
+                    : t("deleteConfirmTitle")}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {isLeaving
+                    ? tNotes("leaveConfirmDesc")
+                    : t("deleteConfirmDesc")}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setNoteToDelete(null)}>
+                  {t("cancel")}
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                  onClick={async () => {
+                    if (noteToDelete) {
+                      if (isLeaving && tree?.shareId) {
+                        try {
+                          await leaveShareMutation({ shareId: tree.shareId });
+                          router.push("/notes");
+                        } catch (err) {
+                          console.error(err);
+                        }
+                      } else {
+                        onDeleteNote(noteToDelete);
+                      }
+                      setNoteToDelete(null);
+                    }
+                  }}
+                >
+                  {isLeaving ? tNotes("leave") : t("continue")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        );
+      })()}
     </div>
   );
 }

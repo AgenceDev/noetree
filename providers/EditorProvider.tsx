@@ -84,6 +84,7 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
   const saveContent = useCallback(
     async (content: Content) => {
       if (!selectedNote) return;
+      if (selectedNote.role === "view") return; // Do not save if view-only
 
       try {
         setSaveStatus("saving");
@@ -111,6 +112,7 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key === "s") {
         event.preventDefault();
+        if (selectedNote?.role === "view") return; // Do not save if view-only
         if (editor && !editor.isDestroyed && saveStatus === "unsaved") {
           debouncedSave.cancel();
           saveContent(editor.getJSON());
@@ -122,7 +124,7 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [editor, saveStatus, debouncedSave, saveContent]);
+  }, [editor, saveStatus, debouncedSave, saveContent, selectedNote?.role]);
 
   useEffect(() => {
     if (!editor || editor.isDestroyed) return;
@@ -175,6 +177,7 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
     if (!editor || editor.isDestroyed || !selectedNote) return;
 
     const updateListener = ({ editor }: { editor: Editor }) => {
+      if (!editor.isEditable || selectedNote.role === "view") return; // Do not save if view-only
       setSaveStatus("unsaved");
       debouncedSave(editor.getJSON());
     };
@@ -187,6 +190,17 @@ export function EditorProvider({ children }: Readonly<EditorProviderProps>) {
       }
     };
   }, [editor, selectedNote, debouncedSave]);
+
+  // Dynamically set editor editable status based on note role / permissions
+  useEffect(() => {
+    if (!editor || editor.isDestroyed) return;
+    const isEditable = selectedNote
+      ? selectedNote.role !== "view" // owner, admin, and edit are editable; view is not
+      : false;
+    if (editor.isEditable !== isEditable) {
+      editor.setEditable(isEditable);
+    }
+  }, [editor, selectedNote, selectedNote?.role]);
 
   const getCurrentContent = () => {
     if (!editor || editor.isDestroyed) return null;

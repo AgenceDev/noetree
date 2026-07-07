@@ -41,6 +41,8 @@ export default function EditorToolbar() {
   const [imageUrl, setImageUrl] = useState("");
   const [imageAlt, setImageAlt] = useState("");
 
+  if (!editor || !editor.isEditable) return null;
+
   const openLinkDialog = () => {
     if (!editor) return;
 

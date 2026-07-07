@@ -212,13 +212,23 @@ export function TreeProvider({ children }: Readonly<TreeProviderProps>) {
         setIsDrawerOpen(true);
         if (selectedNoteId === note._id) return;
 
-        if (selectedNote && getCurrentEditorContent) {
+        if (
+          selectedNote &&
+          selectedNote.role !== "view" &&
+          getCurrentEditorContent
+        ) {
           const currentContent = getCurrentEditorContent();
           if (currentContent) {
-            updateNoteContent({
-              id: selectedNote._id,
-              content: currentContent,
-            });
+            const oldContent =
+              typeof selectedNote.content === "string"
+                ? selectedNote.content
+                : JSON.stringify(selectedNote.content || {});
+            if (currentContent !== oldContent) {
+              updateNoteContent({
+                id: selectedNote._id,
+                content: currentContent,
+              });
+            }
           }
         }
 

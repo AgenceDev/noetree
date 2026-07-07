@@ -1,18 +1,42 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
+  ContextMenuSeparator,
 } from "./ui/context-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { cn } from "@/lib/utils";
-import { Plus, Trash2, Copy } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Copy,
+  UserPlus,
+  MoreVertical,
+  Edit,
+  LogOut,
+  Users,
+} from "lucide-react";
 import { NoteTree, useTreeContext } from "@/providers/TreeProvider";
 import { useEditorContext } from "@/providers/EditorProvider";
 import ConditionChecker from "./helpers/ConditionChecker";
 import { useTranslations } from "next-intl";
+import ShareDialog from "@/components/ShareDialog";
 
 interface NoteCardProps {
   note: NoteTree;
@@ -41,11 +65,87 @@ export function NoteCard({
   const { getCurrentContent } = useEditorContext();
 
   const [isRenaming, setIsRenaming] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
   const [editedTitle, setEditedTitle] = useState(note.title);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const isSelected = selectedNote?._id === note._id;
   const isTemp = typeof note._id === "string" && note._id.startsWith("temp-");
+  const menuActions = useMemo(() => {
+    return [
+      {
+        id: "addChild",
+        label: t("contextMenu.addChild"),
+        icon: <Plus />,
+        onClick: (e: React.MouseEvent) => {
+          e.stopPropagation();
+          onAddChild();
+        },
+        show: note.role !== "view",
+      },
+      {
+        id: "rename",
+        label: t("contextMenu.rename"),
+        icon: <Edit />,
+        onClick: (e: React.MouseEvent) => {
+          e.stopPropagation();
+          setIsRenaming(true);
+        },
+        show: note.role !== "view",
+      },
+      {
+        id: "share",
+        label: t("contextMenu.share"),
+        icon: <UserPlus />,
+        onClick: (e: React.MouseEvent) => {
+          e.stopPropagation();
+          setIsShareOpen(true);
+        },
+        show: note.role === "owner" || note.role === "admin",
+      },
+      {
+        id: "duplicate",
+        label: t("contextMenu.duplicate"),
+        icon: <Copy />,
+        onClick: (e: React.MouseEvent) => {
+          e.stopPropagation();
+          onDuplicateNote(note._id);
+        },
+        show: !isRoot && note.role !== "view",
+      },
+      {
+        id: "leave",
+        label: t("contextMenu.leave"),
+        icon: <LogOut />,
+        onClick: (e: React.MouseEvent) => {
+          e.stopPropagation();
+          onDelete();
+        },
+        variant: "destructive" as const,
+        show: isRoot && !!note.isShared,
+      },
+      {
+        id: "delete",
+        label: t("contextMenu.delete"),
+        icon: <Trash2 />,
+        onClick: (e: React.MouseEvent) => {
+          e.stopPropagation();
+          onDelete();
+        },
+        variant: "destructive" as const,
+        show: !isRoot && note.role !== "view",
+      },
+    ].filter(action => action.show);
+  }, [
+    note.role,
+    note._id,
+    isRoot,
+    note.isShared,
+    onAddChild,
+    onDuplicateNote,
+    onDelete,
+    t,
+  ]);
 
   const combinedRef = useCallback(
     (el: HTMLDivElement | null) => {
@@ -112,7 +212,9 @@ export function NoteCard({
             onClick={() =>
               !isRenaming && !isTemp && onSelectNote(note, getCurrentContent)
             }
-            onDoubleClick={() => !isTemp && setIsRenaming(true)}
+            onDoubleClick={() =>
+              !isTemp && note.role !== "view" && setIsRenaming(true)
+            }
           >
             <div className="flex flex-col items-center p-3">
               <ConditionChecker condition={isRenaming}>
@@ -134,75 +236,114 @@ export function NoteCard({
                 />
               </ConditionChecker>
               <ConditionChecker condition={!isRenaming}>
-                <span className="text-sm font-semibold text-center">
-                  {note.title}
-                </span>
+                <>
+                  <span className="text-sm font-semibold text-center">
+                    {note.title}
+                  </span>
+                  {note.isShared && (
+                    <div
+                      className="absolute top-2 right-2 text-blue-500"
+                      title={t("tooltips.shared")}
+                    >
+                      <Users className="w-3.5 h-3.5" />
+                    </div>
+                  )}
+                </>
               </ConditionChecker>
 
               <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center justify-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={e => {
-                    e.stopPropagation();
-                    onAddChild();
-                  }}
-                  title={t("tooltips.addChild")}
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
-                <ConditionChecker condition={!isRoot}>
+                {note.role !== "view" && (
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6"
                     onClick={e => {
                       e.stopPropagation();
-                      onDuplicateNote(note._id);
+                      onAddChild();
                     }}
-                    title={t("tooltips.duplicate")}
+                    title={t("tooltips.addChild")}
                   >
-                    <Copy className="h-3 w-3" />
+                    <Plus />
                   </Button>
-                </ConditionChecker>
-                <ConditionChecker condition={!isRoot}>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 hover:text-destructive"
-                    onClick={e => {
-                      e.stopPropagation();
-                      onDelete();
-                    }}
-                    title={t("tooltips.delete")}
+                )}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={e => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                      }}
+                    >
+                      <MoreVertical />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="start"
+                    onClick={e => e.stopPropagation()}
                   >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </ConditionChecker>
+                    {menuActions.length === 0 ? (
+                      <DropdownMenuItem
+                        disabled
+                        className="text-muted-foreground italic"
+                      >
+                        {t("contextMenu.noActions")}
+                      </DropdownMenuItem>
+                    ) : (
+                      menuActions.map((action, idx) => {
+                        const showSeparator =
+                          action.variant === "destructive" && idx > 0;
+                        return (
+                          <React.Fragment key={action.id}>
+                            {showSeparator && <DropdownMenuSeparator />}
+                            <DropdownMenuItem
+                              variant={action.variant}
+                              onClick={action.onClick}
+                            >
+                              {action.icon}
+                              {action.label}
+                            </DropdownMenuItem>
+                          </React.Fragment>
+                        );
+                      })
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </Card>
         </ContextMenuTrigger>
         <ContextMenuContent>
-          <ContextMenuItem onClick={onAddChild}>
-            {t("contextMenu.addChild")}
-          </ContextMenuItem>
-          <ContextMenuItem onClick={() => setIsRenaming(true)}>
-            {t("contextMenu.rename")}
-          </ContextMenuItem>
-          <ConditionChecker condition={!isRoot}>
-            <ContextMenuItem onClick={() => onDuplicateNote(note._id)}>
-              {t("contextMenu.duplicate")}
+          {menuActions.length === 0 ? (
+            <ContextMenuItem disabled className="text-muted-foreground italic">
+              {t("contextMenu.noActions")}
             </ContextMenuItem>
-          </ConditionChecker>
-          <ConditionChecker condition={!isRoot}>
-            <ContextMenuItem variant="destructive" onClick={onDelete}>
-              {t("contextMenu.delete")}
-            </ContextMenuItem>
-          </ConditionChecker>
+          ) : (
+            menuActions.map((action, idx) => {
+              const showSeparator = action.variant === "destructive" && idx > 0;
+              return (
+                <React.Fragment key={action.id}>
+                  {showSeparator && <ContextMenuSeparator />}
+                  <ContextMenuItem
+                    variant={action.variant}
+                    onClick={action.onClick}
+                  >
+                    {action.icon}
+                    {action.label}
+                  </ContextMenuItem>
+                </React.Fragment>
+              );
+            })
+          )}
         </ContextMenuContent>
       </ContextMenu>
+      {!isTemp && (
+        <ShareDialog
+          noteId={note._id}
+          open={isShareOpen}
+          onOpenChange={setIsShareOpen}
+        />
+      )}
     </div>
   );
 }

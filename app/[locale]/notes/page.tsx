@@ -44,7 +44,18 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useState } from "react";
-import { Search, MoreVertical, Edit, Copy, Trash, Pin } from "lucide-react";
+import {
+  Search,
+  MoreVertical,
+  Edit,
+  Copy,
+  Trash,
+  Pin,
+  UserPlus,
+  LogOut,
+  Users,
+} from "lucide-react";
+import ShareDialog from "@/components/ShareDialog";
 import {
   DashboardTreeItem,
   addTreeToList,
@@ -115,6 +126,9 @@ interface DashboardSortableItemProps {
     childNotes?: unknown[] | undefined;
     nestedNotesCount?: number;
     isPinned?: boolean;
+    shareId?: Id<"shares">;
+    isShared?: boolean;
+    role?: "owner" | "admin" | "edit" | "view";
   };
   index: number;
   duplicateNote: (args: { id: Id<"notes"> }) => void;
@@ -146,6 +160,7 @@ function DashboardSortableItem({
   });
 
   const isTemp = typeof tree._id === "string" && tree._id.startsWith("temp-");
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
   return (
     <div
@@ -165,8 +180,11 @@ function DashboardSortableItem({
             >
               <Card className="h-full hover:bg-muted/50 transition-colors pr-10">
                 <CardHeader>
-                  <CardTitle className="text-xl pr-6 truncate">
+                  <CardTitle className="text-xl pr-6 truncate flex items-center gap-2">
                     {tree.title}
+                    {tree.isShared && (
+                      <Users className="h-4 w-4 text-blue-500 shrink-0" />
+                    )}
                   </CardTitle>
                   <CardDescription>
                     {t("nestedNotes", { count: tree.nestedNotesCount ?? 0 })}
@@ -184,6 +202,7 @@ function DashboardSortableItem({
                     ? "text-blue-500 hover:text-blue-600 scale-110"
                     : "md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 text-muted-foreground hover:text-blue-500",
                 )}
+                disabled={tree.role === "view"}
                 onClick={e => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -191,10 +210,7 @@ function DashboardSortableItem({
                 }}
               >
                 <Pin
-                  className={cn(
-                    "h-4 w-4",
-                    tree.isPinned && "fill-blue-500 -rotate-45",
-                  )}
+                  className={cn(tree.isPinned && "fill-blue-500 -rotate-45")}
                 />
               </Button>
               <DropdownMenu>
@@ -215,104 +231,171 @@ function DashboardSortableItem({
                   align="end"
                   onClick={e => e.stopPropagation()}
                 >
-                  <DropdownMenuItem
-                    onClick={() => {
-                      setNoteToRename({
-                        id: tree._id,
-                        title: tree.title,
-                      });
-                      setNewTitle(tree.title);
-                      setRenameError(null);
-                      setRenameDialogOpen(true);
-                    }}
-                  >
-                    <Edit className="mr-2 h-4 w-4" />
-                    {t("actions.edit")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      duplicateNote({ id: tree._id });
-                    }}
-                  >
-                    <Copy className="mr-2 h-4 w-4" />
-                    {t("actions.duplicate")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      togglePinNote({ id: tree._id });
-                    }}
-                  >
-                    <Pin
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        tree.isPinned &&
-                          "fill-blue-500 text-blue-500 -rotate-45",
-                      )}
-                    />
-                    {tree.isPinned ? t("actions.unpin") : t("actions.pin")}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    variant="destructive"
-                    onClick={() => {
-                      setNoteToDelete(tree._id);
-                      setDeleteAlertDialogOpen(true);
-                    }}
-                  >
-                    <Trash className="mr-2 h-4 w-4" />
-                    {t("actions.delete")}
-                  </DropdownMenuItem>
+                  {tree.role !== "view" && (
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setNoteToRename({
+                          id: tree._id,
+                          title: tree.title,
+                        });
+                        setNewTitle(tree.title);
+                        setRenameError(null);
+                        setRenameDialogOpen(true);
+                      }}
+                    >
+                      <Edit />
+                      {t("actions.edit")}
+                    </DropdownMenuItem>
+                  )}
+                  {tree.role !== "view" && (
+                    <DropdownMenuItem
+                      onClick={() => {
+                        duplicateNote({ id: tree._id });
+                      }}
+                    >
+                      <Copy />
+                      {t("actions.duplicate")}
+                    </DropdownMenuItem>
+                  )}
+                  {tree.role !== "view" && (
+                    <DropdownMenuItem
+                      onClick={() => {
+                        togglePinNote({ id: tree._id });
+                      }}
+                    >
+                      <Pin
+                        className={cn(
+                          tree.isPinned &&
+                            "fill-blue-500 text-blue-500 -rotate-45",
+                        )}
+                      />
+                      {tree.isPinned ? t("actions.unpin") : t("actions.pin")}
+                    </DropdownMenuItem>
+                  )}
+                  {(tree.role === "owner" || tree.role === "admin") && (
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setIsShareOpen(true);
+                      }}
+                    >
+                      <UserPlus />
+                      {t("actions.share")}
+                    </DropdownMenuItem>
+                  )}
+                  {tree.role !== "view" && <DropdownMenuSeparator />}
+                  {tree.isShared ? (
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onClick={() => {
+                        setNoteToDelete(tree._id);
+                        setDeleteAlertDialogOpen(true);
+                      }}
+                    >
+                      <LogOut />
+                      {t("actions.leave")}
+                    </DropdownMenuItem>
+                  ) : (
+                    tree.role !== "view" && (
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={() => {
+                          setNoteToDelete(tree._id);
+                          setDeleteAlertDialogOpen(true);
+                        }}
+                      >
+                        <Trash />
+                        {t("actions.delete")}
+                      </DropdownMenuItem>
+                    )
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
         </ContextMenuTrigger>
         <ContextMenuContent>
-          <ContextMenuItem
-            onClick={() => {
-              setNoteToRename({ id: tree._id, title: tree.title });
-              setNewTitle(tree.title);
-              setRenameError(null);
-              setRenameDialogOpen(true);
-            }}
-          >
-            <Edit className="mr-2 h-4 w-4" />
-            {t("actions.edit")}
-          </ContextMenuItem>
-          <ContextMenuItem
-            onClick={() => {
-              duplicateNote({ id: tree._id });
-            }}
-          >
-            <Copy className="mr-2 h-4 w-4" />
-            {t("actions.duplicate")}
-          </ContextMenuItem>
-          <ContextMenuItem
-            onClick={() => {
-              togglePinNote({ id: tree._id });
-            }}
-          >
-            <Pin
-              className={cn(
-                "mr-2 h-4 w-4",
-                tree.isPinned && "fill-blue-500 text-blue-500 -rotate-45",
-              )}
-            />
-            {tree.isPinned ? t("actions.unpin") : t("actions.pin")}
-          </ContextMenuItem>
-          <ContextMenuSeparator />
-          <ContextMenuItem
-            variant="destructive"
-            onClick={() => {
-              setNoteToDelete(tree._id);
-              setDeleteAlertDialogOpen(true);
-            }}
-          >
-            <Trash className="mr-2 h-4 w-4" />
-            {t("actions.delete")}
-          </ContextMenuItem>
+          {tree.role !== "view" && (
+            <ContextMenuItem
+              onClick={() => {
+                setNoteToRename({ id: tree._id, title: tree.title });
+                setNewTitle(tree.title);
+                setRenameError(null);
+                setRenameDialogOpen(true);
+              }}
+            >
+              <Edit />
+              {t("actions.edit")}
+            </ContextMenuItem>
+          )}
+          {tree.role !== "view" && (
+            <ContextMenuItem
+              onClick={() => {
+                duplicateNote({ id: tree._id });
+              }}
+            >
+              <Copy />
+              {t("actions.duplicate")}
+            </ContextMenuItem>
+          )}
+          {tree.role !== "view" && (
+            <ContextMenuItem
+              onClick={() => {
+                togglePinNote({ id: tree._id });
+              }}
+            >
+              <Pin
+                className={cn(
+                  tree.isPinned && "fill-blue-500 text-blue-500 -rotate-45",
+                )}
+              />
+              {tree.isPinned ? t("actions.unpin") : t("actions.pin")}
+            </ContextMenuItem>
+          )}
+          {(tree.role === "owner" || tree.role === "admin") && (
+            <ContextMenuItem
+              onClick={() => {
+                setIsShareOpen(true);
+              }}
+            >
+              <UserPlus />
+              {t("actions.share")}
+            </ContextMenuItem>
+          )}
+          {tree.role !== "view" && <ContextMenuSeparator />}
+          {tree.isShared ? (
+            <ContextMenuItem
+              variant="destructive"
+              onClick={() => {
+                setNoteToDelete(tree._id);
+                setDeleteAlertDialogOpen(true);
+              }}
+            >
+              <LogOut />
+              {t("actions.leave")}
+            </ContextMenuItem>
+          ) : (
+            tree.role !== "view" && (
+              <ContextMenuItem
+                variant="destructive"
+                onClick={() => {
+                  setNoteToDelete(tree._id);
+                  setDeleteAlertDialogOpen(true);
+                }}
+              >
+                <Trash />
+                {t("actions.delete")}
+              </ContextMenuItem>
+            )
+          )}
         </ContextMenuContent>
       </ContextMenu>
+      {!isTemp && (
+        <ShareDialog
+          noteId={tree._id}
+          open={isShareOpen}
+          onOpenChange={setIsShareOpen}
+        />
+      )}
     </div>
   );
 }
@@ -443,6 +526,16 @@ export default function Notes() {
       if (context?.previousTrees) {
         queryClient.setQueryData(queryKey, context.previousTrees);
       }
+    },
+  });
+
+  const leaveShareMutate = useConvexMutation(api.notes.removeShare);
+  const { mutate: leaveShare } = useMutation({
+    mutationFn: leaveShareMutate,
+    onSuccess: () => {
+      setNoteToDelete(null);
+      setDeleteAlertDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 
@@ -820,39 +913,52 @@ export default function Notes() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog
-        open={deleteAlertDialogOpen}
-        onOpenChange={setDeleteAlertDialogOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("deleteConfirmTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("deleteConfirmDesc")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              onClick={() => {
-                setDeleteAlertDialogOpen(false);
-                setNoteToDelete(null);
-              }}
-            >
-              {t("cancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-              onClick={() => {
-                if (noteToDelete) {
-                  deleteNote({ id: noteToDelete });
-                }
-              }}
-            >
-              {t("delete")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {(() => {
+        const noteObj = filteredTrees?.find(x => x._id === noteToDelete);
+        const isLeaving = !!noteObj?.isShared;
+
+        return (
+          <AlertDialog
+            open={deleteAlertDialogOpen}
+            onOpenChange={setDeleteAlertDialogOpen}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {isLeaving ? t("leaveConfirmTitle") : t("deleteConfirmTitle")}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {isLeaving ? t("leaveConfirmDesc") : t("deleteConfirmDesc")}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel
+                  onClick={() => {
+                    setDeleteAlertDialogOpen(false);
+                    setNoteToDelete(null);
+                  }}
+                >
+                  {t("cancel")}
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                  onClick={() => {
+                    if (noteToDelete && noteObj) {
+                      if (isLeaving && noteObj.shareId) {
+                        leaveShare({ shareId: noteObj.shareId });
+                      } else {
+                        deleteNote({ id: noteToDelete });
+                      }
+                    }
+                  }}
+                >
+                  {isLeaving ? t("leave") : t("delete")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        );
+      })()}
     </div>
   );
 }

@@ -15,7 +15,9 @@ export default defineSchema({
     email_verified: v.optional(v.boolean()),
     phone_number_verified: v.optional(v.boolean()),
     role: v.id("roles"),
-  }).index("by_token", ["tokenIdentifier"]),
+  })
+    .index("by_token", ["tokenIdentifier"])
+    .index("by_email", ["email"]),
 
   roles: defineTable({
     role: v.string(),
@@ -34,4 +36,18 @@ export default defineSchema({
   })
     .index("by_owner", ["owner", "parentNote"])
     .index("by_parent", ["parentNote"]),
+
+  shares: defineTable({
+    noteId: v.id("notes"),
+    userId: v.optional(v.id("users")),
+    email: v.string(),
+    role: v.optional(
+      v.union(v.literal("view"), v.literal("edit"), v.literal("admin")),
+    ),
+  })
+    .index("by_user", ["userId"])
+    .index("by_note", ["noteId"])
+    .index("by_email", ["email"])
+    .index("by_user_note", ["userId", "noteId"])
+    .index("by_email_note", ["email", "noteId"]),
 });

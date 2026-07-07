@@ -48,6 +48,9 @@
     "deleteConfirmTitle": "Are you absolutely sure?",
     "deleteConfirmDesc": "This action cannot be undone. This will permanently delete this tree and all of its nested notes.",
     "delete": "Delete",
+    "leaveConfirmTitle": "Leave shared note?",
+    "leaveConfirmDesc": "Are you sure you want to leave this shared note? You will lose access to this note and its children.",
+    "leave": "Leave",
     "validation": {
       "required": "Title is required",
       "tooShort": "Title must be at least 3 characters",
@@ -59,7 +62,9 @@
       "duplicate": "Duplicate",
       "delete": "Delete",
       "pin": "Pin",
-      "unpin": "Unpin"
+      "unpin": "Unpin",
+      "share": "Share",
+      "leave": "Leave share"
     }
   },
   "NoteCard": {
@@ -67,13 +72,18 @@
     "tooltips": {
       "addChild": "Add child note",
       "duplicate": "Duplicate note",
-      "delete": "Delete note"
+      "delete": "Delete note",
+      "share": "Share note",
+      "shared": "Shared note"
     },
     "contextMenu": {
       "addChild": "Add a child note",
       "rename": "Rename",
       "duplicate": "Duplicate",
-      "delete": "Delete"
+      "delete": "Delete",
+      "share": "Share",
+      "leave": "Leave share",
+      "noActions": "No actions"
     }
   },
   "NoteContent": {
@@ -83,6 +93,28 @@
       "saving": "Saving...",
       "unsaved": "Unsaved changes"
     }
+  },
+  "ShareDialog": {
+    "title": "Share note",
+    "desc": "Invite other users to access this note and all of its child notes.",
+    "inputLabel": "Email address",
+    "inputPlaceholder": "user@example.com",
+    "invite": "Invite",
+    "loading": "Loading...",
+    "errorUserNotFound": "No user found with this email address.",
+    "errorAlreadyShared": "This note is already shared with this user.",
+    "errorSelfInvite": "You cannot invite yourself.",
+    "errorGeneric": "An error occurred.",
+    "sharedWith": "Shared with",
+    "noShares": "This note is not shared with anyone.",
+    "remove": "Remove",
+    "successInvite": "User invited successfully.",
+    "buttonTooltip": "Share this note",
+    "pending": "Invitation pending",
+    "roleView": "Viewer",
+    "roleEdit": "Editor",
+    "roleAdmin": "Admin",
+    "roleOwner": "Owner"
   },
   "NotesTree": {
     "dropHere": "Drop here",

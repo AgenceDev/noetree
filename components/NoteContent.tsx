@@ -1,17 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import EditorToolbar from "./editor/EditorToolbar";
 import { EditorContent } from "@tiptap/react";
 import ConditionChecker from "./helpers/ConditionChecker";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, UserPlus } from "lucide-react";
 import { useEditorContext } from "@/providers/EditorProvider";
 import { useTreeContext } from "@/providers/TreeProvider";
 import { Skeleton } from "./ui/skeleton";
 import { useTranslations } from "next-intl";
+import { Button } from "./ui/button";
+import ShareDialog from "./ShareDialog";
 
 export default function NoteContent() {
   const t = useTranslations("NoteContent");
+  const tShare = useTranslations("ShareDialog");
   const { selectedNote } = useTreeContext();
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
   const { editor, saveStatus } = useEditorContext();
 
@@ -23,17 +28,27 @@ export default function NoteContent() {
         </ConditionChecker>
         <ConditionChecker condition={!!selectedNote}>
           <>
-            <h2 className="text-2xl font-bold">{selectedNote?.title}</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-2xl font-bold">{selectedNote?.title}</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsShareOpen(true)}
+                title={tShare("buttonTooltip")}
+              >
+                <UserPlus />
+              </Button>
+            </div>
             <div className="flex items-center gap-2">
               <ConditionChecker condition={saveStatus === "error"}>
                 <div className="flex items-center text-destructive gap-1">
-                  <AlertCircle className="h-4 w-4" />
+                  <AlertCircle />
                   <span className="text-sm">{t("status.failed")}</span>
                 </div>
               </ConditionChecker>
               <ConditionChecker condition={saveStatus === "success"}>
                 <div className="flex items-center text-green-600 gap-1">
-                  <CheckCircle2 className="h-4 w-4" />
+                  <CheckCircle2 />
                   <span className="text-sm">{t("status.saved")}</span>
                 </div>
               </ConditionChecker>
@@ -70,6 +85,13 @@ export default function NoteContent() {
           </ConditionChecker>
         </div>
       </div>
+      {selectedNote && (
+        <ShareDialog
+          noteId={selectedNote._id}
+          open={isShareOpen}
+          onOpenChange={setIsShareOpen}
+        />
+      )}
     </div>
   );
 }
