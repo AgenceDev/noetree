@@ -1,0 +1,167 @@
+{
+  "Metadata": {
+    "title": "NoeTree",
+    "description": "Visualisez et gérez vos notes hiérarchiques."
+  },
+  "Sidebar": {
+    "title": "NoeTree",
+    "dashboard": "Tableau de bord",
+    "notes": "Notes",
+    "pinned": "Épinglées"
+  },
+  "NavUser": {
+    "account": "Compte",
+    "language": "Langue",
+    "theme": "Thème",
+    "themeLight": "Clair",
+    "themeDark": "Sombre",
+    "themeSystem": "Système",
+    "logout": "Se déconnecter"
+  },
+  "Dashboard": {
+    "title": "Tableau de bord",
+    "notesLink": "Notes",
+    "welcomeText": "Bienvenue sur votre tableau de bord. Accédez à vos arborescences de notes pour commencer à rédiger."
+  },
+  "Notes": {
+    "title": "Arborescences",
+    "searchPlaceholder": "Rechercher...",
+    "searchAria": "Rechercher",
+    "loading": "Chargement des arborescences...",
+    "noTrees": "Vous n'avez pas d'arborescence.",
+    "noMatch": "Aucune arborescence ne correspond à votre recherche.",
+    "nestedNotes": "{count, plural, =0 {aucune note imbriquée} =1 {1 note imbriquée} other {# notes imbriquées}}",
+    "error": "Erreur de chargement des arborescences.",
+    "createButton": "Créer une arborescence",
+    "createTitle": "Créer une arborescence",
+    "createDesc": "Remplissez le formulaire ci-dessous pour créer une nouvelle arborescence",
+    "formTitleLabel": "Titre",
+    "formTitlePlaceholder": "Entrez le titre de l'arborescence",
+    "formTitleDesc": "C'est le titre de votre arborescence.",
+    "close": "Fermer",
+    "create": "Créer",
+    "renameTitle": "Renommer l'arborescence",
+    "renameDesc": "Entrez un nouveau titre pour \"{title}\"",
+    "renamePlaceholder": "Entrez le titre de l'arborescence",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "deleteConfirmTitle": "Êtes-vous absolument sûr ?",
+    "deleteConfirmDesc": "Cette action ne peut pas être annulée. Cela supprimera définitivement cette arborescence et toutes ses notes associées.",
+    "delete": "Supprimer",
+    "leaveConfirmTitle": "Quitter le partage ?",
+    "leaveConfirmDesc": "Êtes-vous sûr de vouloir quitter ce partage ? Vous n'aurez plus accès à cette note et ses enfants.",
+    "leave": "Quitter",
+    "validation": {
+      "required": "Le titre est requis",
+      "tooShort": "Le titre doit faire au moins 3 caractères",
+      "tooLong": "Le titre est trop long",
+      "exists": "Une note avec ce titre existe déjà"
+    },
+    "actions": {
+      "edit": "Renommer",
+      "duplicate": "Dupliquer",
+      "delete": "Supprimer",
+      "pin": "Épingler",
+      "unpin": "Désépingler",
+      "share": "Partager",
+      "leave": "Quitter le partage"
+    }
+  },
+  "NoteCard": {
+    "newNotePlaceholder": "Titre de la nouvelle note...",
+    "tooltips": {
+      "addChild": "Ajouter une note enfant",
+      "duplicate": "Dupliquer la note",
+      "delete": "Supprimer la note",
+      "share": "Partager la note",
+      "shared": "Note partagée"
+    },
+    "contextMenu": {
+      "addChild": "Ajouter une note enfant",
+      "rename": "Renommer",
+      "duplicate": "Dupliquer",
+      "delete": "Supprimer",
+      "share": "Partager",
+      "leave": "Quitter le partage",
+      "noActions": "Aucune action"
+    }
+  },
+  "NoteContent": {
+    "status": {
+      "failed": "Échec de la sauvegarde",
+      "saved": "Enregistré",
+      "saving": "Sauvegarde...",
+      "unsaved": "Modifications non enregistrées"
+    }
+  },
+  "ShareDialog": {
+    "title": "Partager la note",
+    "desc": "Invitez d'autres utilisateurs à accéder à cette note et à toutes ses notes enfants.",
+    "inputLabel": "Adresse e-mail",
+    "inputPlaceholder": "utilisateur@exemple.com",
+    "invite": "Inviter",
+    "loading": "Chargement...",
+    "errorUserNotFound": "Aucun utilisateur trouvé avec cette adresse e-mail.",
+    "errorAlreadyShared": "Cette note est déjà partagée avec cet utilisateur.",
+    "errorSelfInvite": "Vous ne pouvez pas vous inviter vous-même.",
+    "errorGeneric": "Une erreur est survenue.",
+    "sharedWith": "Partagé avec",
+    "noShares": "Cette note n'est partagée avec personne.",
+    "remove": "Retirer",
+    "successInvite": "Utilisateur invité avec succès.",
+    "buttonTooltip": "Partager cette note",
+    "pending": "Invitation en attente",
+    "roleView": "Lecture seule",
+    "roleEdit": "Modification",
+    "roleAdmin": "Administrateur",
+    "roleOwner": "Propriétaire"
+  },
+  "NotesTree": {
+    "dropHere": "Déposer ici",
+    "recenter": "Recentrer sur la note active",
+    "deleteConfirmTitle": "Êtes-vous absolument sûr ?",
+    "deleteConfirmDesc": "Cette action ne peut pas être annulée. Cela supprimera définitivement cette note et toutes ses notes enfants.",
+    "cancel": "Annuler",
+    "continue": "Continuer"
+  },
+  "Editor": {
+    "placeholder": "Écrivez quelque chose...",
+    "tooltips": {
+      "undo": "Annuler (Ctrl+Z)",
+      "redo": "Rétablir (Ctrl+Shift+Z)",
+      "heading-1": "Titre 1",
+      "heading-2": "Titre 2",
+      "heading-3": "Titre 3",
+      "heading-4": "Titre 4",
+      "heading-5": "Titre 5",
+      "heading-6": "Titre 6",
+      "bold": "Gras (Ctrl+B)",
+      "italic": "Italique (Ctrl+I)",
+      "strike": "Barré",
+      "code": "Code en ligne (Ctrl+E)",
+      "bulletList": "Liste à puces",
+      "orderedList": "Liste ordonnée",
+      "blockquote": "Citation",
+      "codeBlock": "Bloc de code",
+      "hardBreak": "Saut de ligne",
+      "horizontalRule": "Règle horizontale",
+      "link": "Insérer un lien (Ctrl+K)",
+      "image": "Insérer une image"
+    },
+    "dialogs": {
+      "linkTitle": "Insérer un lien",
+      "linkDesc": "Saisissez l'URL et le texte d'affichage facultatif",
+      "url": "URL",
+      "linkText": "Texte du lien",
+      "linkTextPlaceholder": "Texte facultatif à afficher",
+      "insertLink": "Insérer le lien",
+      "imageTitle": "Insérer une image",
+      "imageDesc": "Saisissez l'URL de l'image et le texte alternatif facultatif",
+      "imageUrl": "URL de l'image",
+      "imageAlt": "Texte alternatif",
+      "imageAltPlaceholder": "Description de l'image pour l'accessibilité",
+      "insertImage": "Insérer l'image",
+      "cancel": "Annuler"
+    }
+  }
+}
