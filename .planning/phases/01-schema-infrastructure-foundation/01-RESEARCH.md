@@ -435,18 +435,18 @@ export const config = {
 | A3  | "Staging" (per PROJECT.md: "staging depuis dev [branch]") maps to a Vercel Preview environment scoped to the `dev` branch, not to a Convex Preview Deployment                                        | Common Pitfalls → Pitfall 4       | Medium — if the team's actual Convex project has a 3rd persistent "staging" deployment (not discoverable from the repo alone), the env var setup steps in the plan may need an extra Convex-side task                                                                                                                     |
 | A4  | Unused stub-handler parameters (`ctx`, `args` in `throw`-only bodies) won't fail the project's lint/typecheck gates                                                                                  | Architecture Patterns → Pattern 2 | Low — easily fixed by prefixing with `_` or referencing them in a comment if ESLint's `no-unused-vars` is stricter than assumed; doesn't block `convex dev` compilation (the actual Phase 1 success criterion), only `npm run lint`                                                                                       |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does the project have a stable, persistent 3rd Convex deployment for "staging", or does "staging" only exist at the Vercel level?**
 
    - What we know: `.env.local` shows `CONVEX_DEPLOYMENT=dev:frugal-echidna-922` for local dev. PROJECT.md says production deploys "depuis tags git" and staging "depuis dev" branch — describing Vercel's branch-to-environment mapping, not Convex's.
    - What's unclear: Whether a second/third Convex deployment (beyond the local `dev:` one visible in the repo) already exists and is wired to Vercel's Preview/Production environments via `CONVEX_DEPLOY_KEY`, per the standard Convex+Vercel integration pattern.
-   - Recommendation: Since none of Phase 1's 5 required env vars need to live in Convex's env store (Pitfall 3), this doesn't block the plan — but the planner should have a task/checkpoint to confirm actual Convex deployment topology (via Convex dashboard or `npx convex env list` per deployment) before Phase 2, where webhook-writing internalMutations will need this clarified for testing across environments.
+   - **RESOLVED:** Not a Phase 1 blocker — none of Phase 1's 5 required env vars need to live in Convex's env store (Pitfall 3), so this question doesn't gate these 4 plans. Deferred to Phase 2 planning: confirm actual Convex deployment topology (via Convex dashboard or `npx convex env list` per deployment) before webhook-writing internalMutations need it clarified for cross-environment testing.
 
 2. **Should `@clerk/nextjs` be bumped to `7.x` (latest, `7.5.13`) instead of the minimal `6.39.2` patch?**
    - What we know: `6.39.2` fixes the CVE with no major-version migration required. `7.x` is a new major line (first `7.x` release exists per registry) that likely carries breaking changes not investigated here (out of scope for this research pass).
    - What's unclear: Whether the team wants to stay current long-term vs. take the minimal, safest fix now.
-   - Recommendation: Default to `^6.39.2` for this phase (lowest risk, unblocks the CVE, no migration work). Note the `7.x` option for the user/planner to explicitly opt into as a separate, later decision if desired — do not bundle a major upgrade into an infrastructure-foundation phase whose stated goal is stability.
+   - **RESOLVED:** `^6.39.2` — lowest risk, unblocks the CVE, no migration work. Already implemented as the target version in 01-02-PLAN.md. The `7.x` major upgrade is explicitly out of scope for this infrastructure-foundation phase; revisit as a separate, later decision if desired.
 
 ## Environment Availability
 
