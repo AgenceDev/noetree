@@ -1,2 +1,2 @@
-npm run test
-git add
+#!/usr/bin/env sh
+npx lint-staged

@@ -93,9 +93,12 @@
     "@tailwindcss/oxide-linux-x64-gnu": "^4.3.0",
     "lightningcss-linux-x64-gnu": "^1.32.0"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
+  "lint-staged": {
+    "app/**/*.{js,jsx,ts,tsx}": [
+      "eslint --fix"
+    ],
+    "*.{js,jsx,ts,tsx,json,css,md}": [
+      "prettier --write"
+    ]
   }
 }
