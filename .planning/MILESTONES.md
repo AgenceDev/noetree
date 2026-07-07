@@ -5,6 +5,7 @@
 **Shipped:** Prior to 2026-07-07
 
 **What shipped:**
+
 - Authentification (Clerk)
 - CRUD notes avec Convex backend
 - Structure arborescente parent/enfant

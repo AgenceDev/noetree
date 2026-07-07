@@ -27,18 +27,20 @@ Two npm packages needed. The existing stack (Next.js 15, Convex 1.19.5, Clerk 6.
 Rejected: `@convex-dev/stripe` (v0.1.3) requires Convex Components migration (convex.config.ts does not exist), conflicts with existing users/roles tables, and has a known bug where customer.subscription.updated does not update priceId (GitHub issue #7). Manual implementation is ~150 lines and gives full schema control.
 
 New infrastructure files (no additional packages):
+
 - `app/api/webhooks/stripe/route.ts` — Stripe webhook receiver, Node.js runtime forced with `export const runtime = "nodejs"`
 - `app/api/checkout/route.ts` — creates Stripe Checkout Session
 - `convex/subscriptions.ts` — subscription queries + internalMutations
 - `convex/aiCredits.ts` — credits balance queries + deduction mutations
 
-Env var discipline: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, and Price IDs are server-only and must never have the NEXT_PUBLIC_ prefix. Only NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is safe to expose to the client.
+Env var discipline: STRIPE*SECRET_KEY, STRIPE_WEBHOOK_SECRET, and Price IDs are server-only and must never have the NEXT_PUBLIC* prefix. Only NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is safe to expose to the client.
 
 ---
 
 ### Table Stakes vs Differentiators
 
 **Must have (table stakes — missing = product feels untrustworthy):**
+
 - Pricing page showing Free vs Pro plans
 - Hard note limit enforcement at 20 for Free tier, enforced in Convex createNote mutation (never client-side only)
 - Upgrade prompt when hitting the limit (industry standard: Notion, Evernote pattern)
@@ -49,6 +51,7 @@ Env var discipline: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, and Price IDs are 
 - Real-time plan reflection after webhook fires — Convex reactive queries eliminate page reload
 
 **Should have (differentiators for Noetree):**
+
 - AI credits balance visible near the AI feature entry point, not only in Settings
 - Credits top-up via Stripe Checkout (PAY-05) — secondary revenue stream on top of subscription
 - Monthly credits auto-reset tied to invoice.paid billing cycle, not calendar cron
@@ -56,6 +59,7 @@ Env var discipline: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, and Price IDs are 
 - Low-credits nudge before reaching zero — prevents frustration mid-session
 
 **Defer to v2+:**
+
 - Stripe Customer Portal — explicitly out of scope per PROJECT.md; custom Settings UI chosen for UX cohesion
 - Credit expiry with short windows — creates resentment and support burden
 - Pause subscription, prorated downgrade enforcement, teams/seats, marketplace
@@ -74,12 +78,13 @@ Three subsystems: (1) a Next.js Route Handler creates Checkout Sessions and rece
 4. `convex/schema.ts` additions — 4 new tables
 
 **New tables:**
+
 - `subscriptions`: userId, clerkUserId, stripeCustomerId, stripeSubscriptionId, planType, status, currentPeriodStart, currentPeriodEnd, createdAt, updatedAt — indexes: by_userId, by_clerkUserId, by_stripeCustomerId, by_stripeSubscriptionId
 - `aiCredits`: userId, clerkUserId, balance, monthlyQuota, billingPeriodStart, billingPeriodEnd, updatedAt — indexes: by_userId, by_clerkUserId
 - `creditTransactions`: userId, type (monthly_grant|topup_purchase|ai_consumption), amount, stripePaymentIntentId, description, createdAt — indexes: by_userId, by_userId_and_type
 - `processedStripeEvents`: stripeEventId, processedAt — unique index by_stripe_event_id (idempotency guard)
 
-**Modified files:** convex/schema.ts (4 new tables), convex/notes.ts (20-note guard in createNote treating null subscription as Free), middleware.ts (exclude /api/webhooks/** from Clerk protection).
+**Modified files:** convex/schema.ts (4 new tables), convex/notes.ts (20-note guard in createNote treating null subscription as Free), middleware.ts (exclude /api/webhooks/\*\* from Clerk protection).
 
 **Stripe events handled:** checkout.session.completed, customer.subscription.updated, customer.subscription.deleted, invoice.paid, invoice.payment_failed
 
@@ -98,10 +103,11 @@ Three subsystems: (1) a Next.js Route Handler creates Checkout Sessions and rece
 5. **Credits deduction TOCTOU across separate Convex calls** — Reading balance in one query then writing in a separate mutation allows two concurrent requests to both pass the balance check. Convex OCC only protects a single mutation transaction. The balance check AND the deduction must be in the same mutation handler — never split across query + mutation.
 
 **Additional high-severity pitfalls to prevent:**
+
 - Set clerkUserId in BOTH session.metadata AND subscription_data.metadata — renewal events carry only subscription metadata, not session metadata
 - Treat null subscription row as Free tier (not error) — all pre-existing users have no subscriptions row
 - Drive credits reset from invoice.paid with billing_reason === "subscription_cycle", not calendar cron
-- Never use NEXT_PUBLIC_ prefix for secret key or webhook secret
+- Never use NEXT*PUBLIC* prefix for secret key or webhook secret
 
 ---
 
@@ -114,7 +120,7 @@ Strict 6-phase dependency chain. Each phase must complete before the next is tes
 **Rationale:** Convex schema changes require redeployment before any referencing code compiles. This phase has no UI — it is the foundation everything else builds on.
 **Delivers:** 4 new Convex tables deployed; stripe and @stripe/stripe-js installed; all env vars in place across all environments; middleware.ts updated to exclude webhook path; stub Convex modules that compile.
 **Addresses:** Pre-requisite for all 19 REQUIREMENTS.md items.
-**Avoids:** Schema-not-found deploy failures; NEXT_PUBLIC_ secret exposure established correctly from day one.
+**Avoids:** Schema-not-found deploy failures; NEXT*PUBLIC* secret exposure established correctly from day one.
 **Research flag:** Standard — Convex schema and env var patterns are well-documented.
 
 ### Phase 2: Webhook Handler + Convex Internal Mutations
@@ -169,11 +175,13 @@ Strict 6-phase dependency chain. Each phase must complete before the next is tes
 ### Research Flags
 
 Phases needing careful implementation attention:
+
 - **Phase 2 (Webhook):** Three specific checks before merge — request.text() raw body, processedStripeEvents idempotency table present, upsert not insert. Verify all 5 event types with stripe listen.
 - **Phase 3 (Checkout):** Verify clerkUserId is set on BOTH session.metadata AND subscription_data.metadata.
 - **Phase 5 (Credits deduction):** Verify consumeCredits is one mutation with read+write in same handler.
 
 Phases with standard well-documented patterns:
+
 - **Phase 1:** Convex schema addition, env var setup
 - **Phase 4:** Mutation guard with note count check
 - **Phase 6:** Settings page UI assembly
@@ -182,24 +190,24 @@ Phases with standard well-documented patterns:
 
 ## Open Questions Requiring Product Decisions Before Coding
 
-| Question | Blocks | Owner |
-|----------|--------|-------|
-| What is the Pro plan monthly price? | Phase 3: Stripe Price creation, pricing page copy | Product owner |
-| What is the monthly AI credits quota for Pro (e.g. 100 credits)? | Phase 2: monthlyQuota value in webhook handler | Product owner |
-| What does 1 AI credit correspond to in usage? | Phase 5: cost parameter per AI action in consumeCredits | Product owner |
-| What is the top-up pack size and price? | Phase 3: Stripe one-time Price; Phase 5: top-up checkout | Product owner |
-| What is the upgrade prompt copy framing? | Phase 4: upgrade prompt component text and CTA | Product owner |
+| Question                                                         | Blocks                                                   | Owner         |
+| ---------------------------------------------------------------- | -------------------------------------------------------- | ------------- |
+| What is the Pro plan monthly price?                              | Phase 3: Stripe Price creation, pricing page copy        | Product owner |
+| What is the monthly AI credits quota for Pro (e.g. 100 credits)? | Phase 2: monthlyQuota value in webhook handler           | Product owner |
+| What does 1 AI credit correspond to in usage?                    | Phase 5: cost parameter per AI action in consumeCredits  | Product owner |
+| What is the top-up pack size and price?                          | Phase 3: Stripe one-time Price; Phase 5: top-up checkout | Product owner |
+| What is the upgrade prompt copy framing?                         | Phase 4: upgrade prompt component text and CTA           | Product owner |
 
 ---
 
 ## Confidence Assessment
 
-| Area | Confidence | Notes |
-|------|------------|-------|
-| Stack | HIGH | Verified via Context7 stripe-node, official Convex blog, npm. @convex-dev/stripe rejection is MEDIUM due to schema mismatch and GitHub issue #7. |
-| Features | HIGH | Corroborated across Stripe docs, Stigg/Appcues/Lago SaaS research, competitor analysis. |
-| Architecture | HIGH | Verified against official Convex docs, Stripe subscription webhook docs, and Clerk blog on Stripe metadata pattern. Webhook-in-Next.js is the project constraint from PROJECT.md. |
-| Pitfalls | HIGH | Multiple production post-mortems plus official Stripe/Convex/Vercel docs. Detection methods documented for each. |
+| Area         | Confidence | Notes                                                                                                                                                                             |
+| ------------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Stack        | HIGH       | Verified via Context7 stripe-node, official Convex blog, npm. @convex-dev/stripe rejection is MEDIUM due to schema mismatch and GitHub issue #7.                                  |
+| Features     | HIGH       | Corroborated across Stripe docs, Stigg/Appcues/Lago SaaS research, competitor analysis.                                                                                           |
+| Architecture | HIGH       | Verified against official Convex docs, Stripe subscription webhook docs, and Clerk blog on Stripe metadata pattern. Webhook-in-Next.js is the project constraint from PROJECT.md. |
+| Pitfalls     | HIGH       | Multiple production post-mortems plus official Stripe/Convex/Vercel docs. Detection methods documented for each.                                                                  |
 
 **Overall confidence:** HIGH
 
@@ -215,6 +223,7 @@ Phases with standard well-documented patterns:
 ## Sources
 
 ### Primary (HIGH confidence)
+
 - Stripe Node.js SDK (Context7 / stripe-node) — checkout session creation, webhook signature verification, subscription lifecycle
 - Stripe Subscription Webhooks official docs — event types, delivery guarantees, 72h retry behavior
 - Stripe Billing Cycle Anchor docs — rationale for invoice.paid-driven credits reset
@@ -224,6 +233,7 @@ Phases with standard well-documented patterns:
 - Vercel Deployment Protection docs — bypass for automation webhook paths
 
 ### Secondary (MEDIUM confidence)
+
 - @convex-dev/stripe component README + GitHub issue #7 — basis for component rejection decision
 - Next.js App Router webhook raw body pattern (community articles, verified against Next.js docs)
 - Production post-mortem: The Race Condition You Are Probably Shipping With Stripe Webhooks — two-writer race pitfall
@@ -232,9 +242,10 @@ Phases with standard well-documented patterns:
 - Note-taking app pricing comparison (stackscored.com) — competitive context
 
 ### Tertiary (LOW confidence — validate at implementation)
+
 - invoice.paid billing_reason field name — verify against current Stripe API event catalog at implementation time
 
 ---
 
-*Research completed: 2026-07-07*
-*Ready for roadmap: yes*
+_Research completed: 2026-07-07_
+_Ready for roadmap: yes_

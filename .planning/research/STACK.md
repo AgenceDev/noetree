@@ -10,10 +10,10 @@
 
 ### Core Payment
 
-| Library | Version | Purpose | Why |
-|---------|---------|---------|-----|
-| `stripe` | `^17.x` (latest ~17.x on npm as of research; ctx7 shows v19.1.0 for stripe-node) | Server-side Stripe API calls: create Checkout sessions, retrieve subscriptions, manage customers | Official Stripe Node SDK. Runs in Convex actions (`"use node"` pragma) and Next.js Route Handlers. Only option — no viable alternative. |
-| `@stripe/stripe-js` | `^4.x` (latest ~4.x) | Client-side redirect to Stripe Checkout | Needed only for the `loadStripe()` call that redirects the browser to Stripe Checkout. Tiny — loaded lazily. |
+| Library             | Version                                                                          | Purpose                                                                                          | Why                                                                                                                                     |
+| ------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `stripe`            | `^17.x` (latest ~17.x on npm as of research; ctx7 shows v19.1.0 for stripe-node) | Server-side Stripe API calls: create Checkout sessions, retrieve subscriptions, manage customers | Official Stripe Node SDK. Runs in Convex actions (`"use node"` pragma) and Next.js Route Handlers. Only option — no viable alternative. |
+| `@stripe/stripe-js` | `^4.x` (latest ~4.x)                                                             | Client-side redirect to Stripe Checkout                                                          | Needed only for the `loadStripe()` call that redirects the browser to Stripe Checkout. Tiny — loaded lazily.                            |
 
 **Confidence:** HIGH — verified via Context7 (`/stripe/stripe-node`) and npm search.
 
@@ -25,11 +25,11 @@
 
 No new npm packages beyond `stripe` are needed on the Convex side. The integration uses existing Convex primitives:
 
-| New File | Type | Purpose |
-|----------|------|---------|
-| `convex/http.ts` | Convex HTTP Router | Registers the Stripe webhook endpoint as a Convex HTTP action. This file does not exist yet. |
+| New File                  | Type                       | Purpose                                                                                               |
+| ------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `convex/http.ts`          | Convex HTTP Router         | Registers the Stripe webhook endpoint as a Convex HTTP action. This file does not exist yet.          |
 | `convex/subscriptions.ts` | Convex actions + mutations | Stripe API calls (create Checkout session, cancel subscription) and DB writes for subscription state. |
-| `convex/credits.ts` | Convex mutations + queries | Deduct/reset/top-up AI credits. |
+| `convex/credits.ts`       | Convex mutations + queries | Deduct/reset/top-up AI credits.                                                                       |
 
 **Why Convex HTTP action for webhooks, not a Next.js API route:**
 The webhook handler must write to Convex DB. A Next.js API route would need to call Convex as an HTTP client (adding latency and auth complexity). A Convex HTTP action runs inside Convex, calls `ctx.runMutation()` directly, and gets atomicity guarantees. The `stack.convex.dev` article on Stripe explicitly uses this pattern. The endpoint URL becomes `https://<convex-deployment>.convex.site/stripe/webhook`.
@@ -56,9 +56,11 @@ aiCreditsResetAt: v.optional(v.number()),        // Unix timestamp of next month
 ```
 
 **Add index on `users` table:**
+
 ```typescript
 .index("by_stripeCustomerId", ["stripeCustomerId"])
 ```
+
 This is required because the Stripe webhook arrives with a `customer` ID, not a Clerk user ID. Without this index, finding the user on webhook receipt requires a full table scan.
 
 **Confidence:** HIGH — pattern is validated by Convex docs, `stack.convex.dev` Stripe article, and the get-convex/stripe component schema (which uses equivalent fields in its `customers` + `subscriptions` tables, just separated).
@@ -67,12 +69,12 @@ This is required because the Stripe webhook arrives with a `customer` ID, not a 
 
 ## Stripe Configuration (no new libs)
 
-| What | Where | Notes |
-|------|-------|-------|
-| `STRIPE_SECRET_KEY` | Convex env vars (Dashboard) | Used in Convex actions. Never in Next.js env. |
-| `STRIPE_WEBHOOK_SECRET` | Convex env vars (Dashboard) | Needed for `stripe.webhooks.constructEvent()` in the HTTP action. |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Next.js `.env.local` + Vercel | Used client-side for `loadStripe()`. Safe to expose. |
-| Stripe Product/Price IDs | Convex env vars | `STRIPE_PRO_PRICE_ID`, `STRIPE_CREDITS_PRICE_ID` — configured in Stripe Dashboard, referenced in checkout session creation. |
+| What                                 | Where                         | Notes                                                                                                                       |
+| ------------------------------------ | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `STRIPE_SECRET_KEY`                  | Convex env vars (Dashboard)   | Used in Convex actions. Never in Next.js env.                                                                               |
+| `STRIPE_WEBHOOK_SECRET`              | Convex env vars (Dashboard)   | Needed for `stripe.webhooks.constructEvent()` in the HTTP action.                                                           |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Next.js `.env.local` + Vercel | Used client-side for `loadStripe()`. Safe to expose.                                                                        |
+| Stripe Product/Price IDs             | Convex env vars               | `STRIPE_PRO_PRICE_ID`, `STRIPE_CREDITS_PRICE_ID` — configured in Stripe Dashboard, referenced in checkout session creation. |
 
 ---
 
@@ -80,8 +82,8 @@ This is required because the Stripe webhook arrives with a `customer` ID, not a 
 
 One new Next.js Route Handler is needed — but only for **initiating** Checkout, not for receiving webhooks.
 
-| New File | Purpose | Why API route (not Server Action) |
-|----------|---------|-----------------------------------|
+| New File                                  | Purpose                                               | Why API route (not Server Action)                                                                                                                                                                                                                       |
+| ----------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `app/api/stripe/create-checkout/route.ts` | Creates a Stripe Checkout Session and returns the URL | Stripe checkout requires returning a URL that Next.js redirects to. Server Actions can redirect but the checkout session creation involves sensitive Stripe API key and needs explicit error handling with HTTP status codes. Route Handler is clearer. |
 
 **No** `app/api/stripe/webhook/route.ts` — webhook goes to Convex HTTP action directly.
@@ -92,14 +94,14 @@ One new Next.js Route Handler is needed — but only for **initiating** Checkout
 
 ## What NOT to Add
 
-| Library | Why Not |
-|---------|---------|
-| `@stripe/react-stripe-js` | Only needed for Stripe Elements (embedding card inputs). This project uses Stripe Checkout (redirect) — no Elements needed. |
-| `@convex-dev/stripe` | Component is v0.1.3, requires Convex Components migration, schema conflicts with existing `users` table, known webhook reliability issue. Manual implementation is ~150 lines and gives full control. |
-| `micro` / `raw-body` | Legacy Pages Router raw body hack. App Router uses `await request.text()` natively — no extra library needed. |
-| `stripe-js` (old package) | Deprecated. Use `@stripe/stripe-js` instead. |
-| Any Stripe metering/usage libs | Out of scope — the credits model is a simple integer counter in Convex, not Stripe usage-based billing. |
-| Customer Portal (`stripe.billingPortal`) | Explicitly out of scope per PROJECT.md ("UI custom dans l'app"). Do not add portal redirect logic. |
+| Library                                  | Why Not                                                                                                                                                                                               |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@stripe/react-stripe-js`                | Only needed for Stripe Elements (embedding card inputs). This project uses Stripe Checkout (redirect) — no Elements needed.                                                                           |
+| `@convex-dev/stripe`                     | Component is v0.1.3, requires Convex Components migration, schema conflicts with existing `users` table, known webhook reliability issue. Manual implementation is ~150 lines and gives full control. |
+| `micro` / `raw-body`                     | Legacy Pages Router raw body hack. App Router uses `await request.text()` natively — no extra library needed.                                                                                         |
+| `stripe-js` (old package)                | Deprecated. Use `@stripe/stripe-js` instead.                                                                                                                                                          |
+| Any Stripe metering/usage libs           | Out of scope — the credits model is a simple integer counter in Convex, not Stripe usage-based billing.                                                                                               |
+| Customer Portal (`stripe.billingPortal`) | Explicitly out of scope per PROJECT.md ("UI custom dans l'app"). Do not add portal redirect logic.                                                                                                    |
 
 ---
 
@@ -119,6 +121,7 @@ npm install stripe @stripe/stripe-js
 ## Convex Webhook Endpoint Pattern
 
 The Stripe webhook URL registered in the Stripe Dashboard will be:
+
 ```
 https://<convex-deployment-name>.convex.site/stripe/webhook
 ```

@@ -52,43 +52,45 @@
 
 ## Out of Scope
 
-| Feature | Reason |
-|---------|--------|
-| Plan Business/Teams | Complexité multi-seats hors scope v1.0 — dédié milestone futur |
-| Marketplace de notes | Produit à part entière — nécessite maturité et confiance utilisateurs |
-| Portail Stripe natif | UI custom dans l'app choisie pour cohérence UX |
-| Remboursements manuels | Stripe gère automatiquement via son dashboard |
-| Webhooks pour failed payments | Stripe retry logic intégrée, notifications email gérées par Stripe |
+| Feature                       | Reason                                                                |
+| ----------------------------- | --------------------------------------------------------------------- |
+| Plan Business/Teams           | Complexité multi-seats hors scope v1.0 — dédié milestone futur        |
+| Marketplace de notes          | Produit à part entière — nécessite maturité et confiance utilisateurs |
+| Portail Stripe natif          | UI custom dans l'app choisie pour cohérence UX                        |
+| Remboursements manuels        | Stripe gère automatiquement via son dashboard                         |
+| Webhooks pour failed payments | Stripe retry logic intégrée, notifications email gérées par Stripe    |
 
 ## Traceability
 
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| PLAN-01 | — | Pending |
-| PLAN-02 | — | Pending |
-| PLAN-03 | — | Pending |
-| PLAN-04 | — | Pending |
-| PLAN-05 | — | Pending |
-| PAY-01 | — | Pending |
-| PAY-02 | — | Pending |
-| PAY-03 | — | Pending |
-| PAY-04 | — | Pending |
-| PAY-05 | — | Pending |
-| CRED-01 | — | Pending |
-| CRED-02 | — | Pending |
-| CRED-03 | — | Pending |
-| CRED-04 | — | Pending |
-| SET-01 | — | Pending |
-| SET-02 | — | Pending |
-| SET-03 | — | Pending |
-| SET-04 | — | Pending |
-| SET-05 | — | Pending |
+| Requirement | Phase | Status  |
+| ----------- | ----- | ------- |
+| PLAN-01     | Phase 3 | Pending |
+| PLAN-02     | Phase 4 | Pending |
+| PLAN-03     | Phase 4 | Pending |
+| PLAN-04     | Phase 4 | Pending |
+| PLAN-05     | Phase 1 | Pending |
+| PAY-01      | Phase 3 | Pending |
+| PAY-02      | Phase 3 | Pending |
+| PAY-03      | Phase 2 | Pending |
+| PAY-04      | Phase 6 | Pending |
+| PAY-05      | Phase 5 | Pending |
+| CRED-01     | Phase 2 | Pending |
+| CRED-02     | Phase 5 | Pending |
+| CRED-03     | Phase 5 | Pending |
+| CRED-04     | Phase 5 | Pending |
+| SET-01      | Phase 6 | Pending |
+| SET-02      | Phase 6 | Pending |
+| SET-03      | Phase 6 | Pending |
+| SET-04      | Phase 6 | Pending |
+| SET-05      | Phase 6 | Pending |
 
 **Coverage:**
+
 - v1.0 requirements: 19 total
-- Mapped to phases: 0
-- Unmapped: 19 ⚠️ (populated by roadmapper)
+- Mapped to phases: 19
+- Unmapped: 0
 
 ---
-*Requirements defined: 2026-07-07*
-*Last updated: 2026-07-07 after milestone v1.0 initialization*
+
+_Requirements defined: 2026-07-07_
+_Last updated: 2026-07-07 — Traceability populated by roadmapper, all 19 requirements mapped to phases 1-6_

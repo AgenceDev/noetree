@@ -25,11 +25,17 @@ All subscription activations, cancellations, and credit top-ups are silently dro
 
 **Prevention:**
 In the webhook route handler (`app/api/webhooks/stripe/route.ts`), always use:
+
 ```ts
-const body = await request.text();   // NOT request.json()
-const sig = request.headers.get('stripe-signature')!;
-const event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
+const body = await request.text(); // NOT request.json()
+const sig = request.headers.get("stripe-signature")!;
+const event = stripe.webhooks.constructEvent(
+  body,
+  sig,
+  process.env.STRIPE_WEBHOOK_SECRET!
+);
 ```
+
 Never pass the body through any JSON middleware before this line.
 
 **Detection:**
@@ -51,6 +57,7 @@ Developers copy the CLI listener secret (`whsec_...` from `stripe listen`) into 
 Production webhooks all return 400, Stripe retries for 72 hours and gives up, subscription state never syncs.
 
 **Prevention:**
+
 - `.env.local`: CLI listener secret (for `stripe listen` only, never deployed)
 - Vercel staging env: test-mode endpoint secret from Stripe Dashboard test environment
 - Vercel production env: live-mode endpoint secret from Stripe Dashboard live environment
@@ -79,11 +86,12 @@ Double credit grants for top-ups (critical financial bug). Corrupted `subscripti
 Make the success URL handler **read-only**. It should only poll Convex until the webhook has updated the state — never write subscription state itself. Only the webhook handler is the single writer.
 
 Polling pattern:
+
 ```ts
 // success page: poll up to 5 times, 1s apart
 for (let i = 0; i < 5; i++) {
   const user = await fetchQuery(api.users.getSubscription, { userId });
-  if (user.subscriptionStatus === 'active') break;
+  if (user.subscriptionStatus === "active") break;
   await new Promise(r => setTimeout(r, 1000));
 }
 ```
@@ -108,6 +116,7 @@ Double credit grants on payment retries or network blips. Duplicate `subscriptio
 
 **Prevention:**
 Store the Stripe event ID in Convex before processing. Check it on every webhook call:
+
 ```ts
 // In Convex mutation
 const existing = await ctx.db
@@ -120,9 +129,10 @@ if (existing) return; // idempotent exit
 
 await ctx.db.insert("processedStripeEvents", {
   stripeEventId: event.id,
-  processedAt: Date.now(),
+  processedAt: Date.now()
 });
 ```
+
 Keep this table for at least 72 hours (Stripe's retry window).
 
 **Detection:**
@@ -174,14 +184,15 @@ Convex mutations are serializable with OCC (Optimistic Concurrency Control). A s
 export const deductCredits = mutation({
   args: { userId: v.string(), cost: v.number() },
   handler: async (ctx, { userId, cost }) => {
-    const user = await ctx.db.query("users")
+    const user = await ctx.db
+      .query("users")
       .withIndex("by_clerk_id", q => q.eq("clerkId", userId))
       .unique();
     if (!user || user.aiCredits < cost) {
       throw new Error("Insufficient credits");
     }
     await ctx.db.patch(user._id, { aiCredits: user.aiCredits - cost });
-  },
+  }
 });
 ```
 
@@ -239,10 +250,13 @@ Duplicate Stripe customers. If the old customer had a payment method, it's lost.
 
 **Prevention:**
 Before creating a new Stripe customer, search by email:
+
 ```ts
 const existing = await stripe.customers.list({ email: user.email, limit: 1 });
-const customer = existing.data[0] ?? await stripe.customers.create({ email: user.email });
+const customer =
+  existing.data[0] ?? (await stripe.customers.create({ email: user.email }));
 ```
+
 Store the Stripe customer ID in Convex (not only in Clerk metadata) so it persists through account changes. Store `clerkId` and `stripeCustomerId` in the Convex `users` table as the source of truth.
 
 **Detection:**
@@ -305,7 +319,7 @@ Users complaining credits reset too early or too late. Compare credit reset time
 
 ---
 
-### Pitfall 11: Stripe Secret Key Exposed via NEXT_PUBLIC_ Prefix
+### Pitfall 11: Stripe Secret Key Exposed via NEXT*PUBLIC* Prefix
 
 **What goes wrong:**
 `NEXT_PUBLIC_STRIPE_SECRET_KEY` or any secret imported in a client component gets bundled into the client-side JavaScript and is visible to anyone who inspects the page source or the `.next/static/` bundle.
@@ -317,7 +331,7 @@ Copy-paste error from tutorial code. Some tutorials use `process.env.NEXT_PUBLIC
 Full Stripe account compromise. Attacker can create refunds, read customer data, modify subscriptions.
 
 **Prevention:**
-Only `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (the `pk_...` key) belongs in NEXT_PUBLIC_. The `sk_...` secret key and `whsec_...` webhook secret must never have the `NEXT_PUBLIC_` prefix. Use them only in Server Actions, Route Handlers, and Convex HTTP actions.
+Only `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (the `pk_...` key) belongs in NEXT*PUBLIC*. The `sk_...` secret key and `whsec_...` webhook secret must never have the `NEXT_PUBLIC_` prefix. Use them only in Server Actions, Route Handlers, and Convex HTTP actions.
 
 Run `grep -r "NEXT_PUBLIC_.*sk_" .` before every deploy.
 
@@ -375,13 +389,15 @@ Stripe does not know your internal Clerk user ID. Without passing `metadata: { c
 
 **Prevention:**
 Always set `metadata` on both the Checkout session and the Stripe customer object:
+
 ```ts
 await stripe.checkout.sessions.create({
   metadata: { clerkUserId: userId },
-  customer_email: userEmail,
+  customer_email: userEmail
   // ...
 });
 ```
+
 In the webhook handler, read `session.metadata.clerkUserId` to find the Convex user.
 
 **Phase:** Checkout session creation.
@@ -426,18 +442,18 @@ If a Pro user cancels and their `cancel_at_period_end` is true, they keep Pro ac
 
 ## Phase-Specific Warnings
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|---|---|---|
-| Webhook route setup | Raw body destroyed (#1), wrong env secret (#2) | Use `request.text()`, separate secrets per env |
-| Stripe customer creation | Orphaned customers (#8), missing metadata (#15) | Search by email before create, always set `metadata.clerkUserId` |
-| Checkout session | Two-writer race (#3), session metadata missing (#15) | Success URL is read-only poller, always pass `metadata` |
-| Webhook handler logic | No idempotency (#4), out-of-order events (#9), deleted not handled (#14) | `processedStripeEvents` table, upsert pattern, handle all lifecycle events |
-| Vercel deployment | Protection blocking webhooks (#5), wrong secret (#2) | Disable protection on webhook path, verify with Stripe Dashboard logs |
-| Credits deduction | TOCTOU in separate mutations (#6), client-side only (#7) | Single atomic mutation for check + deduct |
-| Credits reset | Calendar-based not billing-cycle-based (#10) | Drive from `invoice.paid` webhook |
-| Free tier enforcement | Client-side only bypass (#7) | Backend enforcement in Convex mutation |
-| Secret management | NEXT_PUBLIC_ exposure (#11) | Never use NEXT_PUBLIC_ for secret/webhook keys |
-| Top-up purchase | Wrong event for fulfillment (#18) | Use `checkout.session.completed` with `payment_status: 'paid'` |
+| Phase Topic              | Likely Pitfall                                                           | Mitigation                                                                 |
+| ------------------------ | ------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| Webhook route setup      | Raw body destroyed (#1), wrong env secret (#2)                           | Use `request.text()`, separate secrets per env                             |
+| Stripe customer creation | Orphaned customers (#8), missing metadata (#15)                          | Search by email before create, always set `metadata.clerkUserId`           |
+| Checkout session         | Two-writer race (#3), session metadata missing (#15)                     | Success URL is read-only poller, always pass `metadata`                    |
+| Webhook handler logic    | No idempotency (#4), out-of-order events (#9), deleted not handled (#14) | `processedStripeEvents` table, upsert pattern, handle all lifecycle events |
+| Vercel deployment        | Protection blocking webhooks (#5), wrong secret (#2)                     | Disable protection on webhook path, verify with Stripe Dashboard logs      |
+| Credits deduction        | TOCTOU in separate mutations (#6), client-side only (#7)                 | Single atomic mutation for check + deduct                                  |
+| Credits reset            | Calendar-based not billing-cycle-based (#10)                             | Drive from `invoice.paid` webhook                                          |
+| Free tier enforcement    | Client-side only bypass (#7)                                             | Backend enforcement in Convex mutation                                     |
+| Secret management        | NEXT*PUBLIC* exposure (#11)                                              | Never use NEXT*PUBLIC* for secret/webhook keys                             |
+| Top-up purchase          | Wrong event for fulfillment (#18)                                        | Use `checkout.session.completed` with `payment_status: 'paid'`             |
 
 ---
 
