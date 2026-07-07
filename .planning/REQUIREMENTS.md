@@ -62,8 +62,8 @@
 
 ## Traceability
 
-| Requirement | Phase | Status  |
-| ----------- | ----- | ------- |
+| Requirement | Phase   | Status  |
+| ----------- | ------- | ------- |
 | PLAN-01     | Phase 3 | Pending |
 | PLAN-02     | Phase 4 | Pending |
 | PLAN-03     | Phase 4 | Pending |
