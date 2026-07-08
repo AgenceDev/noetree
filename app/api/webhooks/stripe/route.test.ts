@@ -5,16 +5,20 @@ const mockRetrieve = vi.fn();
 const mockAction = vi.fn();
 
 vi.mock("stripe", () => ({
-  default: vi.fn().mockImplementation(() => ({
-    webhooks: { constructEvent: mockConstructEvent },
-    subscriptions: { retrieve: mockRetrieve },
-  })),
+  default: vi.fn().mockImplementation(function StripeMock() {
+    return {
+      webhooks: { constructEvent: mockConstructEvent },
+      subscriptions: { retrieve: mockRetrieve },
+    };
+  }),
 }));
 
 vi.mock("convex/browser", () => ({
-  ConvexHttpClient: vi.fn().mockImplementation(() => ({
-    action: mockAction,
-  })),
+  ConvexHttpClient: vi.fn().mockImplementation(function ConvexHttpClientMock() {
+    return {
+      action: mockAction,
+    };
+  }),
 }));
 
 let POST: (req: Request) => Promise<Response>;
