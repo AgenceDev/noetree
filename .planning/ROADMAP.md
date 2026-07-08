@@ -12,7 +12,7 @@ Milestone v1.0 adds a Free/Pro subscription model and an AI credits metering sys
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
 - [x] **Phase 1: Schema + Infrastructure Foundation** - Convex tables deployed, env vars configured, packages installed (completed 2026-07-08)
-- [ ] **Phase 2: Webhook Handler + Convex Internal Mutations** - Stripe events processed, subscription state written atomically
+- [x] **Phase 2: Webhook Handler + Convex Internal Mutations** - Stripe events processed, subscription state written atomically (completed 2026-07-08)
 - [ ] **Phase 3: Checkout Flow + Pricing Page** - Users can view plans and subscribe via Stripe Checkout
 - [ ] **Phase 4: Plan Enforcement** - Free tier note limit enforced server-side, upgrade prompts shown
 - [ ] **Phase 5: AI Credits System** - Credits deducted atomically, top-up available, balance visible
@@ -83,7 +83,7 @@ Plans:
 
 **Wave 4** _(blocked on Wave 3 completion)_
 
-- [ ] 02-06-PLAN.md — Propagate INTERNAL_WEBHOOK_SECRET to all environments + manual end-to-end Stripe CLI sign-off
+- [x] 02-06-PLAN.md — Propagate INTERNAL_WEBHOOK_SECRET to all environments + manual end-to-end Stripe CLI sign-off
 
   **UI hint**: no
 
@@ -152,7 +152,7 @@ Plans:
 | Phase                                          | Plans Complete | Status      | Completed  |
 | ---------------------------------------------- | -------------- | ----------- | ---------- |
 | 1. Schema + Infrastructure Foundation          | 4/4            | Complete    | 2026-07-08 |
-| 2. Webhook Handler + Convex Internal Mutations | 5/6            | In Progress |            |
+| 2. Webhook Handler + Convex Internal Mutations | 6/6            | Complete    | 2026-07-08 |
 | 3. Checkout Flow + Pricing Page                | 0/?            | Not started | -          |
 | 4. Plan Enforcement                            | 0/?            | Not started | -          |
 | 5. AI Credits System                           | 0/?            | Not started | -          |
