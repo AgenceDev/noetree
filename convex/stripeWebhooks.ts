@@ -1,6 +1,6 @@
 import { action } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 
 /**
  * Maps Stripe's richer subscription status union down to this app's 3-value
@@ -31,7 +31,11 @@ export const processWebhookEvent = action({
   returns: v.any(),
   handler: async (ctx, args): Promise<any> => {
     if (args.secret !== process.env.INTERNAL_WEBHOOK_SECRET) {
-      throw new Error("Unauthorized: invalid INTERNAL_WEBHOOK_SECRET");
+      // ConvexError (not a plain Error) is required here: Convex's documented
+      // production behavior only preserves thrown data across the action
+      // boundary for ConvexError — a plain Error's message gets redacted, which
+      // would silently break route.ts's 400-vs-500 auth-failure mapping (CR-01).
+      throw new ConvexError("Unauthorized: invalid INTERNAL_WEBHOOK_SECRET");
     }
 
     switch (args.event.type) {

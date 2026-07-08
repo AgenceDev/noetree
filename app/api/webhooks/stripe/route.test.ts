@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
+import { ConvexError } from "convex/values";
 
 const mockConstructEvent = vi.fn();
 const mockRetrieve = vi.fn();
@@ -84,19 +85,44 @@ describe("POST /api/webhooks/stripe", () => {
     expect(res.status).toBe(500);
   });
 
-  it("returns 400 (not 500) when the Convex action rejects with an Unauthorized-prefixed error (D-02/D-10)", async () => {
+  it("returns 400 (not 500) when the Convex action rejects with a ConvexError carrying an Unauthorized-prefixed data payload (D-02/D-10, CR-01)", async () => {
     mockConstructEvent.mockReturnValue({
       id: "evt_3",
       type: "customer.subscription.updated",
       data: { object: { id: "sub_3" } },
     });
+    // Models what ConvexHttpClient actually reconstructs across the action
+    // boundary in production: a ConvexError whose `.message` may be redacted
+    // to something generic, but whose `.data` always preserves the original
+    // string thrown via `new ConvexError(...)` (see
+    // node_modules/convex/dist/cjs/browser/http_client.js `forwardErrorData`).
+    // Checking `.message` here (as the pre-CR-01 code did) would fail to catch
+    // this — only `.data` is reliable.
+    const authError = new ConvexError<string>("Server Error");
+    authError.data = "Unauthorized: invalid internal webhook secret";
+    mockAction.mockRejectedValue(authError);
+
+    const res = await POST(makeRequest("{}"));
+
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 500 (not 400) when the Convex action rejects with a plain Error whose message happens to start with Unauthorized (CR-01 regression guard)", async () => {
+    mockConstructEvent.mockReturnValue({
+      id: "evt_3b",
+      type: "customer.subscription.updated",
+      data: { object: { id: "sub_3b" } },
+    });
+    // A plain Error (not a ConvexError) must never be treated as an auth
+    // failure, since only ConvexError.data is guaranteed to survive
+    // production's message redaction across the action boundary.
     mockAction.mockRejectedValue(
       new Error("Unauthorized: invalid internal webhook secret"),
     );
 
     const res = await POST(makeRequest("{}"));
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(500);
   });
 
   it("enriches checkout.session.completed with a subscriptionSnapshot via stripe.subscriptions.retrieve", async () => {

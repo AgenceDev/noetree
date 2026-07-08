@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { ConvexHttpClient } from "convex/browser";
+import { ConvexError } from "convex/values";
 import { api } from "@/convex/_generated/api";
 
 // Node.js is the default Next.js Route Handler runtime — keep it that way.
@@ -61,8 +62,16 @@ export async function POST(req: Request): Promise<Response> {
     // action resolves normally (never throws) in all three cases.
     return new Response(null, { status: 200 });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    if (message.startsWith("Unauthorized")) {
+    // CR-01: ConvexHttpClient only reconstructs a ConvexError (preserving the
+    // original thrown string on `.data`) when the Convex backend's response
+    // includes errorData — which only happens for ConvexError, never a plain
+    // Error (whose `.message` is redacted in production). So the auth-failure
+    // signal must be read from the reconstructed error's `.data`, not `.message`.
+    if (
+      err instanceof ConvexError &&
+      typeof err.data === "string" &&
+      err.data.startsWith("Unauthorized")
+    ) {
       // D-02/D-10 — shared-secret mismatch is an auth failure, not a
       // transient infra failure, so it must map to 400, never 500.
       return new Response("Unauthorized", { status: 400 });
