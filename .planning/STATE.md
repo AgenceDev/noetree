@@ -4,24 +4,24 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-07-07T23:01:44.924Z"
-last_activity: 2026-07-07
+last_updated: "2026-07-08T00:05:31.422Z"
+last_activity: 2026-07-08
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
 ## Current Position
 
 Phase: 01 (schema-infrastructure-foundation) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
-Last activity: 2026-07-07
+Last activity: 2026-07-08
 
-Progress: [█████░░░░░] 50%
+Progress: [████████░░] 75%
 
 ## Project Reference
 
@@ -52,6 +52,7 @@ See: .planning/PROJECT.md (updated 2026-07-07)
 _Updated after each plan completion_
 | Phase 01 P01 | 15 | 2 tasks | 3 files |
 | Phase 01 P02 | 15 | 2 tasks | 3 files |
+| Phase 01 P03 | 8 | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,7 @@ Recent decisions affecting current work:
 - Architecture: Webhook handler in Next.js API route (not Convex HTTP action); clerkUserId in BOTH session.metadata AND subscription_data.metadata; credit deduction is single atomic Convex mutation; Free tier enforcement is in Convex mutations server-side; credits reset driven by invoice.paid not calendar cron
 - [Phase ?]: Payment tables key on bare clerkUserId string (not v.id users) with by_clerkUserId index; all write functions are internalMutation — Decouples payment records from internal users table and blocks direct client writes (D-01/D-02/D-08/D-09)
 - [Phase ?]: Phase 1: Stripe SDKs installed via pnpm; @clerk/nextjs already 7.5.1 (CVE-2026-41248 pre-mitigated); webhook auth-exclusion applied to proxy.ts (Next 16 rename) protecting /notes
+- [Phase ?]: Phase 1: Stripe test-mode Pro product (900 EUR/mo recurring) and Top-up product (200 EUR one-time) created via API; real Price IDs captured in .env.local (D-03)
 
 ### Pending Todos
 
@@ -83,6 +85,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-07T23:00:23.217Z
+Last session: 2026-07-08T00:04:07.196Z
 Stopped at: Completed 01-01-PLAN.md
 Resume file: None
