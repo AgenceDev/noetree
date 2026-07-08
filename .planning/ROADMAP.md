@@ -79,7 +79,7 @@ Plans:
 
 **Wave 3** _(blocked on Wave 2 completion)_
 
-- [ ] 02-05-PLAN.md — Create app/api/webhooks/stripe/route.ts (signature verification, checkout.session.completed enrichment, status-code mapping)
+- [x] 02-05-PLAN.md — Create app/api/webhooks/stripe/route.ts (signature verification, checkout.session.completed enrichment, status-code mapping)
 
 **Wave 4** _(blocked on Wave 3 completion)_
 
@@ -152,7 +152,7 @@ Plans:
 | Phase                                          | Plans Complete | Status      | Completed  |
 | ---------------------------------------------- | -------------- | ----------- | ---------- |
 | 1. Schema + Infrastructure Foundation          | 4/4            | Complete    | 2026-07-08 |
-| 2. Webhook Handler + Convex Internal Mutations | 4/6            | In Progress |            |
+| 2. Webhook Handler + Convex Internal Mutations | 5/6            | In Progress |            |
 | 3. Checkout Flow + Pricing Page                | 0/?            | Not started | -          |
 | 4. Plan Enforcement                            | 0/?            | Not started | -          |
 | 5. AI Credits System                           | 0/?            | Not started | -          |
