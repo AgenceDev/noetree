@@ -3,7 +3,11 @@ import { describe, expect, test } from "vitest";
 import schema from "./schema";
 import { api, internal } from "./_generated/api";
 
-const modules = import.meta.glob("./**/*.*s");
+const modules = (
+  import.meta as unknown as {
+    glob: (pattern: string) => Record<string, () => Promise<unknown>>;
+  }
+).glob("./**/*.*s");
 
 describe("subscriptions", () => {
   test("upsertSubscription creates a subscriptions row and getSubscription reads it back", async () => {
