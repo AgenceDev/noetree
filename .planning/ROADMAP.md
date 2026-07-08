@@ -70,8 +70,8 @@ Plans:
 
 **Wave 1** _(blocked on Wave 0 completion)_
 
-- [ ] 02-02-PLAN.md — Implement convex/subscriptions.ts (upsertSubscription/deleteSubscription/markPastDue/getSubscription) with idempotent atomic writes
-- [ ] 02-03-PLAN.md — Implement convex/aiCredits.ts resetCredits (cross-table clerkUserId resolution via stripeSubscriptionId) + getCredits
+- [x] 02-02-PLAN.md — Implement convex/subscriptions.ts (upsertSubscription/deleteSubscription/markPastDue/getSubscription) with idempotent atomic writes
+- [x] 02-03-PLAN.md — Implement convex/aiCredits.ts resetCredits (cross-table clerkUserId resolution via stripeSubscriptionId) + getCredits
 
 **Wave 2** _(blocked on Wave 1 completion)_
 
@@ -152,7 +152,7 @@ Plans:
 | Phase                                          | Plans Complete | Status      | Completed  |
 | ---------------------------------------------- | -------------- | ----------- | ---------- |
 | 1. Schema + Infrastructure Foundation          | 4/4            | Complete    | 2026-07-08 |
-| 2. Webhook Handler + Convex Internal Mutations | 1/6            | In Progress |            |
+| 2. Webhook Handler + Convex Internal Mutations | 3/6            | In Progress |            |
 | 3. Checkout Flow + Pricing Page                | 0/?            | Not started | -          |
 | 4. Plan Enforcement                            | 0/?            | Not started | -          |
 | 5. AI Credits System                           | 0/?            | Not started | -          |
