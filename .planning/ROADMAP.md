@@ -60,8 +60,32 @@ Plans:
 3. A test `invoice.paid` event with `billing_reason: subscription_cycle` resets the aiCredits balance to 100 in Convex
 4. Webhook returns 200 for all 5 handled event types (checkout.session.completed, customer.subscription.updated, customer.subscription.deleted, invoice.paid, invoice.payment_failed) and 400 for invalid signatures
 5. Wrong webhook secret (simulated by changing env var) returns 400, never 500
-   **Plans**: TBD
-   **UI hint**: no
+   **Plans**: 6 plans
+
+Plans:
+
+**Wave 0**
+
+- [ ] 02-01-PLAN.md — Install Vitest/convex-test/@edge-runtime/vm test toolchain, add by_stripeSubscriptionId schema index (D-08), document INTERNAL_WEBHOOK_SECRET (D-02)
+
+**Wave 1** _(blocked on Wave 0 completion)_
+
+- [ ] 02-02-PLAN.md — Implement convex/subscriptions.ts (upsertSubscription/deleteSubscription/markPastDue/getSubscription) with idempotent atomic writes
+- [ ] 02-03-PLAN.md — Implement convex/aiCredits.ts resetCredits (cross-table clerkUserId resolution via stripeSubscriptionId) + getCredits
+
+**Wave 2** _(blocked on Wave 1 completion)_
+
+- [ ] 02-04-PLAN.md — Create convex/stripeWebhooks.ts dispatcher action (shared-secret gate, event-type dispatch, billing_reason gate)
+
+**Wave 3** _(blocked on Wave 2 completion)_
+
+- [ ] 02-05-PLAN.md — Create app/api/webhooks/stripe/route.ts (signature verification, checkout.session.completed enrichment, status-code mapping)
+
+**Wave 4** _(blocked on Wave 3 completion)_
+
+- [ ] 02-06-PLAN.md — Propagate INTERNAL_WEBHOOK_SECRET to all environments + manual end-to-end Stripe CLI sign-off
+
+  **UI hint**: no
 
 ### Phase 3: Checkout Flow + Pricing Page
 
@@ -128,7 +152,7 @@ Plans:
 | Phase                                          | Plans Complete | Status      | Completed  |
 | ---------------------------------------------- | -------------- | ----------- | ---------- |
 | 1. Schema + Infrastructure Foundation          | 4/4            | Complete    | 2026-07-08 |
-| 2. Webhook Handler + Convex Internal Mutations | 0/?            | Not started | -          |
+| 2. Webhook Handler + Convex Internal Mutations | 0/6            | Not started | -          |
 | 3. Checkout Flow + Pricing Page                | 0/?            | Not started | -          |
 | 4. Plan Enforcement                            | 0/?            | Not started | -          |
 | 5. AI Credits System                           | 0/?            | Not started | -          |
