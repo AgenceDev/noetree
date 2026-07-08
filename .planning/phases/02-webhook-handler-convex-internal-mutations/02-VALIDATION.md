@@ -1,8 +1,8 @@
 ---
 phase: 2
 slug: webhook-handler-convex-internal-mutations
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-07-08
 ---
@@ -36,19 +36,19 @@ created: 2026-07-08
 
 ## Per-Task Verification Map
 
-| Task ID  | Plan | Wave | Requirement    | Threat Ref              | Secure Behavior                                                                            | Test Type          | Automated Command                                                                                                                             | File Exists                  | Status     |
-| -------- | ---- | ---- | -------------- | ----------------------- | ------------------------------------------------------------------------------------------ | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ---------- |
-| 02-01-xx | 01   | 0    | — (infra)      | —                       | Vitest + convex-test + @edge-runtime/vm installed and configured                           | smoke              | `npx vitest run --reporter=verbose` (empty pass, config loads)                                                                                | ❌ W0                        | ⬜ pending |
-| 02-0x-xx | TBD  | TBD  | PAY-03         | T-Spoofing (D-10)       | Invalid Stripe signature or wrong `INTERNAL_WEBHOOK_SECRET` returns 400, never 500         | integration        | `npx vitest run app/api/webhooks/stripe/route.test.ts`                                                                                        | ❌ W0                        | ⬜ pending |
-| 02-0x-xx | TBD  | TBD  | PAY-03         | —                       | `checkout.session.completed` creates a `subscriptions` row with correct `clerkUserId`      | unit (convex-test) | `npx vitest run convex/subscriptions.test.ts -t "checkout.session.completed"`                                                                 | ❌ W0                        | ⬜ pending |
-| 02-0x-xx | TBD  | TBD  | PAY-03         | Idempotency (D-14/D-15) | Replaying the same `stripeEventId` produces no duplicate row and no error                  | unit (convex-test) | `npx vitest run convex/subscriptions.test.ts -t "idempotent replay"`                                                                          | ❌ W0                        | ⬜ pending |
-| 02-0x-xx | TBD  | TBD  | PAY-03         | —                       | All 5 handled event types + unhandled types return 200                                     | integration        | `npx vitest run app/api/webhooks/stripe/route.test.ts -t "event type dispatch"`                                                               | ❌ W0                        | ⬜ pending |
-| 02-0x-xx | TBD  | TBD  | CRED-01        | —                       | `invoice.paid` with `billing_reason: subscription_cycle` resets `aiCredits` balance to 100 | unit (convex-test) | `npx vitest run convex/aiCredits.test.ts -t "subscription_cycle reset"`                                                                       | ❌ W0                        | ⬜ pending |
-| 02-0x-xx | TBD  | TBD  | PAY-03/CRED-01 | —                       | Manual end-to-end smoke test across all 5 event types via live Stripe CLI                  | manual-only        | `stripe listen --forward-to localhost:3000/api/webhooks/stripe` + `stripe trigger checkout.session.completed` / `stripe trigger invoice.paid` | n/a — ROADMAP SC1/SC3 manual | ⬜ pending |
+| Task ID | Plan | Wave | Requirement    | Threat Ref              | Secure Behavior                                                                                                                   | Test Type          | Automated Command                                                                                                                             | File Exists                  | Status     |
+| ------- | ---- | ---- | -------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ---------- |
+| 02-01   | 01   | 0    | — (infra)      | —                       | Vitest + convex-test + @edge-runtime/vm installed and configured; by_stripeSubscriptionId index and INTERNAL_WEBHOOK_SECRET added | smoke              | `npx vitest run` (empty pass, config loads)                                                                                                   | ❌ W0                        | ⬜ pending |
+| 02-05   | 05   | 3    | PAY-03         | T-Spoofing (D-10)       | Invalid Stripe signature or wrong `INTERNAL_WEBHOOK_SECRET` returns 400, never 500                                                | integration        | `npx vitest run app/api/webhooks/stripe/route.test.ts`                                                                                        | ❌ W0                        | ⬜ pending |
+| 02-02   | 02   | 1    | PAY-03         | —                       | `checkout.session.completed` creates a `subscriptions` row with correct `clerkUserId`                                             | unit (convex-test) | `npx vitest run convex/subscriptions.test.ts -t "checkout.session.completed"`                                                                 | ❌ W0                        | ⬜ pending |
+| 02-02   | 02   | 1    | PAY-03         | Idempotency (D-14/D-15) | Replaying the same `stripeEventId` produces no duplicate row and no error                                                         | unit (convex-test) | `npx vitest run convex/subscriptions.test.ts -t "idempotent replay"`                                                                          | ❌ W0                        | ⬜ pending |
+| 02-04   | 04   | 2    | PAY-03         | —                       | All 5 handled event types + unhandled types dispatch to the correct internalMutation, else no-op                                  | unit (convex-test) | `npx vitest run convex/stripeWebhooks.test.ts`                                                                                                | ❌ W0                        | ⬜ pending |
+| 02-03   | 03   | 1    | CRED-01        | —                       | `invoice.paid` with `billing_reason: subscription_cycle` resets `aiCredits` balance to 100                                        | unit (convex-test) | `npx vitest run convex/aiCredits.test.ts -t "subscription_cycle reset"`                                                                       | ❌ W0                        | ⬜ pending |
+| 02-06   | 06   | 4    | PAY-03/CRED-01 | —                       | Manual end-to-end smoke test across all 5 event types via live Stripe CLI                                                         | manual-only        | `stripe listen --forward-to localhost:3000/api/webhooks/stripe` + `stripe trigger checkout.session.completed` / `stripe trigger invoice.paid` | n/a — ROADMAP SC1/SC3 manual | ⬜ pending |
 
 _Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky_
 
-_Task IDs above are placeholders (`02-0x-xx`) — the planner assigns final plan/task IDs; this map should be reconciled against actual PLAN.md task IDs during plan-checker review._
+_Reconciled against actual PLAN.md files by gsd-plan-checker (2026-07-08): 6 plans (02-01–02-06) across 5 waves, all requirements and CONTEXT.md decisions D-01–D-15 covered._
 
 ---
 
@@ -75,11 +75,11 @@ _Task IDs above are placeholders (`02-0x-xx`) — the planner assigns final plan
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies — confirmed by gsd-plan-checker across 02-01–02-06
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references — no `<automated>MISSING</automated>` references found
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-07-08 (verified by gsd-plan-checker against 02-01–02-06 PLAN.md)

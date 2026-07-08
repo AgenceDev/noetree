@@ -403,14 +403,14 @@ subscriptions: defineTable({
 | A1  | A simple `!==` string comparison is an acceptable way to check `INTERNAL_WEBHOOK_SECRET` in the Convex action (no constant-time comparison needed)                                                     | Don't Hand-Roll              | Low — this is a defense-in-depth secondary check behind Stripe's own signature verification and HTTPS transport; a timing side-channel here would still require an attacker able to make many precisely-timed network requests to a serverless/edge-distributed backend, which is a low-practicality attack. If the planner/user wants stricter guarantees, use `"use node"` + `crypto.timingSafeEqual` in `stripeWebhooks.ts` instead — no official Convex guidance exists either way. |
 | A2  | `resetCredits`/`deductCredit`/`addCredits` internalMutation args beyond `clerkUserId` (e.g., whether `resetCredits` takes an explicit `amount: 100` or hardcodes it) are Claude's/planner's discretion | Code Examples / Architecture | Low — CONTEXT.md and Phase 1 stubs don't fully specify this; any reasonable choice satisfies ROADMAP SC3 ("resets ... to 100") as long as the value 100 appears somewhere traceable (env var, constant, or arg).                                                                                                                                                                                                                                                                        |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Does `customer.subscription.updated` need to change `aiCredits` state at all, or only `subscriptions`?**
+1. **RESOLVED — Does `customer.subscription.updated` need to change `aiCredits` state at all, or only `subscriptions`?**
    - What we know: D-07 covers `clerkUserId` resolution for subscription events; CRED-01 (monthly reset) is explicitly tied to `invoice.paid`/`subscription_cycle` (D-08), not to `subscription.updated`.
    - What's unclear: Whether a `subscription.updated` transition to `status: "canceled"` (e.g., via `customer.subscription.deleted` is the more common path for full cancellation, but `updated` can also carry `cancel_at_period_end: true`) needs any `aiCredits` side-effect.
    - Recommendation: Scope `customer.subscription.updated`/`customer.subscription.deleted` to `subscriptions` table writes only in this phase (matches D-09's "no new index needed on aiCredits" framing, which implies aiCredits writes are driven only by `invoice.paid` and the not-yet-built `CRED-04` deduction path from a later phase). Flag as confirmed scope in planning, not a blocker.
 
-2. **Exact `resetCredits` mutation signature (amount as arg vs. hardcoded 100)**
+2. **RESOLVED — Exact `resetCredits` mutation signature (amount as arg vs. hardcoded 100)**
    - What we know: Phase 1 stub signature is `resetCredits({ clerkUserId })` with no `amount` arg (unlike `deductCredit`/`addCredits`, which do take `amount`).
    - What's unclear: Whether "100" should be a hardcoded literal inside `resetCredits`, sourced from an env var, or passed as an arg by the caller (the dispatcher action) referencing a shared constant.
    - Recommendation: Hardcode `100` as a named constant inside `aiCredits.ts` (e.g., `const MONTHLY_CREDIT_QUOTA = 100`) matching the existing stub signature exactly (no arg-shape change needed) — lowest-risk option, matches Phase 1's locked stub. This is Assumption A2 above.
