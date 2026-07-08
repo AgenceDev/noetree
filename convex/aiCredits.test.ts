@@ -3,7 +3,11 @@ import { describe, expect, it } from "vitest";
 import { api, internal } from "./_generated/api";
 import schema from "./schema";
 
-const modules = import.meta.glob("./**/*.ts");
+const modules = (
+  import.meta as unknown as {
+    glob: (pattern: string) => Record<string, () => Promise<unknown>>;
+  }
+).glob("./**/*.ts");
 
 const SUBSCRIPTION_SEED = {
   clerkUserId: "user_3",
