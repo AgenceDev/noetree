@@ -210,4 +210,154 @@ describe("stripeWebhooks.processWebhookEvent", () => {
       expect(sub?.status).toBe(expectedStatus);
     },
   );
+
+  it("invoice.paid with billing_reason subscription_cycle resets aiCredits balance to 100", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("subscriptions", {
+        clerkUserId: "user_20",
+        stripeCustomerId: "cus_20",
+        stripeSubscriptionId: "sub_20",
+        status: "active",
+        currentPeriodEnd: 111,
+        cancelAtPeriodEnd: false,
+      });
+    });
+
+    await t.action(api.stripeWebhooks.processWebhookEvent, {
+      secret: TEST_SECRET,
+      event: {
+        id: "evt_20",
+        type: "invoice.paid",
+        data: {
+          object: {
+            billing_reason: "subscription_cycle",
+            parent: { subscription_details: { subscription: "sub_20" } },
+          },
+        },
+      },
+    });
+
+    const credits = await t.query(api.aiCredits.getCredits, {
+      clerkUserId: "user_20",
+    });
+    expect(credits?.balance).toBe(100);
+  });
+
+  it("invoice.paid with billing_reason other than subscription_cycle is a no-op (D-13-equivalent scope boundary)", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("subscriptions", {
+        clerkUserId: "user_20b",
+        stripeCustomerId: "cus_20b",
+        stripeSubscriptionId: "sub_20b",
+        status: "active",
+        currentPeriodEnd: 111,
+        cancelAtPeriodEnd: false,
+      });
+    });
+
+    const result = await t.action(api.stripeWebhooks.processWebhookEvent, {
+      secret: TEST_SECRET,
+      event: {
+        id: "evt_20b",
+        type: "invoice.paid",
+        data: {
+          object: {
+            billing_reason: "subscription_create",
+            parent: { subscription_details: { subscription: "sub_20b" } },
+          },
+        },
+      },
+    });
+
+    expect(result).toEqual({ skipped: true });
+
+    const credits = await t.query(api.aiCredits.getCredits, {
+      clerkUserId: "user_20b",
+    });
+    expect(credits).toBeNull();
+  });
+
+  it("invoice.payment_failed patches the resolved subscription row's status to past_due", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("subscriptions", {
+        clerkUserId: "user_20",
+        stripeCustomerId: "cus_20",
+        stripeSubscriptionId: "sub_20",
+        status: "active",
+        currentPeriodEnd: 111,
+        cancelAtPeriodEnd: false,
+      });
+    });
+
+    await t.action(api.stripeWebhooks.processWebhookEvent, {
+      secret: TEST_SECRET,
+      event: {
+        id: "evt_21",
+        type: "invoice.payment_failed",
+        data: {
+          object: {
+            parent: { subscription_details: { subscription: "sub_20" } },
+          },
+        },
+      },
+    });
+
+    const sub = await t.query(api.subscriptions.getSubscription, {
+      clerkUserId: "user_20",
+    });
+    expect(sub?.status).toBe("past_due");
+  });
+
+  it("resolves stripeSubscriptionId from an object-form parent.subscription_details.subscription (string | Subscription union)", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("subscriptions", {
+        clerkUserId: "user_21",
+        stripeCustomerId: "cus_21",
+        stripeSubscriptionId: "sub_21",
+        status: "active",
+        currentPeriodEnd: 111,
+        cancelAtPeriodEnd: false,
+      });
+    });
+
+    await t.action(api.stripeWebhooks.processWebhookEvent, {
+      secret: TEST_SECRET,
+      event: {
+        id: "evt_21b",
+        type: "invoice.payment_failed",
+        data: {
+          object: {
+            parent: {
+              subscription_details: { subscription: { id: "sub_21" } },
+            },
+          },
+        },
+      },
+    });
+
+    const sub = await t.query(api.subscriptions.getSubscription, {
+      clerkUserId: "user_21",
+    });
+    expect(sub?.status).toBe("past_due");
+  });
+
+  it("an unhandled event type returns { skipped: true } and calls no mutation (D-13)", async () => {
+    const t = convexTest(schema, modules);
+
+    const result = await t.action(api.stripeWebhooks.processWebhookEvent, {
+      secret: TEST_SECRET,
+      event: { id: "evt_22", type: "customer.created", data: { object: {} } },
+    });
+
+    expect(result).toEqual({ skipped: true });
+
+    const processedEvents = await t.run(async ctx =>
+      ctx.db.query("processedStripeEvents").collect(),
+    );
+    expect(processedEvents.length).toBe(0);
+  });
 });
