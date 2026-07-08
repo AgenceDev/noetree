@@ -48,7 +48,9 @@ export default defineSchema({
     ),
     currentPeriodEnd: v.number(),
     cancelAtPeriodEnd: v.boolean(),
-  }).index("by_clerkUserId", ["clerkUserId"]),
+  })
+    .index("by_clerkUserId", ["clerkUserId"])
+    .index("by_stripeSubscriptionId", ["stripeSubscriptionId"]),
 
   aiCredits: defineTable({
     clerkUserId: v.string(),
