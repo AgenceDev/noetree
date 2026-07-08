@@ -3,14 +3,19 @@ import { v } from "convex/values";
 
 export const getSubscription = query({
   args: { clerkUserId: v.string() },
-  handler: async () => {
-    throw new Error("Not implemented — Phase 2");
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("subscriptions")
+      .withIndex("by_clerkUserId", q => q.eq("clerkUserId", args.clerkUserId))
+      .unique();
   },
 });
 
 export const upsertSubscription = internalMutation({
   args: {
-    clerkUserId: v.string(),
+    stripeEventId: v.string(),
+    eventType: v.string(),
+    clerkUserId: v.optional(v.string()),
     stripeCustomerId: v.string(),
     stripeSubscriptionId: v.string(),
     status: v.union(
@@ -21,14 +26,144 @@ export const upsertSubscription = internalMutation({
     currentPeriodEnd: v.number(),
     cancelAtPeriodEnd: v.boolean(),
   },
-  handler: async () => {
-    throw new Error("Not implemented — Phase 2");
+  handler: async (ctx, args) => {
+    const alreadyProcessed = await ctx.db
+      .query("processedStripeEvents")
+      .withIndex("by_stripeEventId", q =>
+        q.eq("stripeEventId", args.stripeEventId),
+      )
+      .unique();
+    if (alreadyProcessed) {
+      return { alreadyProcessed: true };
+    }
+
+    if (!args.clerkUserId) {
+      console.error(
+        `upsertSubscription anomaly: missing clerkUserId for stripeEventId ${args.stripeEventId}`,
+      );
+      return { anomaly: "missing clerkUserId" };
+    }
+
+    const existing = await ctx.db
+      .query("subscriptions")
+      .withIndex("by_clerkUserId", q =>
+        q.eq("clerkUserId", args.clerkUserId as string),
+      )
+      .unique();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        stripeCustomerId: args.stripeCustomerId,
+        stripeSubscriptionId: args.stripeSubscriptionId,
+        status: args.status,
+        currentPeriodEnd: args.currentPeriodEnd,
+        cancelAtPeriodEnd: args.cancelAtPeriodEnd,
+      });
+    } else {
+      await ctx.db.insert("subscriptions", {
+        clerkUserId: args.clerkUserId,
+        stripeCustomerId: args.stripeCustomerId,
+        stripeSubscriptionId: args.stripeSubscriptionId,
+        status: args.status,
+        currentPeriodEnd: args.currentPeriodEnd,
+        cancelAtPeriodEnd: args.cancelAtPeriodEnd,
+      });
+    }
+
+    await ctx.db.insert("processedStripeEvents", {
+      stripeEventId: args.stripeEventId,
+      eventType: args.eventType,
+      processedAt: Date.now(),
+    });
+
+    return { success: true };
   },
 });
 
 export const deleteSubscription = internalMutation({
-  args: { clerkUserId: v.string() },
-  handler: async () => {
-    throw new Error("Not implemented — Phase 2");
+  args: {
+    stripeEventId: v.string(),
+    eventType: v.string(),
+    clerkUserId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const alreadyProcessed = await ctx.db
+      .query("processedStripeEvents")
+      .withIndex("by_stripeEventId", q =>
+        q.eq("stripeEventId", args.stripeEventId),
+      )
+      .unique();
+    if (alreadyProcessed) {
+      return { alreadyProcessed: true };
+    }
+
+    if (!args.clerkUserId) {
+      console.error(
+        `deleteSubscription anomaly: missing clerkUserId for stripeEventId ${args.stripeEventId}`,
+      );
+      return { anomaly: "missing clerkUserId" };
+    }
+
+    const existing = await ctx.db
+      .query("subscriptions")
+      .withIndex("by_clerkUserId", q =>
+        q.eq("clerkUserId", args.clerkUserId as string),
+      )
+      .unique();
+
+    if (existing) {
+      await ctx.db.delete(existing._id);
+    }
+
+    await ctx.db.insert("processedStripeEvents", {
+      stripeEventId: args.stripeEventId,
+      eventType: args.eventType,
+      processedAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});
+
+export const markPastDue = internalMutation({
+  args: {
+    stripeEventId: v.string(),
+    eventType: v.string(),
+    stripeSubscriptionId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const alreadyProcessed = await ctx.db
+      .query("processedStripeEvents")
+      .withIndex("by_stripeEventId", q =>
+        q.eq("stripeEventId", args.stripeEventId),
+      )
+      .unique();
+    if (alreadyProcessed) {
+      return { alreadyProcessed: true };
+    }
+
+    const existing = await ctx.db
+      .query("subscriptions")
+      .withIndex("by_stripeSubscriptionId", q =>
+        q.eq("stripeSubscriptionId", args.stripeSubscriptionId),
+      )
+      .unique();
+
+    if (!existing) {
+      console.error(
+        `markPastDue anomaly: no subscription for stripeSubscriptionId ${args.stripeSubscriptionId}`,
+      );
+      return { anomaly: "no subscription for stripeSubscriptionId" };
+    }
+
+    await ctx.db.patch(existing._id, { status: "past_due" });
+
+    await ctx.db.insert("processedStripeEvents", {
+      stripeEventId: args.stripeEventId,
+      eventType: args.eventType,
+      processedAt: Date.now(),
+    });
+
+    return { success: true };
   },
 });
