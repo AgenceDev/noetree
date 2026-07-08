@@ -11,6 +11,7 @@
 import type * as aiCredits from "../aiCredits.js";
 import type * as helpers_helper from "../helpers/helper.js";
 import type * as notes from "../notes.js";
+import type * as stripeWebhooks from "../stripeWebhooks.js";
 import type * as subscriptions from "../subscriptions.js";
 import type * as users from "../users.js";
 
@@ -24,6 +25,7 @@ declare const fullApi: ApiFromModules<{
   aiCredits: typeof aiCredits;
   "helpers/helper": typeof helpers_helper;
   notes: typeof notes;
+  stripeWebhooks: typeof stripeWebhooks;
   subscriptions: typeof subscriptions;
   users: typeof users;
 }>;
