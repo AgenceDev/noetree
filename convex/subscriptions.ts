@@ -81,8 +81,89 @@ export const upsertSubscription = internalMutation({
 });
 
 export const deleteSubscription = internalMutation({
-  args: { clerkUserId: v.string() },
-  handler: async () => {
-    throw new Error("Not implemented — Phase 2");
+  args: {
+    stripeEventId: v.string(),
+    eventType: v.string(),
+    clerkUserId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const alreadyProcessed = await ctx.db
+      .query("processedStripeEvents")
+      .withIndex("by_stripeEventId", q =>
+        q.eq("stripeEventId", args.stripeEventId),
+      )
+      .unique();
+    if (alreadyProcessed) {
+      return { alreadyProcessed: true };
+    }
+
+    if (!args.clerkUserId) {
+      console.error(
+        `deleteSubscription anomaly: missing clerkUserId for stripeEventId ${args.stripeEventId}`,
+      );
+      return { anomaly: "missing clerkUserId" };
+    }
+
+    const existing = await ctx.db
+      .query("subscriptions")
+      .withIndex("by_clerkUserId", q =>
+        q.eq("clerkUserId", args.clerkUserId as string),
+      )
+      .unique();
+
+    if (existing) {
+      await ctx.db.delete(existing._id);
+    }
+
+    await ctx.db.insert("processedStripeEvents", {
+      stripeEventId: args.stripeEventId,
+      eventType: args.eventType,
+      processedAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});
+
+export const markPastDue = internalMutation({
+  args: {
+    stripeEventId: v.string(),
+    eventType: v.string(),
+    stripeSubscriptionId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const alreadyProcessed = await ctx.db
+      .query("processedStripeEvents")
+      .withIndex("by_stripeEventId", q =>
+        q.eq("stripeEventId", args.stripeEventId),
+      )
+      .unique();
+    if (alreadyProcessed) {
+      return { alreadyProcessed: true };
+    }
+
+    const existing = await ctx.db
+      .query("subscriptions")
+      .withIndex("by_stripeSubscriptionId", q =>
+        q.eq("stripeSubscriptionId", args.stripeSubscriptionId),
+      )
+      .unique();
+
+    if (!existing) {
+      console.error(
+        `markPastDue anomaly: no subscription for stripeSubscriptionId ${args.stripeSubscriptionId}`,
+      );
+      return { anomaly: "no subscription for stripeSubscriptionId" };
+    }
+
+    await ctx.db.patch(existing._id, { status: "past_due" });
+
+    await ctx.db.insert("processedStripeEvents", {
+      stripeEventId: args.stripeEventId,
+      eventType: args.eventType,
+      processedAt: Date.now(),
+    });
+
+    return { success: true };
   },
 });
