@@ -144,4 +144,153 @@ describe("subscriptions", () => {
 
     expect(sub).toBeNull();
   });
+
+  test("deleteSubscription removes the existing row for the given clerkUserId", async () => {
+    const t = convexTest(schema, modules);
+
+    await t.mutation(internal.subscriptions.upsertSubscription, {
+      stripeEventId: "evt_setup_2",
+      eventType: "checkout.session.completed",
+      clerkUserId: "user_2",
+      stripeCustomerId: "cus_2",
+      stripeSubscriptionId: "sub_2",
+      status: "active",
+      currentPeriodEnd: 1234567890,
+      cancelAtPeriodEnd: false,
+    });
+
+    const result = await t.mutation(internal.subscriptions.deleteSubscription, {
+      stripeEventId: "evt_3",
+      eventType: "customer.subscription.deleted",
+      clerkUserId: "user_2",
+    });
+
+    expect(result).toEqual({ success: true });
+
+    const sub = await t.query(api.subscriptions.getSubscription, {
+      clerkUserId: "user_2",
+    });
+    expect(sub).toBeNull();
+  });
+
+  test("deleteSubscription is idempotent when replayed after the row is already gone", async () => {
+    const t = convexTest(schema, modules);
+
+    await t.mutation(internal.subscriptions.upsertSubscription, {
+      stripeEventId: "evt_setup_2",
+      eventType: "checkout.session.completed",
+      clerkUserId: "user_2",
+      stripeCustomerId: "cus_2",
+      stripeSubscriptionId: "sub_2",
+      status: "active",
+      currentPeriodEnd: 1234567890,
+      cancelAtPeriodEnd: false,
+    });
+
+    await t.mutation(internal.subscriptions.deleteSubscription, {
+      stripeEventId: "evt_3",
+      eventType: "customer.subscription.deleted",
+      clerkUserId: "user_2",
+    });
+
+    const replay = await t.mutation(internal.subscriptions.deleteSubscription, {
+      stripeEventId: "evt_3",
+      eventType: "customer.subscription.deleted",
+      clerkUserId: "user_2",
+    });
+
+    expect(replay).toEqual({ alreadyProcessed: true });
+  });
+
+  test("deleteSubscription with a missing clerkUserId returns an anomaly sentinel without throwing", async () => {
+    const t = convexTest(schema, modules);
+
+    const result = await t.mutation(internal.subscriptions.deleteSubscription, {
+      stripeEventId: "evt_delete_anomaly",
+      eventType: "customer.subscription.deleted",
+      clerkUserId: undefined,
+    });
+
+    expect(result).toHaveProperty("anomaly");
+  });
+
+  test("markPastDue patches status to past_due via by_stripeSubscriptionId lookup, with no clerkUserId argument", async () => {
+    const t = convexTest(schema, modules);
+
+    await t.mutation(internal.subscriptions.upsertSubscription, {
+      stripeEventId: "evt_setup_9",
+      eventType: "checkout.session.completed",
+      clerkUserId: "user_9",
+      stripeCustomerId: "cus_9",
+      stripeSubscriptionId: "sub_9",
+      status: "active",
+      currentPeriodEnd: 1234567890,
+      cancelAtPeriodEnd: false,
+    });
+
+    const result = await t.mutation(internal.subscriptions.markPastDue, {
+      stripeEventId: "evt_4",
+      eventType: "invoice.payment_failed",
+      stripeSubscriptionId: "sub_9",
+    });
+
+    expect(result).toEqual({ success: true });
+
+    const sub = await t.query(api.subscriptions.getSubscription, {
+      clerkUserId: "user_9",
+    });
+    expect(sub?.status).toBe("past_due");
+  });
+
+  test("markPastDue with an unmatched stripeSubscriptionId returns an anomaly sentinel without throwing or inserting", async () => {
+    const t = convexTest(schema, modules);
+
+    const result = await t.mutation(internal.subscriptions.markPastDue, {
+      stripeEventId: "evt_5",
+      eventType: "invoice.payment_failed",
+      stripeSubscriptionId: "sub_nonexistent",
+    });
+
+    expect(result).toHaveProperty("anomaly");
+
+    const rowCount = await t.run(async ctx => {
+      const rows = await ctx.db.query("subscriptions").collect();
+      return rows.length;
+    });
+    expect(rowCount).toBe(0);
+  });
+
+  test("markPastDue is idempotent when replayed with the same stripeEventId", async () => {
+    const t = convexTest(schema, modules);
+
+    await t.mutation(internal.subscriptions.upsertSubscription, {
+      stripeEventId: "evt_setup_9",
+      eventType: "checkout.session.completed",
+      clerkUserId: "user_9",
+      stripeCustomerId: "cus_9",
+      stripeSubscriptionId: "sub_9",
+      status: "active",
+      currentPeriodEnd: 1234567890,
+      cancelAtPeriodEnd: false,
+    });
+
+    await t.mutation(internal.subscriptions.markPastDue, {
+      stripeEventId: "evt_4",
+      eventType: "invoice.payment_failed",
+      stripeSubscriptionId: "sub_9",
+    });
+
+    const replay = await t.mutation(internal.subscriptions.markPastDue, {
+      stripeEventId: "evt_4",
+      eventType: "invoice.payment_failed",
+      stripeSubscriptionId: "sub_9",
+    });
+
+    expect(replay).toEqual({ alreadyProcessed: true });
+
+    const sub = await t.query(api.subscriptions.getSubscription, {
+      clerkUserId: "user_9",
+    });
+    expect(sub?.status).toBe("past_due");
+  });
 });
