@@ -23,7 +23,16 @@ findings:
   warning: 4
   info: 3
   total: 9
-status: issues_found
+  critical_fixed: 2
+status: partially_fixed
+fixed_at: 2026-07-09T01:34:00Z
+fixes:
+  - id: CR-01
+    status: fixed
+    commit: d8fb28f
+  - id: CR-02
+    status: fixed
+    commit: 2f9972e
 ---
 
 # Phase 02: Code Review Report
@@ -31,7 +40,16 @@ status: issues_found
 **Reviewed:** 2026-07-08T22:58:14Z
 **Depth:** standard
 **Files Reviewed:** 14
-**Status:** issues_found
+**Status:** partially_fixed (both Critical findings fixed; 4 Warning + 3 Info findings deferred per user request)
+
+## Fix Status (2026-07-09)
+
+Both Critical findings (CR-01, CR-02) have been fixed and committed. The 4 Warning findings (WR-01 through WR-04) and 3 Info findings (IN-01 through IN-03) below remain open/deferred — the user explicitly asked to leave those untouched for now.
+
+- **CR-01: fixed** — commit `d8fb28f`. `convex/stripeWebhooks.ts` now throws `ConvexError` instead of a plain `Error` for the shared-secret auth-failure case; `app/api/webhooks/stripe/route.ts`'s catch handler now checks `err instanceof ConvexError && err.data?.startsWith("Unauthorized")` instead of `err.message`, since `ConvexHttpClient` only reliably preserves `.data` (not `.message`, which may be redacted in production) across the action boundary. Regression tests added/updated in `app/api/webhooks/stripe/route.test.ts` to model the reconstructed-`ConvexError` shape and to guard against a plain `Error` being misclassified as an auth failure.
+- **CR-02: fixed** — commit `2f9972e`. `customer.subscription.updated` and `customer.subscription.deleted` in `convex/stripeWebhooks.ts` now read `subscription.metadata?.clerkUserId` (optional chaining), matching the existing defensive pattern used in `checkout.session.completed`. Regression tests added in `convex/stripeWebhooks.test.ts` mirroring the existing null-metadata test for both event types.
+
+Verification: `npx tsc --noEmit` clean project-wide; `npx vitest run` 45/45 passing (42 baseline + 3 new regression tests).
 
 ## Summary
 
@@ -42,6 +60,8 @@ However, the exact same bug class recurs, unfixed, in two sibling code paths (`c
 ## Critical Issues
 
 ### CR-01: Auth-failure 400-vs-500 mapping likely breaks in production because a plain `Error` is thrown across the Convex action boundary
+
+**[FIXED in commit `d8fb28f`]**
 
 **File:** `convex/stripeWebhooks.ts:33-35`, consumed by `app/api/webhooks/stripe/route.ts:63-69`
 
@@ -83,6 +103,8 @@ if (args.secret !== process.env.INTERNAL_WEBHOOK_SECRET) {
 Then verify against a real (not `convex-test`) staging deployment that the 400 path still triggers, since this class of bug is invisible to the current test doubles.
 
 ### CR-02: Missing optional chaining on `metadata` reintroduces the exact "uncaught exception → 500" bug already fixed once this phase
+
+**[FIXED in commit `2f9972e`]**
 
 **File:** `convex/stripeWebhooks.ts:71`, `convex/stripeWebhooks.ts:97`
 
