@@ -11,7 +11,7 @@ Milestone v1.0 adds a Free/Pro subscription model and an AI credits metering sys
 - Integer phases (1, 2, 3, ...): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 1: Schema + Infrastructure Foundation** - Convex tables deployed, env vars configured, packages installed
+- [x] **Phase 1: Schema + Infrastructure Foundation** - Convex tables deployed, env vars configured, packages installed (completed 2026-07-08)
 - [ ] **Phase 2: Webhook Handler + Convex Internal Mutations** - Stripe events processed, subscription state written atomically
 - [ ] **Phase 3: Checkout Flow + Pricing Page** - Users can view plans and subscribe via Stripe Checkout
 - [ ] **Phase 4: Plan Enforcement** - Free tier note limit enforced server-side, upgrade prompts shown
@@ -44,7 +44,7 @@ Plans:
 
 **Wave 2** _(blocked on Wave 1 completion)_
 
-- [ ] 01-04-PLAN.md — Propagate env vars to Vercel (local/staging/production) + create staging/production webhook secrets (SC-2 sign-off)
+- [x] 01-04-PLAN.md — Propagate env vars to Vercel (local/staging/production) + create staging/production webhook secrets (SC-2 sign-off)
 
   **UI hint**: no
 
@@ -125,11 +125,11 @@ Plans:
 
 **Execution Order:** 1 → 2 → 3 → 4 → 5 → 6
 
-| Phase                                          | Plans Complete | Status      | Completed |
-| ---------------------------------------------- | -------------- | ----------- | --------- |
-| 1. Schema + Infrastructure Foundation          | 3/4            | In Progress |           |
-| 2. Webhook Handler + Convex Internal Mutations | 0/?            | Not started | -         |
-| 3. Checkout Flow + Pricing Page                | 0/?            | Not started | -         |
-| 4. Plan Enforcement                            | 0/?            | Not started | -         |
-| 5. AI Credits System                           | 0/?            | Not started | -         |
-| 6. Settings Page                               | 0/?            | Not started | -         |
+| Phase                                          | Plans Complete | Status      | Completed  |
+| ---------------------------------------------- | -------------- | ----------- | ---------- |
+| 1. Schema + Infrastructure Foundation          | 4/4            | Complete    | 2026-07-08 |
+| 2. Webhook Handler + Convex Internal Mutations | 0/?            | Not started | -          |
+| 3. Checkout Flow + Pricing Page                | 0/?            | Not started | -          |
+| 4. Plan Enforcement                            | 0/?            | Not started | -          |
+| 5. AI Credits System                           | 0/?            | Not started | -          |
+| 6. Settings Page                               | 0/?            | Not started | -          |
