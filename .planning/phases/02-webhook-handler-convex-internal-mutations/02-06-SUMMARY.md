@@ -44,11 +44,11 @@ key-decisions:
 
 patterns-established: []
 
-requirements-completed: [] # PAY-03/CRED-01 verified live but NOT marked complete — plan's own success_criteria requires the user to type "approved" in Task 3 before Phase 2 is considered complete. Do not mark complete until that happens.
+requirements-completed: [PAY-03, CRED-01] # User typed "approved" 2026-07-09, confirming all 5 ROADMAP Phase 2 success criteria verified live.
 
 # Metrics
 duration: ~55min (Task 3 live verification + 2 bug fixes)
-completed: IN PROGRESS — Tasks 1+2 done, Task 3 technically verified, AWAITING USER "approved" SIGN-OFF
+completed: 2026-07-09
 ---
 
 # Phase 2 Plan 06: INTERNAL_WEBHOOK_SECRET Propagation + Live Stripe CLI Verification Summary (Tasks 1-2 done, Task 3 verified pending sign-off)
@@ -81,7 +81,7 @@ completed: IN PROGRESS — Tasks 1+2 done, Task 3 technically verified, AWAITING
 - **Task 2: Propagate to Vercel + staging/production Convex** — no git commit (external dashboard config only); user confirmed "done" (done in prior session)
 - **Task 3: Manual end-to-end Stripe CLI verification** — `e49a18d` (`fix(02-06): fix convex typecheck + invoice.payment_failed 500 found during live verification`) — the two Rule 1 bug fixes found during live verification. The verification activity itself (starting servers, running triggers, replaying events) produced no additional commits beyond this fix, since `.env.local`'s webhook-secret update is gitignored.
 
-**Plan metadata (this SUMMARY):** to be committed once the user types "approved" and the plan is fully closed out (STATE.md/ROADMAP.md/REQUIREMENTS.md updates + final `docs(02-06)` commit are deferred until then, per the plan's own `<verification>` gate).
+**Plan metadata (this SUMMARY):** User typed "approved" 2026-07-09, confirming all 5 ROADMAP Phase 2 success criteria. STATE.md/ROADMAP.md/REQUIREMENTS.md updates and the final `docs(02-06)` commit follow this SUMMARY commit.
 
 ## Files Created/Modified
 
@@ -138,7 +138,7 @@ None for Task 3 itself — all verification was performed by Claude. The only ou
 - **Local dev environment:** fully verified end-to-end. All 5 ROADMAP Phase 2 success criteria pass live against the real webhook route, real Convex dispatcher, and a real (test-mode) Stripe account.
 - **Two genuine bugs fixed** that would otherwise have surfaced later (the tsconfig gap would have blocked ANY future `convex dev`/`deploy`; the `invoice.payment_failed` 500 would have caused Stripe to endlessly retry a webhook for any real-world standalone invoice failure, e.g. a one-off manual invoice sent to a customer who also happens to have a subscription).
 - **Test data residue:** the local Convex dev deployment (`frugal-echidna-922`) now contains a real `subscriptions` row, `aiCredits` row, and `creditTransactions`/`processedStripeEvents` rows for a synthetic `user_test_e2e_001`, plus various Stripe test-mode objects (customers, subscriptions, invoices, products, prices) created by the trigger fixtures. This is normal residue of live E2E verification and doesn't block Phase 3, but is worth knowing about if Phase 3's checkout flow work queries these tables without filtering.
-- **Phase 2 is NOT yet complete.** Per this plan's own `<verification>` section, the user must explicitly type "approved" confirming all 5 ROADMAP Phase 2 success criteria, having reviewed the evidence above. STATE.md/ROADMAP.md/REQUIREMENTS.md updates and the final `docs(02-06)` plan-completion commit are deferred until that happens.
+- **Phase 2 is complete.** The user typed "approved" 2026-07-09, confirming all 5 ROADMAP Phase 2 success criteria against the live verification evidence above.
 
 ## Self-Check: PASSED
 
@@ -153,4 +153,4 @@ None for Task 3 itself — all verification was performed by Claude. The only ou
 ---
 
 _Phase: 02-webhook-handler-convex-internal-mutations_
-_Status: Tasks 1-3 technically complete; AWAITING USER "approved" SIGN-OFF on Task 3's checkpoint before Phase 2 is marked complete_
+_Status: Complete — user approved 2026-07-09_
