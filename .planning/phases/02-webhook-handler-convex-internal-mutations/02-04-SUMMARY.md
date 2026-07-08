@@ -143,3 +143,13 @@ None — no external service configuration required by this plan. `INTERNAL_WEBH
 
 _Phase: 02-webhook-handler-convex-internal-mutations_
 _Completed: 2026-07-08_
+
+## Self-Check: PASSED
+
+- FOUND: convex/stripeWebhooks.ts
+- FOUND: convex/stripeWebhooks.test.ts
+- FOUND: .planning/phases/02-webhook-handler-convex-internal-mutations/02-04-SUMMARY.md
+- FOUND: 06fcab2 (test commit, Task 1 RED)
+- FOUND: 6321aee (feat commit, Task 1 GREEN)
+- FOUND: 1e255a5 (test commit, Task 2 RED)
+- FOUND: 0ffc387 (feat commit, Task 2 GREEN)
