@@ -66,7 +66,7 @@ Plans:
 
 **Wave 0**
 
-- [ ] 02-01-PLAN.md — Install Vitest/convex-test/@edge-runtime/vm test toolchain, add by_stripeSubscriptionId schema index (D-08), document INTERNAL_WEBHOOK_SECRET (D-02)
+- [x] 02-01-PLAN.md — Install Vitest/convex-test/@edge-runtime/vm test toolchain, add by_stripeSubscriptionId schema index (D-08), document INTERNAL_WEBHOOK_SECRET (D-02)
 
 **Wave 1** _(blocked on Wave 0 completion)_
 
@@ -152,7 +152,7 @@ Plans:
 | Phase                                          | Plans Complete | Status      | Completed  |
 | ---------------------------------------------- | -------------- | ----------- | ---------- |
 | 1. Schema + Infrastructure Foundation          | 4/4            | Complete    | 2026-07-08 |
-| 2. Webhook Handler + Convex Internal Mutations | 0/6            | Not started | -          |
+| 2. Webhook Handler + Convex Internal Mutations | 1/6            | In Progress |            |
 | 3. Checkout Flow + Pricing Page                | 0/?            | Not started | -          |
 | 4. Plan Enforcement                            | 0/?            | Not started | -          |
 | 5. AI Credits System                           | 0/?            | Not started | -          |
