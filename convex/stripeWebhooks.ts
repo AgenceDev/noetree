@@ -72,7 +72,7 @@ export const processWebhookEvent = action({
 
       case "customer.subscription.updated": {
         const subscription = args.event.data.object;
-        const clerkUserId = subscription.metadata.clerkUserId;
+        const clerkUserId = subscription.metadata?.clerkUserId;
         const stripeCustomerId =
           typeof subscription.customer === "string"
             ? subscription.customer
@@ -98,7 +98,7 @@ export const processWebhookEvent = action({
 
       case "customer.subscription.deleted": {
         const subscription = args.event.data.object;
-        const clerkUserId = subscription.metadata.clerkUserId;
+        const clerkUserId = subscription.metadata?.clerkUserId;
 
         return await ctx.runMutation(
           internal.subscriptions.deleteSubscription,

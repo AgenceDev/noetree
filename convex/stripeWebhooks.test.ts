@@ -133,6 +133,30 @@ describe("stripeWebhooks.processWebhookEvent", () => {
     expect(sub?.currentPeriodEnd).toBe(999);
   });
 
+  it("customer.subscription.updated with null metadata does not throw and hits the D-12 anomaly path (CR-02)", async () => {
+    const t = convexTest(schema, modules);
+
+    const result = await t.action(api.stripeWebhooks.processWebhookEvent, {
+      secret: TEST_SECRET,
+      event: {
+        id: "evt_11b",
+        type: "customer.subscription.updated",
+        data: {
+          object: {
+            metadata: null,
+            customer: "cus_11b",
+            id: "sub_11b",
+            status: "past_due",
+            cancel_at_period_end: true,
+            items: { data: [{ current_period_end: 999 }] },
+          },
+        },
+      },
+    });
+
+    expect(result).toEqual({ anomaly: "missing clerkUserId" });
+  });
+
   it("customer.subscription.deleted removes the existing row for the resolved clerkUserId", async () => {
     const t = convexTest(schema, modules);
 
@@ -159,6 +183,25 @@ describe("stripeWebhooks.processWebhookEvent", () => {
     });
 
     expect(sub).toBeNull();
+  });
+
+  it("customer.subscription.deleted with null metadata does not throw and hits the D-12 anomaly path (CR-02)", async () => {
+    const t = convexTest(schema, modules);
+
+    const result = await t.action(api.stripeWebhooks.processWebhookEvent, {
+      secret: TEST_SECRET,
+      event: {
+        id: "evt_12b",
+        type: "customer.subscription.deleted",
+        data: {
+          object: {
+            metadata: null,
+          },
+        },
+      },
+    });
+
+    expect(result).toEqual({ anomaly: "missing clerkUserId" });
   });
 
   it.each([
