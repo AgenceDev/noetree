@@ -345,6 +345,25 @@ describe("stripeWebhooks.processWebhookEvent", () => {
     expect(sub?.status).toBe("past_due");
   });
 
+  it("invoice.payment_failed with no parent.subscription_details is a no-op, not a 500 (standalone invoice scope boundary)", async () => {
+    const t = convexTest(schema, modules);
+
+    const result = await t.action(api.stripeWebhooks.processWebhookEvent, {
+      secret: TEST_SECRET,
+      event: {
+        id: "evt_21c",
+        type: "invoice.payment_failed",
+        data: {
+          object: {
+            parent: null,
+          },
+        },
+      },
+    });
+
+    expect(result).toEqual({ skipped: true });
+  });
+
   it("an unhandled event type returns { skipped: true } and calls no mutation (D-13)", async () => {
     const t = convexTest(schema, modules);
 

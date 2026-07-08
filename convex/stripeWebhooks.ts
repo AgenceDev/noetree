@@ -131,6 +131,17 @@ export const processWebhookEvent = action({
             ? invoice.parent.subscription_details.subscription
             : invoice.parent?.subscription_details?.subscription?.id;
 
+        // Stripe emits invoice.payment_failed for standalone (non-subscription)
+        // invoices too — not every invoice has a parent.subscription_details.
+        // Without this guard, an undefined stripeSubscriptionId would fail
+        // markPastDue's required-string arg validator with an uncaught
+        // ArgumentValidationError, surfacing as a 500 to Stripe for an event
+        // this webhook was never meant to act on (D-13-equivalent scope
+        // boundary — mirrors the invoice.paid billing_reason gate above).
+        if (!stripeSubscriptionId) {
+          return { skipped: true };
+        }
+
         return await ctx.runMutation(internal.subscriptions.markPastDue, {
           stripeEventId: args.event.id,
           eventType: args.event.type,
