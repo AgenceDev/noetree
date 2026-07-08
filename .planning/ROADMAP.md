@@ -75,7 +75,7 @@ Plans:
 
 **Wave 2** _(blocked on Wave 1 completion)_
 
-- [ ] 02-04-PLAN.md — Create convex/stripeWebhooks.ts dispatcher action (shared-secret gate, event-type dispatch, billing_reason gate)
+- [x] 02-04-PLAN.md — Create convex/stripeWebhooks.ts dispatcher action (shared-secret gate, event-type dispatch, billing_reason gate)
 
 **Wave 3** _(blocked on Wave 2 completion)_
 
@@ -152,7 +152,7 @@ Plans:
 | Phase                                          | Plans Complete | Status      | Completed  |
 | ---------------------------------------------- | -------------- | ----------- | ---------- |
 | 1. Schema + Infrastructure Foundation          | 4/4            | Complete    | 2026-07-08 |
-| 2. Webhook Handler + Convex Internal Mutations | 3/6            | In Progress |            |
+| 2. Webhook Handler + Convex Internal Mutations | 4/6            | In Progress |            |
 | 3. Checkout Flow + Pricing Page                | 0/?            | Not started | -          |
 | 4. Plan Enforcement                            | 0/?            | Not started | -          |
 | 5. AI Credits System                           | 0/?            | Not started | -          |
