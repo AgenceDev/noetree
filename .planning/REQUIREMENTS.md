@@ -17,13 +17,13 @@
 
 - [ ] **PAY-01**: User can subscribe to Pro plan via Stripe Checkout
 - [ ] **PAY-02**: User receives in-app confirmation after successful subscription activation
-- [ ] **PAY-03**: Stripe webhooks update subscription status in Convex in real time
+- [x] **PAY-03**: Stripe webhooks update subscription status in Convex in real time
 - [ ] **PAY-04**: User can cancel Pro subscription from within the app
 - [ ] **PAY-05**: User can purchase AI credits top-up via Stripe Checkout (one-time payment)
 
 ### Crédits IA
 
-- [ ] **CRED-01**: Pro user's monthly AI credits quota resets automatically on billing date
+- [x] **CRED-01**: Pro user's monthly AI credits quota resets automatically on billing date
 - [ ] **CRED-02**: User can view remaining AI credits balance in the app
 - [ ] **CRED-03**: User can trigger a top-up purchase when credits are low
 - [ ] **CRED-04**: AI credits are deducted when AI features are used (consumed server-side)
@@ -71,10 +71,10 @@
 | PLAN-05     | Phase 1 | Complete |
 | PAY-01      | Phase 3 | Pending  |
 | PAY-02      | Phase 3 | Pending  |
-| PAY-03      | Phase 2 | Pending  |
+| PAY-03      | Phase 2 | Complete |
 | PAY-04      | Phase 6 | Pending  |
 | PAY-05      | Phase 5 | Pending  |
-| CRED-01     | Phase 2 | Pending  |
+| CRED-01     | Phase 2 | Complete |
 | CRED-02     | Phase 5 | Pending  |
 | CRED-03     | Phase 5 | Pending  |
 | CRED-04     | Phase 5 | Pending  |
