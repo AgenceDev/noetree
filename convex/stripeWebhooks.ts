@@ -106,8 +106,38 @@ export const processWebhookEvent = action({
         );
       }
 
-      case "invoice.paid":
-      case "invoice.payment_failed":
+      case "invoice.paid": {
+        const invoice = args.event.data.object;
+        const stripeSubscriptionId =
+          typeof invoice.parent?.subscription_details?.subscription === "string"
+            ? invoice.parent.subscription_details.subscription
+            : invoice.parent?.subscription_details?.subscription?.id;
+
+        if (invoice.billing_reason !== "subscription_cycle") {
+          return { skipped: true };
+        }
+
+        return await ctx.runMutation(internal.aiCredits.resetCredits, {
+          stripeEventId: args.event.id,
+          eventType: args.event.type,
+          stripeSubscriptionId,
+        });
+      }
+
+      case "invoice.payment_failed": {
+        const invoice = args.event.data.object;
+        const stripeSubscriptionId =
+          typeof invoice.parent?.subscription_details?.subscription === "string"
+            ? invoice.parent.subscription_details.subscription
+            : invoice.parent?.subscription_details?.subscription?.id;
+
+        return await ctx.runMutation(internal.subscriptions.markPastDue, {
+          stripeEventId: args.event.id,
+          eventType: args.event.type,
+          stripeSubscriptionId,
+        });
+      }
+
       default:
         return { skipped: true };
     }
