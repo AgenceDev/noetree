@@ -109,8 +109,8 @@ Plans:
 
 **Wave 2** _(blocked on Wave 1)_
 
-- [ ] 03-02-PLAN.md — Pricing page (PLAN-01) + createCheckoutSession Server Action with customer reuse, active short-circuit, dual clerkUserId metadata (PAY-01)
-- [ ] 03-03-PLAN.md — Success confirmation page (PAY-02): RSC auth() boundary + reactive SuccessStatus with loading/timeout/confirmed states
+- [x] 03-02-PLAN.md — Pricing page (PLAN-01) + createCheckoutSession Server Action with customer reuse, active short-circuit, dual clerkUserId metadata (PAY-01)
+- [x] 03-03-PLAN.md — Success confirmation page (PAY-02): RSC auth() boundary + reactive SuccessStatus with loading/timeout/confirmed states
 
 **Wave 3** _(blocked on Wave 2)_
 
@@ -169,7 +169,7 @@ Plans:
 | ---------------------------------------------- | -------------- | ----------- | ---------- |
 | 1. Schema + Infrastructure Foundation          | 4/4            | Complete    | 2026-07-08 |
 | 2. Webhook Handler + Convex Internal Mutations | 6/6            | Complete    | 2026-07-08 |
-| 3. Checkout Flow + Pricing Page                | 2/5            | In Progress |            |
+| 3. Checkout Flow + Pricing Page                | 4/5            | In Progress |            |
 | 4. Plan Enforcement                            | 0/?            | Not started | -          |
 | 5. AI Credits System                           | 0/?            | Not started | -          |
 | 6. Settings Page                               | 0/?            | Not started | -          |
