@@ -23,6 +23,29 @@
     "notesLink": "Notes",
     "welcomeText": "Welcome to your dashboard. Access your note trees to start writing."
   },
+  "Pricing": {
+    "heading": "Simple, transparent pricing",
+    "subheading": "Start free. Upgrade anytime for unlimited notes and AI credits.",
+    "freeName": "Free",
+    "freePrice": "Free",
+    "freeDetail": "Up to 20 notes",
+    "proName": "Pro",
+    "proPrice": "9€ / month",
+    "proDetail": "Unlimited notes · 100 AI credits/month",
+    "upgradeCta": "Upgrade to Pro",
+    "currentPlanBadge": "Current plan",
+    "checkoutError": "Something went wrong starting checkout. Please try again — if it keeps happening, contact support."
+  },
+  "CheckoutSuccess": {
+    "loadingHeading": "Confirming your subscription…",
+    "loadingBody": "This usually takes just a few seconds.",
+    "timeoutHeading": "Still confirming…",
+    "timeoutBody": "Your payment succeeded — this can occasionally take a little longer to sync. Try refreshing to check again.",
+    "timeoutAction": "Refresh status",
+    "confirmedHeading": "Subscription active",
+    "confirmedBody": "You're all set — enjoy unlimited notes and 100 AI credits every month.",
+    "goToNotes": "Go to notes"
+  },
   "Notes": {
     "title": "Trees",
     "searchPlaceholder": "Search trees...",

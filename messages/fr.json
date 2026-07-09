@@ -23,6 +23,29 @@
     "notesLink": "Notes",
     "welcomeText": "Bienvenue sur votre tableau de bord. Accédez à vos arborescences de notes pour commencer à rédiger."
   },
+  "Pricing": {
+    "heading": "Des tarifs simples et transparents",
+    "subheading": "Commencez gratuitement. Passez à Pro à tout moment pour des notes illimitées et des crédits IA.",
+    "freeName": "Gratuit",
+    "freePrice": "Gratuit",
+    "freeDetail": "Jusqu'à 20 notes",
+    "proName": "Pro",
+    "proPrice": "9€ / mois",
+    "proDetail": "Notes illimitées · 100 crédits IA/mois",
+    "upgradeCta": "Passer à Pro",
+    "currentPlanBadge": "Offre actuelle",
+    "checkoutError": "Une erreur est survenue lors du démarrage du paiement. Veuillez réessayer — si le problème persiste, contactez le support."
+  },
+  "CheckoutSuccess": {
+    "loadingHeading": "Confirmation de votre abonnement…",
+    "loadingBody": "Cela prend généralement quelques secondes.",
+    "timeoutHeading": "Confirmation en cours…",
+    "timeoutBody": "Votre paiement a réussi — la synchronisation peut parfois prendre un peu plus de temps. Essayez d'actualiser pour vérifier à nouveau.",
+    "timeoutAction": "Actualiser le statut",
+    "confirmedHeading": "Abonnement actif",
+    "confirmedBody": "Vous êtes prêt — profitez de notes illimitées et de 100 crédits IA chaque mois.",
+    "goToNotes": "Aller aux notes"
+  },
   "Notes": {
     "title": "Arborescences",
     "searchPlaceholder": "Rechercher...",
