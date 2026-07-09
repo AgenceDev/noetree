@@ -3,10 +3,6 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ConvexClientProvider } from "@/providers/ConvexClientProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
-import Header from "@/components/Header";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
-import { HeaderProvider } from "@/providers/HeaderProvider";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
@@ -61,15 +57,7 @@ export default async function RootLayout({
                 enableSystem
                 disableTransitionOnChange
               >
-                <HeaderProvider>
-                  <SidebarProvider>
-                    <AppSidebar />
-                    <SidebarInset className="flex flex-col h-screen overflow-hidden bg-background">
-                      <Header />
-                      <main className="flex-1 overflow-y-auto">{children}</main>
-                    </SidebarInset>
-                  </SidebarProvider>
-                </HeaderProvider>
+                {children}
               </ThemeProvider>
             </NextIntlClientProvider>
           </body>
