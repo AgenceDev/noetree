@@ -15,7 +15,7 @@ export async function createCheckoutSession(locale: string): Promise<void> {
     ? locale
     : routing.defaultLocale;
 
-  const { userId, redirectToSignIn } = await auth();
+  const { userId, redirectToSignIn, getToken } = await auth();
   if (!userId) {
     // D-02: signed-out visitor -> Clerk hosted sign-in, no Stripe call.
     redirectToSignIn({ returnBackUrl: `/${safeLocale}/pricing` });
@@ -23,9 +23,13 @@ export async function createCheckoutSession(locale: string): Promise<void> {
   }
 
   const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
-  const existing = await convex.query(api.subscriptions.getSubscription, {
-    clerkUserId: userId,
-  });
+  // Security: authenticate this server-side Convex call with the caller's
+  // own Clerk session token so getSubscription's ctx.auth.getUserIdentity()
+  // resolves to this same user — the query no longer accepts a
+  // client-supplied clerkUserId argument (IDOR fix, 03-REVIEW.md CR-01).
+  const convexToken = await getToken({ template: "convex" });
+  if (convexToken) convex.setAuth(convexToken);
+  const existing = await convex.query(api.subscriptions.getSubscription, {});
 
   // D-08: already active -> short-circuit straight to the success page, no Stripe call.
   if (existing?.status === "active") {

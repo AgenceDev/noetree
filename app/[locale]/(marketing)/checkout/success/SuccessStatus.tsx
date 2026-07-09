@@ -20,21 +20,15 @@ import {
 // D-11: ~15-20s window — 18000ms adopted (RESEARCH.md Open Question #3).
 const CONFIRMATION_TIMEOUT_MS = 18000;
 
-export function SuccessStatus({
-  clerkUserId,
-  locale = "en",
-}: {
-  clerkUserId: string;
-  locale?: string;
-}) {
+export function SuccessStatus({ locale = "en" }: { locale?: string }) {
   const t = useTranslations("CheckoutSuccess");
 
   // D-09: reactive, websocket-pushed query — re-renders automatically the
   // instant the Phase 2 webhook writes/updates the subscriptions row. No
   // polling / setInterval.
-  const { data } = useQuery(
-    convexQuery(api.subscriptions.getSubscription, { clerkUserId }),
-  );
+  // Security: no clerkUserId arg — the query derives the caller's identity
+  // from Convex auth itself (IDOR fix, 03-REVIEW.md CR-01).
+  const { data } = useQuery(convexQuery(api.subscriptions.getSubscription, {}));
 
   const [timedOut, setTimedOut] = useState(false);
 

@@ -15,10 +15,13 @@ vi.mock("stripe", () => ({
   }),
 }));
 
+const mockSetAuth = vi.fn();
+
 vi.mock("convex/browser", () => ({
   ConvexHttpClient: vi.fn().mockImplementation(function ConvexHttpClientMock() {
     return {
       query: mockConvexQuery,
+      setAuth: mockSetAuth,
     };
   }),
 }));
@@ -75,6 +78,7 @@ describe("createCheckoutSession", () => {
     mockAuth.mockResolvedValue({
       userId: "user_active_1",
       redirectToSignIn: vi.fn(),
+      getToken: vi.fn().mockResolvedValue("mock_convex_token"),
     });
     mockConvexQuery.mockResolvedValue({
       status: "active",
@@ -93,6 +97,7 @@ describe("createCheckoutSession", () => {
     mockAuth.mockResolvedValue({
       userId: "user_new_1",
       redirectToSignIn: vi.fn(),
+      getToken: vi.fn().mockResolvedValue("mock_convex_token"),
     });
     mockSessionsCreate.mockResolvedValue({
       url: "https://checkout.stripe.com/session_1",

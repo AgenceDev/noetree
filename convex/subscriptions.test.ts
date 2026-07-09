@@ -26,9 +26,12 @@ describe("subscriptions", () => {
 
     expect(result).toEqual({ success: true });
 
-    const sub = await t.query(api.subscriptions.getSubscription, {
-      clerkUserId: "user_1",
-    });
+    // Security: getSubscription derives clerkUserId from the caller's
+    // authenticated Convex identity, never a client-supplied argument
+    // (IDOR fix, 03-REVIEW.md CR-01) — simulate that identity via withIdentity.
+    const sub = await t
+      .withIdentity({ subject: "user_1" })
+      .query(api.subscriptions.getSubscription, {});
 
     expect(sub).not.toBeNull();
     expect(sub?.clerkUserId).toBe("user_1");
@@ -63,9 +66,9 @@ describe("subscriptions", () => {
 
     expect(replay).toEqual({ alreadyProcessed: true });
 
-    const sub = await t.query(api.subscriptions.getSubscription, {
-      clerkUserId: "user_1",
-    });
+    const sub = await t
+      .withIdentity({ subject: "user_1" })
+      .query(api.subscriptions.getSubscription, {});
     expect(sub?.status).toBe("active");
 
     const rowCount = await t.run(async ctx => {
@@ -100,9 +103,9 @@ describe("subscriptions", () => {
       cancelAtPeriodEnd: false,
     });
 
-    const sub = await t.query(api.subscriptions.getSubscription, {
-      clerkUserId: "user_1",
-    });
+    const sub = await t
+      .withIdentity({ subject: "user_1" })
+      .query(api.subscriptions.getSubscription, {});
     expect(sub?.status).toBe("past_due");
 
     const rowCount = await t.run(async ctx => {
@@ -135,12 +138,33 @@ describe("subscriptions", () => {
     expect(rowCount).toBe(0);
   });
 
-  test("getSubscription returns null for a clerkUserId with no row", async () => {
+  test("getSubscription returns null for a signed-in caller with no row", async () => {
     const t = convexTest(schema, modules);
 
-    const sub = await t.query(api.subscriptions.getSubscription, {
-      clerkUserId: "user_nonexistent",
+    const sub = await t
+      .withIdentity({ subject: "user_nonexistent" })
+      .query(api.subscriptions.getSubscription, {});
+
+    expect(sub).toBeNull();
+  });
+
+  test("getSubscription returns null for an unauthenticated caller", async () => {
+    const t = convexTest(schema, modules);
+
+    await t.mutation(internal.subscriptions.upsertSubscription, {
+      stripeEventId: "evt_unauth",
+      eventType: "checkout.session.completed",
+      clerkUserId: "user_1",
+      stripeCustomerId: "cus_1",
+      stripeSubscriptionId: "sub_1",
+      status: "active",
+      currentPeriodEnd: 1234567890,
+      cancelAtPeriodEnd: false,
     });
+
+    // No withIdentity() — simulates the pre-auth-fix IDOR attempt: a caller
+    // with no session cannot read anyone's subscription (03-REVIEW.md CR-01).
+    const sub = await t.query(api.subscriptions.getSubscription, {});
 
     expect(sub).toBeNull();
   });
@@ -167,9 +191,9 @@ describe("subscriptions", () => {
 
     expect(result).toEqual({ success: true });
 
-    const sub = await t.query(api.subscriptions.getSubscription, {
-      clerkUserId: "user_2",
-    });
+    const sub = await t
+      .withIdentity({ subject: "user_2" })
+      .query(api.subscriptions.getSubscription, {});
     expect(sub).toBeNull();
   });
 
@@ -236,9 +260,9 @@ describe("subscriptions", () => {
 
     expect(result).toEqual({ success: true });
 
-    const sub = await t.query(api.subscriptions.getSubscription, {
-      clerkUserId: "user_9",
-    });
+    const sub = await t
+      .withIdentity({ subject: "user_9" })
+      .query(api.subscriptions.getSubscription, {});
     expect(sub?.status).toBe("past_due");
   });
 
@@ -288,9 +312,9 @@ describe("subscriptions", () => {
 
     expect(replay).toEqual({ alreadyProcessed: true });
 
-    const sub = await t.query(api.subscriptions.getSubscription, {
-      clerkUserId: "user_9",
-    });
+    const sub = await t
+      .withIdentity({ subject: "user_9" })
+      .query(api.subscriptions.getSubscription, {});
     expect(sub?.status).toBe("past_due");
   });
 });

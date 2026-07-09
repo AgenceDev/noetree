@@ -20,9 +20,10 @@ export default async function CheckoutSuccessPage({
     return;
   }
 
-  // D-12: clerkUserId is resolved server-side via Clerk auth() and handed to
-  // the reactive client child. This boundary never fetches the checkout
-  // session server-side; session_id (if present in the URL) is a debugging
-  // reference only — Convex is the sole source of truth.
-  return <SuccessStatus clerkUserId={userId} locale={locale} />;
+  // D-12: this boundary only gates signed-out visitors server-side via Clerk
+  // auth(); it never fetches the checkout session server-side. The reactive
+  // client child derives its own identity from Convex auth (IDOR fix,
+  // 03-REVIEW.md CR-01), not from a prop. session_id (if present in the URL)
+  // is a debugging reference only — Convex is the sole source of truth.
+  return <SuccessStatus locale={locale} />;
 }

@@ -61,9 +61,9 @@ describe("stripeWebhooks.processWebhookEvent", () => {
       event: seedCheckoutEvent("evt_10", "user_10", "cus_10", "sub_10"),
     });
 
-    const sub = await t.query(api.subscriptions.getSubscription, {
-      clerkUserId: "user_10",
-    });
+    const sub = await t
+      .withIdentity({ subject: "user_10" })
+      .query(api.subscriptions.getSubscription, {});
 
     expect(sub).not.toBeNull();
     expect(sub?.stripeCustomerId).toBe("cus_10");
@@ -124,9 +124,9 @@ describe("stripeWebhooks.processWebhookEvent", () => {
       },
     });
 
-    const sub = await t.query(api.subscriptions.getSubscription, {
-      clerkUserId: "user_10",
-    });
+    const sub = await t
+      .withIdentity({ subject: "user_10" })
+      .query(api.subscriptions.getSubscription, {});
 
     expect(sub?.status).toBe("past_due");
     expect(sub?.cancelAtPeriodEnd).toBe(true);
@@ -178,9 +178,9 @@ describe("stripeWebhooks.processWebhookEvent", () => {
       },
     });
 
-    const sub = await t.query(api.subscriptions.getSubscription, {
-      clerkUserId: "user_10",
-    });
+    const sub = await t
+      .withIdentity({ subject: "user_10" })
+      .query(api.subscriptions.getSubscription, {});
 
     expect(sub).toBeNull();
   });
@@ -246,9 +246,9 @@ describe("stripeWebhooks.processWebhookEvent", () => {
         },
       });
 
-      const sub = await t.query(api.subscriptions.getSubscription, {
-        clerkUserId: "user_map",
-      });
+      const sub = await t
+        .withIdentity({ subject: "user_map" })
+        .query(api.subscriptions.getSubscription, {});
 
       expect(sub?.status).toBe(expectedStatus);
     },
@@ -348,9 +348,9 @@ describe("stripeWebhooks.processWebhookEvent", () => {
       },
     });
 
-    const sub = await t.query(api.subscriptions.getSubscription, {
-      clerkUserId: "user_20",
-    });
+    const sub = await t
+      .withIdentity({ subject: "user_20" })
+      .query(api.subscriptions.getSubscription, {});
     expect(sub?.status).toBe("past_due");
   });
 
@@ -382,9 +382,9 @@ describe("stripeWebhooks.processWebhookEvent", () => {
       },
     });
 
-    const sub = await t.query(api.subscriptions.getSubscription, {
-      clerkUserId: "user_21",
-    });
+    const sub = await t
+      .withIdentity({ subject: "user_21" })
+      .query(api.subscriptions.getSubscription, {});
     expect(sub?.status).toBe("past_due");
   });
 

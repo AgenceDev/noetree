@@ -2,11 +2,18 @@ import { query, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
 export const getSubscription = query({
-  args: { clerkUserId: v.string() },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async ctx => {
+    // Security: clerkUserId is derived exclusively from the caller's
+    // authenticated Convex identity (never a client-supplied argument) so a
+    // signed-in user cannot read another user's subscription/billing status
+    // by passing an arbitrary id (IDOR — found in 03-REVIEW.md CR-01).
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+
     return await ctx.db
       .query("subscriptions")
-      .withIndex("by_clerkUserId", q => q.eq("clerkUserId", args.clerkUserId))
+      .withIndex("by_clerkUserId", q => q.eq("clerkUserId", identity.subject))
       .unique();
   },
 });

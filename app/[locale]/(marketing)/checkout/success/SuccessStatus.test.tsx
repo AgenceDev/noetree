@@ -59,7 +59,7 @@ describe("SuccessStatus", () => {
   it("shows loading copy while the Convex query has not resolved (D-10)", () => {
     mockUseQuery.mockReturnValue({ data: undefined, isPending: true });
 
-    render(<SuccessStatus clerkUserId="user_1" />);
+    render(<SuccessStatus />);
 
     expect(
       screen.getByText(/Confirming your subscription/),
@@ -72,7 +72,7 @@ describe("SuccessStatus", () => {
       isPending: false,
     });
 
-    render(<SuccessStatus clerkUserId="user_1" />);
+    render(<SuccessStatus />);
 
     expect(screen.getByText(/Subscription active/)).toBeInTheDocument();
   });
@@ -80,7 +80,7 @@ describe("SuccessStatus", () => {
   it('swaps to timeout copy + a "Refresh status" control after the timeout window when status is not active (D-11)', () => {
     mockUseQuery.mockReturnValue({ data: null, isPending: false });
 
-    render(<SuccessStatus clerkUserId="user_1" />);
+    render(<SuccessStatus />);
 
     // React 18+ automatic batching defers the setTimeout-triggered setState
     // to a microtask — wrap in `act()` so the re-render is flushed before

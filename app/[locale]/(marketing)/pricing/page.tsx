@@ -20,16 +20,15 @@ import { createCheckoutSession } from "./actions";
 export default function PricingPage() {
   const t = useTranslations("Pricing");
   const locale = useLocale();
-  const { isSignedIn, user } = useUser();
+  const { isSignedIn } = useUser();
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState(false);
 
   // Pattern 3 / Pitfall 5: "skip" sentinel, never `enabled: false`.
+  // Security: no clerkUserId arg — the query derives the caller's identity
+  // from Convex auth itself (IDOR fix, 03-REVIEW.md CR-01).
   const { data } = useQuery(
-    convexQuery(
-      api.subscriptions.getSubscription,
-      isSignedIn ? { clerkUserId: user.id } : "skip",
-    ),
+    convexQuery(api.subscriptions.getSubscription, isSignedIn ? {} : "skip"),
   );
 
   const isActive = data?.status === "active";
