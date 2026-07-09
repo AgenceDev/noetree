@@ -98,7 +98,7 @@ Plans:
 2. Clicking "Upgrade to Pro" redirects to Stripe Checkout with the correct Pro price and clerkUserId in both `session.metadata` and `subscription_data.metadata`
 3. After completing payment in Stripe test mode, user lands on a success page that shows "Subscription active" once the Phase 2 webhook has confirmed the Convex subscriptions row
 4. Completing checkout twice with the same email reuses the existing Stripe customer (no duplicate customer records)
-   **Plans**: 5 plans
+   **Plans**: 7 plans (2 gap-closure)
 
 Plans:
 
@@ -116,6 +116,11 @@ Plans:
 
 - [ ] 03-04-PLAN.md — End-to-end manual Stripe test-mode sign-off (SC2/SC3/SC4: redirect, webhook confirmation, no duplicate customer)
       **UI hint**: yes
+
+**Gap Closure** _(from 03-HUMAN-UAT.md — Test 2 & Test 3 failures)_
+
+- [ ] 03-06-PLAN.md — Diagnosability fixes: guard+log the Convex auth-handshake/query in actions.ts (distinguishable error), console.error the real error in page.tsx's catch, log webhook 400/500 failures in route.ts (Wave 1, autonomous)
+- [ ] 03-07-PLAN.md — Manual UAT re-verification of Test 2 & Test 3 with `stripe listen` running and STRIPE_WEBHOOK_SECRET synced (Wave 2, depends on 03-06, checkpoint)
 
 ### Phase 4: Plan Enforcement
 
@@ -169,7 +174,7 @@ Plans:
 | ---------------------------------------------- | -------------- | ----------- | ---------- |
 | 1. Schema + Infrastructure Foundation          | 4/4            | Complete    | 2026-07-08 |
 | 2. Webhook Handler + Convex Internal Mutations | 6/6            | Complete    | 2026-07-08 |
-| 3. Checkout Flow + Pricing Page                | 4/5            | In Progress |            |
+| 3. Checkout Flow + Pricing Page                | 4/7            | In Progress |            |
 | 4. Plan Enforcement                            | 0/?            | Not started | -          |
 | 5. AI Credits System                           | 0/?            | Not started | -          |
 | 6. Settings Page                               | 0/?            | Not started | -          |
