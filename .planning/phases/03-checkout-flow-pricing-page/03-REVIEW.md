@@ -55,6 +55,8 @@ Remaining findings are Warning/Info-level robustness, defensive-coding, and cons
 
 ### CR-01: Cross-user subscription data leak (IDOR) via `api.subscriptions.getSubscription`, reachable from this phase's client code
 
+**Resolution (2026-07-09, commit `e5793d5`):** Fixed. `getSubscription` no longer accepts a `clerkUserId` argument — it derives the caller's id exclusively from `ctx.auth.getUserIdentity().subject`, returning `null` for unauthenticated callers. All three call sites (`pricing/page.tsx`, `SuccessStatus.tsx`, `actions.ts`) updated to stop passing the argument; the Server Action's `ConvexHttpClient` now authenticates itself via `getToken({ template: "convex" })` so its own identity check resolves. Existing Phase 1/2 Convex tests updated to use `t.withIdentity({ subject })` instead of passing `clerkUserId` directly. Verified via full regression: `npx tsc --noEmit` clean, 52/52 unit tests passing, 4/4 Cypress e2e specs passing (including a real signed-in checkout-redirect run against the live Convex dev deployment after `npx convex dev --once`).
+
 **File:** `app/[locale]/(marketing)/pricing/page.tsx:28-33` (client-side call), `app/[locale]/(marketing)/checkout/success/SuccessStatus.tsx:35-37` (client-side call), `app/[locale]/(marketing)/pricing/actions.ts:26-28` (server-side call) — root cause in `convex/subscriptions.ts:4-12` (out of diff, phase 02)
 
 **Issue:** `getSubscription` is a public Convex `query` that takes `clerkUserId` as a plain string argument and returns the matching subscription row (`status`, `stripeCustomerId`, `stripeSubscriptionId`, `currentPeriodEnd`, `cancelAtPeriodEnd`) with **no check that the caller's authenticated identity matches the requested `clerkUserId`**:
