@@ -127,3 +127,7 @@ None - no external service configuration required. `APP_URL` uses a deterministi
 
 _Phase: 03-checkout-flow-pricing-page_
 _Completed: 2026-07-09_
+
+## Self-Check: PASSED
+
+All created files confirmed present on disk (`components/ui/badge.tsx`, both RED Vitest test files, both RED Cypress specs, this SUMMARY.md). All three task commit hashes (`a0cf678`, `02b4619`) plus the plan-metadata commit (`3050029`) confirmed present in `git log --oneline --all`.
