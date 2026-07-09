@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, cleanup, act } from "@testing-library/react";
 
 const mockUseQuery = vi.fn();
 
@@ -17,6 +17,28 @@ vi.mock("@/convex/_generated/api", () => ({
   api: { subscriptions: { getSubscription: "subscriptions.getSubscription" } },
 }));
 
+// Minimal in-repo CheckoutSuccess message table (mirrors messages/en.json) so
+// useTranslations() has a context to read from in isolation, without pulling
+// in NextIntlClientProvider — this is the first Vitest component test in the
+// repo to exercise a next-intl-translated client component (no prior mocking
+// convention existed to copy from).
+const checkoutSuccessMessages: Record<string, string> = {
+  loadingHeading: "Confirming your subscription…",
+  loadingBody: "This usually takes just a few seconds.",
+  timeoutHeading: "Still confirming…",
+  timeoutBody:
+    "Your payment succeeded — this can occasionally take a little longer to sync. Try refreshing to check again.",
+  timeoutAction: "Refresh status",
+  confirmedHeading: "Subscription active",
+  confirmedBody:
+    "You're all set — enjoy unlimited notes and 100 AI credits every month.",
+  goToNotes: "Go to notes",
+};
+
+vi.mock("next-intl", () => ({
+  useTranslations: () => (key: string) => checkoutSuccessMessages[key] ?? key,
+}));
+
 import { SuccessStatus } from "./SuccessStatus";
 
 describe("SuccessStatus", () => {
@@ -27,6 +49,11 @@ describe("SuccessStatus", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    // No global `test.globals` config in vitest.config.ts, so
+    // @testing-library/react's automatic afterEach cleanup never registers
+    // (it detects `globalThis.afterEach`, not vitest's named import) —
+    // clean up explicitly to isolate each render.
+    cleanup();
   });
 
   it("shows loading copy while the Convex query has not resolved (D-10)", () => {
@@ -55,7 +82,12 @@ describe("SuccessStatus", () => {
 
     render(<SuccessStatus clerkUserId="user_1" />);
 
-    vi.advanceTimersByTime(20000);
+    // React 18+ automatic batching defers the setTimeout-triggered setState
+    // to a microtask — wrap in `act()` so the re-render is flushed before
+    // the assertions below run against the DOM.
+    act(() => {
+      vi.advanceTimersByTime(20000);
+    });
 
     expect(screen.getByText(/Still confirming/)).toBeInTheDocument();
     expect(
