@@ -98,8 +98,23 @@ Plans:
 2. Clicking "Upgrade to Pro" redirects to Stripe Checkout with the correct Pro price and clerkUserId in both `session.metadata` and `subscription_data.metadata`
 3. After completing payment in Stripe test mode, user lands on a success page that shows "Subscription active" once the Phase 2 webhook has confirmed the Convex subscriptions row
 4. Completing checkout twice with the same email reuses the existing Stripe customer (no duplicate customer records)
-   **Plans**: TBD
-   **UI hint**: yes
+   **Plans**: 4 plans
+
+Plans:
+
+**Wave 1**
+
+- [ ] 03-01-PLAN.md — Foundation: jsdom + shadcn badge, APP_URL env, Pricing/CheckoutSuccess i18n, marketing route-group shell, 4 RED Wave 0 test scaffolds
+
+**Wave 2** _(blocked on Wave 1)_
+
+- [ ] 03-02-PLAN.md — Pricing page (PLAN-01) + createCheckoutSession Server Action with customer reuse, active short-circuit, dual clerkUserId metadata (PAY-01)
+- [ ] 03-03-PLAN.md — Success confirmation page (PAY-02): RSC auth() boundary + reactive SuccessStatus with loading/timeout/confirmed states
+
+**Wave 3** _(blocked on Wave 2)_
+
+- [ ] 03-04-PLAN.md — End-to-end manual Stripe test-mode sign-off (SC2/SC3/SC4: redirect, webhook confirmation, no duplicate customer)
+      **UI hint**: yes
 
 ### Phase 4: Plan Enforcement
 
