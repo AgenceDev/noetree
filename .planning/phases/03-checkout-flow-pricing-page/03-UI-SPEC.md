@@ -1,10 +1,11 @@
 ---
 phase: 3
 slug: checkout-flow-pricing-page
-status: draft
+status: approved
 shadcn_initialized: true
 preset: "style=new-york, baseColor=neutral, cssVariables=true, iconLibrary=lucide, rsc=true"
 created: 2026-07-09
+reviewed_at: 2026-07-09
 ---
 
 # Phase 3 — UI Design Contract
@@ -124,11 +125,11 @@ No third-party registries were requested for this phase. No vetting gate was tri
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: FLAG (non-blocking — "Refresh" timeout action label is a single word without a noun; recommend "Refresh status")
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved (5/6 PASS, 1 non-blocking FLAG)
