@@ -29,6 +29,10 @@ vi.mock("@clerk/nextjs/server", () => ({
 
 vi.mock("next/navigation", () => ({
   redirect: mockRedirectNav,
+  // next-intl's createNavigation (used by "@/i18n/routing") destructures both
+  // `redirect` and `permanentRedirect` from "next/navigation" at module-load
+  // time, even though only `redirect` is ever invoked by this action.
+  permanentRedirect: vi.fn(),
 }));
 
 let createCheckoutSession: (locale: string) => Promise<void>;

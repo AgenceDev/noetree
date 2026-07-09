@@ -44,3 +44,8 @@ next-env.d.ts
 certificates
 # clerk configuration (can include secrets)
 /.clerk/
+
+# cypress local secrets (test-user credentials for @clerk/testing cy.clerkSignIn)
+cypress.env.json
+cypress/videos/
+cypress/screenshots/
