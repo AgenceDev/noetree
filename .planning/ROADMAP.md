@@ -104,8 +104,8 @@ Plans:
 
 **Wave 1**
 
-- [ ] 03-01-PLAN.md — Foundation: jsdom + shadcn badge, APP_URL env, Pricing/CheckoutSuccess i18n, 4 RED Wave 0 test scaffolds
-- [ ] 03-05-PLAN.md — Root-layout decomposition: extract app shell into (app) route group + move authenticated routes, leaving a chrome-free root so the (marketing) shell renders without AppSidebar/Header (D-01/D-04)
+- [x] 03-01-PLAN.md — Foundation: jsdom + shadcn badge, APP_URL env, Pricing/CheckoutSuccess i18n, 4 RED Wave 0 test scaffolds
+- [x] 03-05-PLAN.md — Root-layout decomposition: extract app shell into (app) route group + move authenticated routes, leaving a chrome-free root so the (marketing) shell renders without AppSidebar/Header (D-01/D-04)
 
 **Wave 2** _(blocked on Wave 1)_
 
@@ -169,7 +169,7 @@ Plans:
 | ---------------------------------------------- | -------------- | ----------- | ---------- |
 | 1. Schema + Infrastructure Foundation          | 4/4            | Complete    | 2026-07-08 |
 | 2. Webhook Handler + Convex Internal Mutations | 6/6            | Complete    | 2026-07-08 |
-| 3. Checkout Flow + Pricing Page                | 0/?            | Not started | -          |
+| 3. Checkout Flow + Pricing Page                | 2/5            | In Progress |            |
 | 4. Plan Enforcement                            | 0/?            | Not started | -          |
 | 5. AI Credits System                           | 0/?            | Not started | -          |
 | 6. Settings Page                               | 0/?            | Not started | -          |
