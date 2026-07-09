@@ -33,6 +33,8 @@ Un utilisateur peut créer, organiser et naviguer dans ses notes en structure ar
 - ✓ Éditeur de texte riche avec panneaux redimensionnables (Shadcn Resizable) — v0.x
 - ✓ Dark mode — v0.x
 - ✓ CI/CD GitHub Actions + Vercel (staging/production) — v0.x
+- ✓ Stripe webhooks update subscription status in Convex — Phase 2 (PAY-03)
+- ✓ Pro user receives monthly AI credits quota (reset on billing cycle) — Phase 2 (CRED-01)
 
 ### Active
 
@@ -42,9 +44,7 @@ Un utilisateur peut créer, organiser et naviguer dans ses notes en structure ar
 - [ ] Free tier user is limited to 20 notes maximum
 - [ ] Pro tier user has unlimited notes
 - [ ] User can subscribe to Pro via Stripe Checkout
-- [ ] Stripe webhooks update subscription status in Convex
 - [ ] User can cancel Pro subscription
-- [ ] Pro user receives monthly AI credits quota
 - [ ] User can purchase AI credits top-up via Stripe
 - [ ] User can view and manage subscription in Settings page
 
@@ -59,8 +59,8 @@ Un utilisateur peut créer, organiser et naviguer dans ses notes en structure ar
 
 - **Stack :** Next.js 15 App Router, Convex (real-time DB + backend functions), Shadcn UI, Clerk auth, Tailwind CSS
 - **Déploiement :** Vercel (production depuis tags git, staging depuis dev)
-- **État actuel :** App fonctionnelle avec auth, notes tree, éditeur. Branche `dev` active avec 2 commits locaux divergeant de origin/dev (58 commits distants non mergés)
-- **Paiements :** Aucune intégration existante — greenfield dans le projet
+- **État actuel :** App fonctionnelle avec auth, notes tree, éditeur. Webhook handler Stripe → Convex opérationnel (Phase 2 complète, vérifié en live via Stripe CLI).
+- **Paiements :** Webhook handler Stripe (`app/api/webhooks/stripe/route.ts` → `convex/stripeWebhooks.ts`) écrit `subscriptions`/`aiCredits`/`creditTransactions`/`processedStripeEvents` de façon idempotente. Checkout et pricing page restent à construire (Phase 3).
 
 ## Constraints
 
@@ -71,12 +71,12 @@ Un utilisateur peut créer, organiser et naviguer dans ses notes en structure ar
 
 ## Key Decisions
 
-| Decision                              | Rationale                                                   | Outcome   |
-| ------------------------------------- | ----------------------------------------------------------- | --------- |
-| Stripe comme provider                 | Maturité, webhooks robustes, support abonnements + one-time | — Pending |
-| UI custom (pas Stripe Portal)         | Meilleure cohérence UX dans l'app                           | — Pending |
-| Convex pour stocker statut abonnement | Temps réel, cohérent avec le reste du stack                 | — Pending |
-| Modèle hybride Free/Pro + crédits     | Monétisation flexible : récurrent + usage IA                | — Pending |
+| Decision                              | Rationale                                                   | Outcome                                                    |
+| ------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------- |
+| Stripe comme provider                 | Maturité, webhooks robustes, support abonnements + one-time | ✓ Confirmé — Phase 2                                       |
+| UI custom (pas Stripe Portal)         | Meilleure cohérence UX dans l'app                           | — Pending (Phase 3+)                                       |
+| Convex pour stocker statut abonnement | Temps réel, cohérent avec le reste du stack                 | ✓ Confirmé — Phase 2                                       |
+| Modèle hybride Free/Pro + crédits     | Monétisation flexible : récurrent + usage IA                | ✓ Reset mensuel confirmé — Phase 2 (top-up reste Phase 3+) |
 
 ## Evolution
 
@@ -99,4 +99,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-_Last updated: 2026-07-07 — Milestone v1.0 initialized_
+_Last updated: 2026-07-09 — Phase 2 (Webhook Handler + Convex Internal Mutations) complete_
