@@ -11,7 +11,7 @@ export default defineConfig({
     environment: "edge-runtime",
     server: {
       deps: {
-        inline: ["convex-test"],
+        inline: ["convex-test", "next-intl"],
       },
     },
     exclude: ["node_modules/**", "cypress/**", ".next/**"],
