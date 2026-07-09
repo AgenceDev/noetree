@@ -1,8 +1,8 @@
 ---
 phase: 03
 slug: checkout-flow-pricing-page
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-07-09
 ---
@@ -67,11 +67,11 @@ _Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky_
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 90s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 90s (phase sampling; two per-task e2e/typecheck verifies carry an explicitly accepted per-task latency tradeoff — see 03-02 Task 2 and 03-03 Task 1 verify notes)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved for execution — plans finalized (03-01, 03-02, 03-03, 03-04, plus the 03-05 root-layout decomposition added in revision). `wave_0_complete` stays `false` until the Wave 0 test scaffolds (03-01 Task 3) actually execute RED.

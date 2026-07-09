@@ -400,22 +400,27 @@ See "Architecture Patterns" Patterns 1-3 above for the three load-bearing code s
 | A2  | The exact port/path for local dev's `https://localhost:3000` (from `next dev --experimental-https`) is assumed for local `APP_URL` value                                                                                                                          | Pitfall 2                                   | Low risk — trivially confirmed by running `npm run dev` once; would only affect the `.env.local` placeholder value, not any code                                                                                                     |
 | A3  | Clerk's hosted Account Portal (no custom `/sign-in` route exists in this repo) is assumed to be the current sign-in destination `redirectToSignIn()` falls back to, since no `NEXT_PUBLIC_CLERK_SIGN_IN_URL` is set anywhere and no `app/**/sign-in` route exists | Pattern 1 / Architecture Diagram            | If wrong (e.g., a custom sign-in page is expected but not yet built), D-02's "redirect to Clerk sign-in" step would 404 or misbehave — should be smoke-tested early in implementation                                                |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **What is the exact env var name and value for the app's absolute base URL?**
+> All three questions below were resolved during planning; the adopted decision is recorded inline under each.
+
+1. **What is the exact env var name and value for the app's absolute base URL?** (RESOLVED)
    - What we know: Stripe's `success_url`/`cancel_url` require a fully-qualified URL; nothing in this codebase currently provides one (confirmed via grep across `.env.example`, `.env.local`, and all `.ts`/`.tsx` files).
    - What's unclear: Whether the team wants `APP_URL`, `NEXT_PUBLIC_APP_URL`, or `NEXT_PUBLIC_SITE_URL` as the name, and whether it should vary per environment (local `https://localhost:3000` per the `--experimental-https` dev script vs. real staging/production domains) or be derived dynamically.
    - Recommendation: Add `APP_URL` (server-only, no public exposure needed — only read inside the Server Action) to `.env.example`, following the exact same per-environment-value documentation convention already used for `STRIPE_WEBHOOK_SECRET`. Flag as a `checkpoint:human-verify` task before first use in each environment.
+   - **RESOLVED:** Adopted `APP_URL` (server-only) — added in Plan 03-01 Task 2 (`.env.example` + `.env.local=https://localhost:3000`) and consumed by `createCheckoutSession` in Plan 03-02 to build `success_url`/`cancel_url`.
 
-2. **Does `redirectToSignIn()` correctly return the visitor to the _action_ of clicking Upgrade, or just to `/pricing`?**
+2. **Does `redirectToSignIn()` correctly return the visitor to the _action_ of clicking Upgrade, or just to `/pricing`?** (RESOLVED)
    - What we know: `redirectToSignIn({ returnBackUrl })` redirects back to a given URL after sign-in (confirmed via type defs) — it does not re-trigger a Server Action automatically.
    - What's unclear: Whether landing back on `/pricing` after sign-in is sufficient (user clicks Upgrade again, now signed in) or whether product intent expects the checkout call to fire automatically post-sign-in.
    - Recommendation: Per CONTEXT.md D-02/D-15, landing back on `/pricing` and letting the user click Upgrade again (now signed in, collapsing straight to checkout) is explicitly the intended UX — no auto-retrigger needed. Documenting here only because it's easy to over-engineer.
+   - **RESOLVED:** No auto-retrigger. Plan 03-02 uses `redirectToSignIn({ returnBackUrl: "/${locale}/pricing" })` and relies on the user re-clicking Upgrade once signed in (D-02/D-15).
 
-3. **Exact timeout value for the success page (15s, 18s, or 20s)?**
+3. **Exact timeout value for the success page (15s, 18s, or 20s)?** (RESOLVED)
    - What we know: CONTEXT.md explicitly calls this "a UX guideline... not a hard requirement — planner/executor can pick an exact value in that range."
    - What's unclear: Nothing — this is intentionally left open.
    - Recommendation: Pick 18 seconds (a round middle value) unless the planner has a stronger reason to choose otherwise.
+   - **RESOLVED:** 18000ms adopted in Plan 03-03 Task 2 (`SuccessStatus.tsx` timeout → TimeoutView + Refresh control).
 
 ## Environment Availability
 
