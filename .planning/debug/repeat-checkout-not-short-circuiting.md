@@ -1,9 +1,13 @@
 ---
-status: diagnosed
+status: resolved
 trigger: "repeat-checkout-not-short-circuiting: When a signed-in user who already has an active (or should-be-active) Stripe subscription clicks 'Upgrade to Pro' again, the app is supposed to short-circuit and redirect straight to the success page without creating a new Stripe Checkout Session, and it must reuse the existing Stripe Customer object. Instead, clicking the button redirects to a fresh Stripe Checkout page again, and a red error message appears under the button (exact text unreadable)."
 created: 2026-07-10T01:10:00Z
-updated: 2026-07-10T01:35:00Z
+updated: 2026-07-10T13:15:00Z
 ---
+
+## Resolution Update (2026-07-10T13:15:00Z)
+
+Confirmed: the short-circuit never triggered because `getSubscription` never returned an active row, for the same reason as success-page-stuck-loading.md (webhook never delivered — see that file's Resolution Update for the two root causes). The "red error text" was the previously-swallowed `checkoutSessionCreationFailed`, made readable by Plan 03-06's page.tsx logging plus a follow-up fix logging the actual `StripeInvalidRequestError` in actions.ts's checkout-session catch — which is what revealed the second root cause (missing Stripe Products/Prices on the test-mode account). Both fixed; Test 3 now passes. See 03-07-SUMMARY.md.
 
 ## Current Focus
 

@@ -1,9 +1,10 @@
 ---
-status: diagnosed
+status: resolved
 phase: 03-checkout-flow-pricing-page
 source: [03-04-PLAN.md]
 started: 2026-07-09T20:55:00Z
-updated: 2026-07-10T01:40:00Z
+updated: 2026-07-10T13:15:00Z
+resolution: "Re-verified via Plan 03-07 after fixing two additional root causes beyond the original hypothesis: (1) `stripe listen --forward-to` defaulting to http:// against an HTTPS-only (--experimental-https) dev origin, and (2) the Stripe test-mode account having zero Products/Prices, so STRIPE_PRO_PRICE_ID/STRIPE_TOPUP_PRICE_ID were stale. See 03-07-SUMMARY.md for full detail. Both Test 2 and Test 3 now pass."
 ---
 
 ## Current Test

@@ -1,9 +1,18 @@
 ---
-status: diagnosed
+status: resolved
 trigger: "success-page-stuck-loading: After a real Stripe test-mode payment completes and Stripe redirects the user back to /en/checkout/success, the page is supposed to show a loading state then transition to Subscription active once the webhook writes the Convex subscriptions row. Instead it stays stuck indefinitely, and a hard refresh does NOT fix it."
 created: 2026-07-10T00:00:00Z
-updated: 2026-07-10T00:20:00Z
+updated: 2026-07-10T13:15:00Z
 ---
+
+## Resolution Update (2026-07-10T13:15:00Z)
+
+The "environmental, not a code defect" diagnosis below was correct as far as it went but **incomplete** — re-verification in Plan 03-07 surfaced two further, more specific root causes that had to be fixed before a real payment could succeed at all:
+
+1. `stripe listen --forward-to localhost:3000/...` (no scheme) defaults to `http://`, but this project's dev server runs `next dev --experimental-https` — HTTPS-only. The webhook never reached the route handler at all. Fix: `stripe listen --forward-to https://localhost:3000/api/webhooks/stripe --skip-verify`.
+2. Even with delivery fixed, checkout itself failed with `checkoutSessionCreationFailed` — the Stripe test-mode account had **zero Products and zero Prices**; `STRIPE_PRO_PRICE_ID`/`STRIPE_TOPUP_PRICE_ID` in `.env.local` were stale. Fix: recreated both via the Stripe CLI and updated `.env.local`. See 03-07-SUMMARY.md for full detail.
+
+Both Test 2 and Test 3 in 03-HUMAN-UAT.md now pass.
 
 ## Current Focus
 
