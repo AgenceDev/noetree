@@ -14,7 +14,7 @@ Milestone v1.0 adds a Free/Pro subscription model and an AI credits metering sys
 - [x] **Phase 1: Schema + Infrastructure Foundation** - Convex tables deployed, env vars configured, packages installed (completed 2026-07-08)
 - [x] **Phase 2: Webhook Handler + Convex Internal Mutations** - Stripe events processed, subscription state written atomically (completed 2026-07-08)
 - [x] **Phase 3: Checkout Flow + Pricing Page** - Users can view plans and subscribe via Stripe Checkout (completed 2026-07-10)
-- [ ] **Phase 4: Plan Enforcement** - Free tier note limit enforced server-side, upgrade prompts shown
+- [x] **Phase 4: Plan Enforcement** - Free tier note limit enforced server-side, upgrade prompts shown (completed 2026-07-10)
 - [ ] **Phase 5: AI Credits System** - Credits deducted atomically, top-up available, balance visible
 - [ ] **Phase 6: Settings Page** - Users can manage subscription and credits from a single in-app page
 
@@ -148,7 +148,7 @@ Plans:
 
 **Wave 3** _(blocked on Wave 2)_
 
-- [ ] 04-04-PLAN.md — End-to-end human verification of SC1-SC4 in the running app (checkpoint)
+- [x] 04-04-PLAN.md — End-to-end human verification of SC1-SC4 in the running app (checkpoint)
 
   **UI hint**: yes
 
@@ -191,6 +191,6 @@ Plans:
 | 1. Schema + Infrastructure Foundation          | 4/4            | Complete    | 2026-07-08 |
 | 2. Webhook Handler + Convex Internal Mutations | 6/6            | Complete    | 2026-07-08 |
 | 3. Checkout Flow + Pricing Page                | 7/7            | Complete    | 2026-07-10 |
-| 4. Plan Enforcement                            | 3/4            | In Progress |            |
+| 4. Plan Enforcement                            | 4/4            | Complete    | 2026-07-10 |
 | 5. AI Credits System                           | 0/?            | Not started | -          |
 | 6. Settings Page                               | 0/?            | Not started | -          |
