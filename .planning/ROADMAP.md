@@ -144,7 +144,7 @@ Plans:
 
 **Wave 2** _(blocked on Wave 1)_
 
-- [ ] 04-03-PLAN.md — Wire both createNote onError handlers (useNoteMutations.ts + notes/page.tsx) to open the modal on NOTE_LIMIT_REACHED (PLAN-04)
+- [x] 04-03-PLAN.md — Wire both createNote onError handlers (useNoteMutations.ts + notes/page.tsx) to open the modal on NOTE_LIMIT_REACHED (PLAN-04)
 
 **Wave 3** _(blocked on Wave 2)_
 
@@ -191,6 +191,6 @@ Plans:
 | 1. Schema + Infrastructure Foundation          | 4/4            | Complete    | 2026-07-08 |
 | 2. Webhook Handler + Convex Internal Mutations | 6/6            | Complete    | 2026-07-08 |
 | 3. Checkout Flow + Pricing Page                | 7/7            | Complete    | 2026-07-10 |
-| 4. Plan Enforcement                            | 2/4            | In Progress |            |
+| 4. Plan Enforcement                            | 3/4            | In Progress |            |
 | 5. AI Credits System                           | 0/?            | Not started | -          |
 | 6. Settings Page                               | 0/?            | Not started | -          |
