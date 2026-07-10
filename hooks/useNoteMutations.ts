@@ -10,12 +10,14 @@ import {
   removeNoteFromTree,
   updateTitleInTree,
 } from "@/lib/treeUtils";
+import { useUpgradeModal } from "@/providers/UpgradeModalProvider";
 
 export function useNoteMutations(
   noteId: Id<"notes">,
   setSelectedNoteId?: (id: Id<"notes">) => void,
 ) {
   const queryClient = useQueryClient();
+  const upgradeModal = useUpgradeModal();
   const queryKey = convexQuery(api.notes.getTreeById, {
     id: noteId,
     deep: 10,
@@ -75,6 +77,9 @@ export function useNoteMutations(
     onError: (err, variables, context) => {
       if (context?.previousTree) {
         queryClient.setQueryData(queryKey, context.previousTree);
+      }
+      if (err.message === "NOTE_LIMIT_REACHED") {
+        upgradeModal.open();
       }
     },
     onSuccess: (newNoteId: Id<"notes">) => {
