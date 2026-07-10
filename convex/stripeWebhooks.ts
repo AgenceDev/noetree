@@ -42,6 +42,34 @@ export const processWebhookEvent = action({
       case "checkout.session.completed": {
         const session = args.event.data.object;
         const clerkUserId = session.metadata?.clerkUserId;
+
+        if (session.mode === "payment") {
+          // Mirrors the D-12 missing-clerkUserId anomaly guard used by
+          // upsertSubscription/deleteSubscription: addCredits' clerkUserId
+          // arg is a required v.string() (per this plan's interface
+          // contract), so an unguarded call here would throw an uncaught
+          // ArgumentValidationError — surfacing as a 500 to Stripe and
+          // triggering endless webhook retries — instead of a clean anomaly
+          // return when session.metadata is null/missing.
+          if (!clerkUserId) {
+            console.error(
+              `checkout.session.completed (payment) anomaly: missing clerkUserId for stripeEventId ${args.event.id}`,
+            );
+            return { anomaly: "missing clerkUserId" };
+          }
+
+          return await ctx.runMutation(internal.aiCredits.addCredits, {
+            stripeEventId: args.event.id,
+            eventType: args.event.type,
+            clerkUserId,
+            amount: 50,
+            stripePaymentIntentId:
+              typeof session.payment_intent === "string"
+                ? session.payment_intent
+                : session.payment_intent?.id,
+          });
+        }
+
         const stripeCustomerId =
           typeof session.customer === "string"
             ? session.customer

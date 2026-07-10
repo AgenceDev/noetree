@@ -33,6 +33,22 @@ const seedCheckoutEvent = (
   },
 });
 
+const seedTopupCheckoutEvent = (
+  id: string,
+  clerkUserId: string,
+  paymentIntentId: string,
+) => ({
+  id,
+  type: "checkout.session.completed",
+  data: {
+    object: {
+      mode: "payment",
+      metadata: { clerkUserId },
+      payment_intent: paymentIntentId,
+    },
+  },
+});
+
 describe("stripeWebhooks.processWebhookEvent", () => {
   beforeEach(() => {
     process.env.INTERNAL_WEBHOOK_SECRET = TEST_SECRET;
@@ -96,6 +112,101 @@ describe("stripeWebhooks.processWebhookEvent", () => {
     });
 
     expect(result).toEqual({ anomaly: "missing clerkUserId" });
+  });
+
+  it("checkout.session.completed with mode 'payment' credits the resolved user's balance by 50 and records a topup transaction", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("aiCredits", {
+        clerkUserId: "user_pay_1",
+        balance: 10,
+        lastResetAt: Date.now(),
+      });
+    });
+
+    await t.action(api.stripeWebhooks.processWebhookEvent, {
+      secret: TEST_SECRET,
+      event: seedTopupCheckoutEvent("evt_pay_1", "user_pay_1", "pi_1"),
+    });
+
+    const credits = await t.query(api.aiCredits.getCredits, {
+      clerkUserId: "user_pay_1",
+    });
+    expect(credits?.balance).toBe(60);
+
+    const topupTransactions = await t.run(async ctx => {
+      const rows = await ctx.db.query("creditTransactions").collect();
+      return rows.filter(row => row.type === "topup");
+    });
+    expect(topupTransactions.length).toBe(1);
+    expect(topupTransactions[0]).toMatchObject({
+      clerkUserId: "user_pay_1",
+      amount: 50,
+      stripePaymentIntentId: "pi_1",
+    });
+  });
+
+  it("replaying the same payment-mode checkout event is idempotent — no double-credit", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("aiCredits", {
+        clerkUserId: "user_pay_2",
+        balance: 0,
+        lastResetAt: Date.now(),
+      });
+    });
+
+    const event = seedTopupCheckoutEvent("evt_pay_2", "user_pay_2", "pi_2");
+
+    await t.action(api.stripeWebhooks.processWebhookEvent, {
+      secret: TEST_SECRET,
+      event,
+    });
+    await t.action(api.stripeWebhooks.processWebhookEvent, {
+      secret: TEST_SECRET,
+      event,
+    });
+
+    const credits = await t.query(api.aiCredits.getCredits, {
+      clerkUserId: "user_pay_2",
+    });
+    expect(credits?.balance).toBe(50);
+  });
+
+  it("checkout.session.completed with mode 'subscription' still routes to upsertSubscription, not addCredits", async () => {
+    const t = convexTest(schema, modules);
+
+    await t.action(api.stripeWebhooks.processWebhookEvent, {
+      secret: TEST_SECRET,
+      event: {
+        id: "evt_sub_explicit",
+        type: "checkout.session.completed",
+        data: {
+          object: {
+            mode: "subscription",
+            metadata: { clerkUserId: "user_sub_explicit" },
+            customer: "cus_sub_explicit",
+            subscription: "sub_sub_explicit",
+            subscriptionSnapshot: {
+              status: "active",
+              currentPeriodEnd: 555,
+              cancelAtPeriodEnd: false,
+            },
+          },
+        },
+      },
+    });
+
+    const sub = await t
+      .withIdentity({ subject: "user_sub_explicit" })
+      .query(api.subscriptions.getSubscription, {});
+    expect(sub).not.toBeNull();
+    expect(sub?.stripeSubscriptionId).toBe("sub_sub_explicit");
+
+    const credits = await t.query(api.aiCredits.getCredits, {
+      clerkUserId: "user_sub_explicit",
+    });
+    expect(credits).toBeNull();
   });
 
   it("customer.subscription.updated patches the existing row's status and cancelAtPeriodEnd", async () => {
