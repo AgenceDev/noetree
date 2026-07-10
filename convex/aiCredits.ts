@@ -1,7 +1,54 @@
-import { query, internalMutation } from "./_generated/server";
-import { v } from "convex/values";
+import {
+  query,
+  internalMutation,
+  mutation,
+  MutationCtx,
+} from "./_generated/server";
+import { v, ConvexError } from "convex/values";
 
 const MONTHLY_CREDIT_QUOTA = 100;
+
+// Reads the aiCredits row, validates sufficient balance, and atomically
+// patches (or inserts) the row plus a "deduction" creditTransactions row —
+// all within the single mutation transaction the caller is already inside.
+// Never split across ctx.runMutation: doing so would reopen the TOCTOU
+// window this helper exists to close (Convex serializes concurrent
+// mutations touching the same document only when read+write happen inside
+// one handler invocation).
+async function applyDeduction(
+  ctx: MutationCtx,
+  clerkUserId: string,
+  amount: number,
+) {
+  const credits = await ctx.db
+    .query("aiCredits")
+    .withIndex("by_clerkUserId", q => q.eq("clerkUserId", clerkUserId))
+    .unique();
+
+  const balance = credits?.balance ?? 0;
+  if (balance < amount) {
+    throw new ConvexError("INSUFFICIENT_CREDITS");
+  }
+
+  if (credits) {
+    await ctx.db.patch(credits._id, { balance: balance - amount });
+  } else {
+    // Defensive-only branch: unreachable when balance < amount already
+    // threw above (balance defaults to 0, and amount is always >= 1).
+    await ctx.db.insert("aiCredits", {
+      clerkUserId,
+      balance: balance - amount,
+      lastResetAt: Date.now(),
+    });
+  }
+
+  await ctx.db.insert("creditTransactions", {
+    clerkUserId,
+    type: "deduction",
+    amount: -amount,
+    createdAt: Date.now(),
+  });
+}
 
 export const getCredits = query({
   args: { clerkUserId: v.string() },
@@ -15,10 +62,69 @@ export const getCredits = query({
 
 export const deductCredit = internalMutation({
   args: { clerkUserId: v.string(), amount: v.number() },
-  handler: async () => {
-    throw new Error("Not implemented — Phase 2");
+  handler: async (ctx, args) => {
+    await applyDeduction(ctx, args.clerkUserId, args.amount);
+    return { success: true };
   },
-}); // LEAVE UNCHANGED — Phase 5 (CRED-04)
+});
+
+// Security: clerkUserId is derived exclusively from the caller's
+// authenticated Convex identity (never a client-supplied argument) so a
+// signed-in user cannot deduct credits from — or read the balance of —
+// another user's account (IDOR — mirrors subscriptions.ts getSubscription
+// and 03-REVIEW.md CR-01).
+export const runAiAction = mutation({
+  args: {},
+  handler: async ctx => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new ConvexError("UNAUTHENTICATED");
+    const clerkUserId = identity.subject;
+
+    // Deduct + placeholder action + refund all share this single mutation
+    // transaction (never split via ctx.runMutation — Pitfall 1: reopens
+    // the TOCTOU window applyDeduction exists to close). Propagates
+    // INSUFFICIENT_CREDITS to the client when the balance is too low.
+    await applyDeduction(ctx, clerkUserId, 1);
+
+    // Placeholder action (D-01): no real LLM call this phase, always
+    // succeeds. The refund branch below is implemented but intentionally
+    // unreachable while actionSucceeded is hardcoded true (D-04/D-06) —
+    // it exists so a future real action can flip this to a real result
+    // without restructuring the transaction.
+    const actionSucceeded = true;
+
+    if (!actionSucceeded) {
+      const credits = await ctx.db
+        .query("aiCredits")
+        .withIndex("by_clerkUserId", q => q.eq("clerkUserId", clerkUserId))
+        .unique();
+      if (credits) {
+        await ctx.db.patch(credits._id, { balance: credits.balance + 1 });
+      }
+      await ctx.db.insert("creditTransactions", {
+        clerkUserId,
+        type: "refund",
+        amount: 1,
+        createdAt: Date.now(),
+      });
+    }
+
+    return { success: actionSucceeded };
+  },
+});
+
+export const getMyCredits = query({
+  args: {},
+  handler: async ctx => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+
+    return await ctx.db
+      .query("aiCredits")
+      .withIndex("by_clerkUserId", q => q.eq("clerkUserId", identity.subject))
+      .unique();
+  },
+});
 
 export const resetCredits = internalMutation({
   args: {
