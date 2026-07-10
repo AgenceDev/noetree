@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 04 UI-SPEC approved
-last_updated: "2026-07-10T15:17:07.457Z"
-last_activity: 2026-07-10 -- Phase 04 planning complete
+last_updated: "2026-07-10T15:19:59.034Z"
+last_activity: 2026-07-10 -- Phase 04 execution started
 progress:
   total_phases: 6
   completed_phases: 3
@@ -16,13 +16,13 @@ progress:
 
 ## Current Position
 
-Phase: 03 (checkout-flow-pricing-page) — COMPLETE
-Plan: 7 of 7
-Status: Ready to execute
+Phase: 04 (plan-enforcement) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 04
 needed an explicit https:// scheme + --skip-verify against this project's HTTPS-only dev
 server, and the Stripe test-mode account's Pro/Top-up Products+Prices had to be recreated
 (the configured price IDs no longer existed). Both re-verified against live Stripe test mode.
-Last activity: 2026-07-10 -- Phase 04 planning complete
+Last activity: 2026-07-10 -- Phase 04 execution started
 
 Progress: [██████████] 100%
 
@@ -31,7 +31,7 @@ Progress: [██████████] 100%
 See: .planning/PROJECT.md (updated 2026-07-07)
 
 **Core value:** Un utilisateur peut créer, organiser et naviguer dans ses notes en structure arborescente.
-**Current focus:** Phase 03 — checkout-flow-pricing-page
+**Current focus:** Phase 04 — plan-enforcement
 
 ## Performance Metrics
 
