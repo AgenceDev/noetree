@@ -74,9 +74,15 @@ export async function createCheckoutSession(locale: string): Promise<void> {
       success_url: `${baseUrl}/${safeLocale}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/${safeLocale}/pricing`,
     });
-  } catch {
+  } catch (err) {
     // UI-SPEC "Error state" — narrow try around only the Stripe API call
     // (Pitfall 4: redirect() must never be inside this try/catch).
+    // T-03-08: the logged Stripe error is public API error info (e.g.
+    // resource_missing), never a secret/token — safe to log server-side.
+    console.error(
+      "createCheckoutSession: stripe.checkout.sessions.create failed",
+      err,
+    );
     throw new Error("checkoutSessionCreationFailed");
   }
 
