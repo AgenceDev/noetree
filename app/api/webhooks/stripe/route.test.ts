@@ -52,11 +52,17 @@ describe("POST /api/webhooks/stripe", () => {
     mockConstructEvent.mockImplementation(() => {
       throw new Error("invalid signature");
     });
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const res = await POST(makeRequest("{}"));
 
     expect(res.status).toBe(400);
     expect(mockAction).not.toHaveBeenCalled();
+    // Gap closure (03-06): guards against the diagnostic logging silently
+    // regressing on the 400 signature-failure path.
+    expect(errorSpy).toHaveBeenCalled();
+
+    errorSpy.mockRestore();
   });
 
   it("returns 200 when the signature is valid and the Convex action resolves", async () => {
