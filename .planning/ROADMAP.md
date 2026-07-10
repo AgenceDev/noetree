@@ -164,8 +164,25 @@ Plans:
 3. A user with 0 credits cannot trigger an AI action — the action is blocked and a top-up prompt is shown
 4. Clicking "Buy 50 credits for 2€" opens a Stripe Checkout in `payment` mode; after completion the balance increases by 50 and the purchase appears in credit transaction history
 5. Credits reset to 100 automatically when the Phase 2 `invoice.paid` webhook fires for a billing cycle renewal
-   **Plans**: TBD
-   **UI hint**: yes
+   **Plans**: 5 plans
+
+Plans:
+
+**Wave 1**
+
+- [ ] 05-01-PLAN.md — Credit deduction machinery: implement deductCredit + public runAiAction (TOCTOU-safe deduct/act/refund) + identity-derived getMyCredits + "refund" schema literal + convex-test (CRED-04, CRED-02)
+- [ ] 05-03-PLAN.md — Top-up Server Action (payment-mode, Pro-only gate) + CreditsExhaustedDialog (branching CTA) + AiCredits i18n (CRED-03, PAY-05)
+
+**Wave 2** _(blocked on Wave 1)_
+
+- [ ] 05-02-PLAN.md — Top-up webhook: addCredits internalMutation (idempotent +50) + stripeWebhooks session.mode branch + convex-test (PAY-05)
+- [ ] 05-04-PLAN.md — Editor toolbar: Sparkles AiActionButton + reactive CreditsBalanceBadge + runAiAction wiring + CreditsExhaustedDialog mount (CRED-02, CRED-04)
+
+**Wave 3** _(blocked on Wave 2)_
+
+- [ ] 05-05-PLAN.md — Automated security verification (IDOR/Pro-gate grep + full suite) + human UAT of SC1-SC5 (checkpoint)
+
+  **UI hint**: yes
 
 ### Phase 6: Settings Page
 
@@ -192,5 +209,5 @@ Plans:
 | 2. Webhook Handler + Convex Internal Mutations | 6/6            | Complete    | 2026-07-08 |
 | 3. Checkout Flow + Pricing Page                | 7/7            | Complete    | 2026-07-10 |
 | 4. Plan Enforcement                            | 4/4            | Complete    | 2026-07-10 |
-| 5. AI Credits System                           | 0/?            | Not started | -          |
+| 5. AI Credits System                           | 0/5            | Planned     | -          |
 | 6. Settings Page                               | 0/?            | Not started | -          |
