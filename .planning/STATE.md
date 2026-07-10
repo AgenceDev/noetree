@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Phase 4 context gathered
-last_updated: "2026-07-10T11:32:31.567Z"
-last_activity: 2026-07-10 -- Phase 03 gap-closure re-verified and complete
+status: executing
+stopped_at: Phase 04 UI-SPEC approved
+last_updated: "2026-07-10T15:17:07.457Z"
+last_activity: 2026-07-10 -- Phase 04 planning complete
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 17
+  total_plans: 21
   completed_plans: 17
   percent: 50
 ---
@@ -18,11 +18,11 @@ progress:
 
 Phase: 03 (checkout-flow-pricing-page) — COMPLETE
 Plan: 7 of 7
-Status: All plans complete. UAT gaps (Test 2/Test 3) root-caused and fixed: stripe listen
+Status: Ready to execute
 needed an explicit https:// scheme + --skip-verify against this project's HTTPS-only dev
 server, and the Stripe test-mode account's Pro/Top-up Products+Prices had to be recreated
 (the configured price IDs no longer existed). Both re-verified against live Stripe test mode.
-Last activity: 2026-07-10 -- Phase 03 gap-closure re-verified and complete
+Last activity: 2026-07-10 -- Phase 04 planning complete
 
 Progress: [██████████] 100%
 
@@ -81,6 +81,7 @@ None yet.
 - Phase 1 requires Stripe Price IDs to be created in Stripe Dashboard (test mode) before Phase 3 coding — do this during Phase 1 env var setup
 - Three webhook secrets needed (CLI, staging, production) — document separately per environment
 - Verify `billing_reason === "subscription_cycle"` field name at implementation time (Stripe has renamed fields before)
+- Phase 04 decision-coverage gate override (2026-07-10): `check.decision-coverage-plan` reported D-01/D-02/D-03/D-05/D-06/D-07/D-08 as uncovered (1/8 covered), but grep confirms all 8 are textually cited in plan `read_first`/action text using the same pattern as D-04 (which the tool did mark covered) — a likely parser gap with comma-separated ID lists, not a real gap. The plan-checker agent independently confirmed all 8 decisions have verifiable implementing tasks. Proceeded anyway; re-verify at /gsd:verify-work time if in doubt.
 
 ## Deferred Items
 
@@ -90,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-10T11:32:31.557Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-plan-enforcement/04-CONTEXT.md
+Last session: 2026-07-10T11:43:06.144Z
+Stopped at: Phase 04 UI-SPEC approved
+Resume file: .planning/phases/04-plan-enforcement/04-UI-SPEC.md
