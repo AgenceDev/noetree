@@ -36,9 +36,11 @@ import { Label } from "../ui/label";
 import { useState } from "react";
 import { useEditorContext } from "@/providers/EditorProvider";
 import { useTranslations } from "next-intl";
-import { convexQuery } from "@convex-dev/react-query";
-import { useQuery } from "@tanstack/react-query";
+import { convexQuery, useConvexMutation } from "@convex-dev/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { ConvexError } from "convex/values";
 import { api } from "@/convex/_generated/api";
+import CreditsExhaustedDialog from "@/components/CreditsExhaustedDialog";
 
 export default function EditorToolbar() {
   const t = useTranslations("Editor");
@@ -50,12 +52,27 @@ export default function EditorToolbar() {
   const [linkText, setLinkText] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [imageAlt, setImageAlt] = useState("");
+  const [creditsDialogOpen, setCreditsDialogOpen] = useState(false);
 
   // D-09: balance defaults to 0 when the user has no aiCredits row yet.
   const { data: credits } = useQuery(
     convexQuery(api.aiCredits.getMyCredits, {}),
   );
   const balance = credits?.balance ?? 0;
+
+  // T-05-02: the client never gates the click on balance — runAiAction
+  // enforces the balance check server-side and throws INSUFFICIENT_CREDITS,
+  // which opens the blocking dialog below.
+  const runAiActionMutate = useConvexMutation(api.aiCredits.runAiAction);
+  const runAiAction = useMutation({
+    mutationFn: runAiActionMutate,
+    onError: err => {
+      if (err instanceof ConvexError && err.data === "INSUFFICIENT_CREDITS") {
+        setCreditsDialogOpen(true);
+      }
+    },
+  });
+  const handleAiAction = () => runAiAction.mutate({});
 
   if (!editor || !editor.isEditable) return null;
 
@@ -172,7 +189,7 @@ export default function EditorToolbar() {
 
         {/* AI action + credits balance */}
         <ToolbarButton
-          onClick={() => {}}
+          onClick={handleAiAction}
           tooltip={t("tooltips.aiAction")}
           icon={<Sparkles className="h-4 w-4" />}
         />
@@ -270,6 +287,12 @@ export default function EditorToolbar() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Credits Exhausted Dialog */}
+        <CreditsExhaustedDialog
+          open={creditsDialogOpen}
+          onOpenChange={setCreditsDialogOpen}
+        />
       </div>
     </TooltipProvider>
   );
