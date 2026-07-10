@@ -496,17 +496,19 @@ export async function createTopupCheckoutSession(): Promise<void> {
 | A2  | A payment-mode Stripe Checkout Session's `checkout.session.completed` event object has `session.payment_intent` (string or expanded object) available for `stripePaymentIntentId`                   | Pattern 3, Code Examples          | [ASSUMED from Stripe API training knowledge, not verified via Context7/Stripe docs fetch this session — MEDIUM-LOW confidence]. If `payment_intent` is not present/expanded on the raw webhook event object without an `expand` param, the planner should verify this in Stripe's Checkout Session webhook payload docs or make `stripePaymentIntentId` optional/best-effort (schema already has it as `v.optional`, so a missing value degrades gracefully — no blocking risk). |
 | A3  | The new toolbar mutation wrapper (`useCredit`/`useAiAction` or similar) should be a public `mutation` (not `action`) since the "action" being run is a synchronous placeholder with no external I/O | Pattern 1/2, Architecture Diagram | If a future phase's real AI call requires `action` (Node runtime, external HTTP), this phase's `mutation`-based wrapper would need restructuring at that time — acceptable per D-06's explicit statement that the refund path exists so the real call "can plug into the same mutation later," implying continuity is expected, not a guaranteed zero-refactor path. Low risk given CONTEXT.md's own framing.                                                                    |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Exact naming/location of the new public mutation wrapper that the toolbar button calls**
    - What we know: `deductCredit` and `addCredits` are `internalMutation`s (client cannot call them directly); something public must exist for the toolbar's `onClick` to invoke.
    - What's unclear: CONTEXT.md's Integration Points list `convex/aiCredits.ts` `deductCredit`/`addCredits` as the two functions to fill in, but does not name the new public wrapper mutation explicitly.
    - Recommendation: Add a new public `mutation` in `convex/aiCredits.ts` (e.g. `runAiAction` or `useCredit`) that derives `clerkUserId` from `ctx.auth.getUserIdentity()` (never client-supplied, per the codebase's established IDOR-prevention convention in `subscriptions.ts`/`helper.ts`) and internally performs Pattern 1+2's logic — this keeps `deductCredit` as a pure internal building block callable from both this new wrapper and potentially a future real-AI `action`.
+   - **RESOLVED:** Named `runAiAction`, implemented in `05-01-PLAN.md` Task 2.
 
 2. **Whether `CreditsBalanceBadge` should render "0" or hide itself entirely for Free users**
    - What we know: D-09 says the toolbar AI _button_ is never hidden for Free users (same blocked state as a zero-balance Pro user). The badge's fate for a `null` `getCredits` result is not explicitly addressed.
    - What's unclear: 05-UI-SPEC.md describes the badge as "placed immediately to the right of the AiActionButton" without carving out a Free-user exception.
    - Recommendation: Render "0" (treat `null` as `0`, consistent with D-09's framing of "no aiCredits row = 0 balance") rather than conditionally hiding the badge — this keeps Free and Pro-at-zero visually identical, matching D-09's intent precisely.
+   - **RESOLVED:** Badge renders "0" for a null/Free-user balance, implemented in `05-04-PLAN.md` Task 1.
 
 ## Environment Availability
 
