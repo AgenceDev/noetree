@@ -1,5 +1,5 @@
 import { query, mutation, QueryCtx, MutationCtx } from "./_generated/server";
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { getUser, isProUser } from "./helpers/helper";
 import { Doc, Id } from "./_generated/dataModel";
 
@@ -551,7 +551,12 @@ export const createNote = mutation({
         .withIndex("by_owner", q => q.eq("owner", user._id))
         .take(FREE_NOTE_LIMIT + 1);
       if (ownedNotes.length >= FREE_NOTE_LIMIT) {
-        throw new Error("NOTE_LIMIT_REACHED");
+        // ConvexError (not a plain Error) is required here: a plain Error's
+        // message gets redacted before reaching the client, but
+        // ConvexError.data survives the client boundary (see
+        // convex/stripeWebhooks.ts and app/api/webhooks/stripe/route.ts for
+        // the same pattern already established in this codebase).
+        throw new ConvexError("NOTE_LIMIT_REACHED");
       }
     }
 

@@ -28,6 +28,7 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { convexQuery, useConvexMutation } from "@convex-dev/react-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ConvexError } from "convex/values";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -669,7 +670,7 @@ export default function Notes() {
       if (context?.previousTrees) {
         queryClient.setQueryData(queryKey, context.previousTrees);
       }
-      if (err.message === "NOTE_LIMIT_REACHED") {
+      if (err instanceof ConvexError && err.data === "NOTE_LIMIT_REACHED") {
         upgradeModal.open();
       }
     },

@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useConvexMutation, convexQuery } from "@convex-dev/react-query";
+import { ConvexError } from "convex/values";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import {
@@ -78,7 +79,7 @@ export function useNoteMutations(
       if (context?.previousTree) {
         queryClient.setQueryData(queryKey, context.previousTree);
       }
-      if (err.message === "NOTE_LIMIT_REACHED") {
+      if (err instanceof ConvexError && err.data === "NOTE_LIMIT_REACHED") {
         upgradeModal.open();
       }
     },
