@@ -15,7 +15,7 @@ Milestone v1.0 adds a Free/Pro subscription model and an AI credits metering sys
 - [x] **Phase 2: Webhook Handler + Convex Internal Mutations** - Stripe events processed, subscription state written atomically (completed 2026-07-08)
 - [x] **Phase 3: Checkout Flow + Pricing Page** - Users can view plans and subscribe via Stripe Checkout (completed 2026-07-10)
 - [x] **Phase 4: Plan Enforcement** - Free tier note limit enforced server-side, upgrade prompts shown (completed 2026-07-10)
-- [ ] **Phase 5: AI Credits System** - Credits deducted atomically, top-up available, balance visible
+- [x] **Phase 5: AI Credits System** - Credits deducted atomically, top-up available, balance visible (completed 2026-07-10)
 - [ ] **Phase 6: Settings Page** - Users can manage subscription and credits from a single in-app page
 
 ## Phase Details
@@ -180,7 +180,7 @@ Plans:
 
 **Wave 3** _(blocked on Wave 2)_
 
-- [ ] 05-05-PLAN.md — Automated security verification (IDOR/Pro-gate grep + full suite) + human UAT of SC1-SC5 (checkpoint)
+- [x] 05-05-PLAN.md — Automated security verification (IDOR/Pro-gate grep + full suite) + human UAT of SC1-SC5 (checkpoint)
 
   **UI hint**: yes
 
@@ -209,5 +209,5 @@ Plans:
 | 2. Webhook Handler + Convex Internal Mutations | 6/6            | Complete    | 2026-07-08 |
 | 3. Checkout Flow + Pricing Page                | 7/7            | Complete    | 2026-07-10 |
 | 4. Plan Enforcement                            | 4/4            | Complete    | 2026-07-10 |
-| 5. AI Credits System                           | 4/5            | In Progress |            |
+| 5. AI Credits System                           | 5/5            | Complete    | 2026-07-10 |
 | 6. Settings Page                               | 0/?            | Not started | -          |
