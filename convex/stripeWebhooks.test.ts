@@ -1,6 +1,6 @@
 import { convexTest } from "convex-test";
 import { describe, expect, it, beforeEach } from "vitest";
-import { api } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import schema from "./schema";
 
 const modules = (
@@ -129,7 +129,7 @@ describe("stripeWebhooks.processWebhookEvent", () => {
       event: seedTopupCheckoutEvent("evt_pay_1", "user_pay_1", "pi_1"),
     });
 
-    const credits = await t.query(api.aiCredits.getCredits, {
+    const credits = await t.query(internal.aiCredits.getCredits, {
       clerkUserId: "user_pay_1",
     });
     expect(credits?.balance).toBe(60);
@@ -167,7 +167,7 @@ describe("stripeWebhooks.processWebhookEvent", () => {
       event,
     });
 
-    const credits = await t.query(api.aiCredits.getCredits, {
+    const credits = await t.query(internal.aiCredits.getCredits, {
       clerkUserId: "user_pay_2",
     });
     expect(credits?.balance).toBe(50);
@@ -203,7 +203,7 @@ describe("stripeWebhooks.processWebhookEvent", () => {
     expect(sub).not.toBeNull();
     expect(sub?.stripeSubscriptionId).toBe("sub_sub_explicit");
 
-    const credits = await t.query(api.aiCredits.getCredits, {
+    const credits = await t.query(internal.aiCredits.getCredits, {
       clerkUserId: "user_sub_explicit",
     });
     expect(credits).toBeNull();
@@ -392,7 +392,7 @@ describe("stripeWebhooks.processWebhookEvent", () => {
       },
     });
 
-    const credits = await t.query(api.aiCredits.getCredits, {
+    const credits = await t.query(internal.aiCredits.getCredits, {
       clerkUserId: "user_20",
     });
     expect(credits?.balance).toBe(100);
@@ -427,7 +427,7 @@ describe("stripeWebhooks.processWebhookEvent", () => {
 
     expect(result).toEqual({ skipped: true });
 
-    const credits = await t.query(api.aiCredits.getCredits, {
+    const credits = await t.query(internal.aiCredits.getCredits, {
       clerkUserId: "user_20b",
     });
     expect(credits).toBeNull();

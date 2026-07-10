@@ -70,6 +70,22 @@ export const processWebhookEvent = action({
           });
         }
 
+        // Explicit check (not blanket "else") because Stripe Checkout
+        // Sessions also support mode: "setup" (and future modes). Falling
+        // through by negation would route a setup-mode session into the
+        // subscription path below, where session.subscription/
+        // subscriptionSnapshot don't exist — hitting the same
+        // ArgumentValidationError-to-500 failure mode the payment/invoice
+        // guards above exist to avoid. `mode` undefined is treated as
+        // "subscription" for backward compatibility with pre-D-14 test
+        // fixtures/events that predate this field's introduction.
+        if (session.mode !== undefined && session.mode !== "subscription") {
+          console.error(
+            `checkout.session.completed anomaly: unexpected mode "${session.mode}" for stripeEventId ${args.event.id}`,
+          );
+          return { anomaly: "unexpected checkout mode" };
+        }
+
         const stripeCustomerId =
           typeof session.customer === "string"
             ? session.customer
@@ -119,7 +135,7 @@ export const processWebhookEvent = action({
             stripeSubscriptionId,
             status: mapStripeSubscriptionStatus(subscription.status),
             currentPeriodEnd,
-            cancelAtPeriodEnd: subscription.cancel_at_period_end,
+            cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
           },
         );
       }
@@ -146,6 +162,16 @@ export const processWebhookEvent = action({
             : invoice.parent?.subscription_details?.subscription?.id;
 
         if (invoice.billing_reason !== "subscription_cycle") {
+          return { skipped: true };
+        }
+
+        // Mirrors the invoice.payment_failed guard below: a standalone or
+        // malformed invoice can lack parent.subscription_details, leaving
+        // stripeSubscriptionId undefined. resetCredits' arg is a required
+        // v.string() — an unguarded call would throw an uncaught
+        // ArgumentValidationError, surfacing as a 500 to Stripe and
+        // triggering endless retries.
+        if (!stripeSubscriptionId) {
           return { skipped: true };
         }
 

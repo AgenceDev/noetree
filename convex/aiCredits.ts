@@ -1,7 +1,8 @@
 import {
-  query,
+  internalQuery,
   internalMutation,
   mutation,
+  query,
   MutationCtx,
 } from "./_generated/server";
 import { v, ConvexError } from "convex/values";
@@ -20,6 +21,10 @@ async function applyDeduction(
   clerkUserId: string,
   amount: number,
 ) {
+  if (!Number.isInteger(amount) || amount <= 0) {
+    throw new ConvexError("INVALID_AMOUNT");
+  }
+
   const credits = await ctx.db
     .query("aiCredits")
     .withIndex("by_clerkUserId", q => q.eq("clerkUserId", clerkUserId))
@@ -34,7 +39,8 @@ async function applyDeduction(
     await ctx.db.patch(credits._id, { balance: balance - amount });
   } else {
     // Defensive-only branch: unreachable when balance < amount already
-    // threw above (balance defaults to 0, and amount is always >= 1).
+    // threw above (balance defaults to 0, and amount is always >= 1 per
+    // the positivity check above).
     await ctx.db.insert("aiCredits", {
       clerkUserId,
       balance: balance - amount,
@@ -50,7 +56,11 @@ async function applyDeduction(
   });
 }
 
-export const getCredits = query({
+// Security: internal-only. Takes a caller-supplied clerkUserId, so it must
+// never be reachable from the public client SDK — doing so would let any
+// caller enumerate another user's credit balance (IDOR). Client-facing
+// balance reads go through the identity-derived getMyCredits query below.
+export const getCredits = internalQuery({
   args: { clerkUserId: v.string() },
   handler: async (ctx, args) => {
     return await ctx.db
@@ -198,6 +208,10 @@ export const addCredits = internalMutation({
     stripePaymentIntentId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    if (!Number.isInteger(args.amount) || args.amount <= 0) {
+      throw new ConvexError("INVALID_AMOUNT");
+    }
+
     const already = await ctx.db
       .query("processedStripeEvents")
       .withIndex("by_stripeEventId", q =>

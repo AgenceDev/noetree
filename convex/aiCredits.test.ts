@@ -31,7 +31,7 @@ describe("aiCredits.resetCredits / getCredits", () => {
       stripeSubscriptionId: "sub_3",
     });
 
-    const credits = await t.query(api.aiCredits.getCredits, {
+    const credits = await t.query(internal.aiCredits.getCredits, {
       clerkUserId: "user_3",
     });
     expect(credits?.balance).toBe(100);
@@ -55,7 +55,7 @@ describe("aiCredits.resetCredits / getCredits", () => {
       stripeSubscriptionId: "sub_3",
     });
 
-    const credits = await t.query(api.aiCredits.getCredits, {
+    const credits = await t.query(internal.aiCredits.getCredits, {
       clerkUserId: "user_3",
     });
     expect(credits?.balance).toBe(100);
@@ -86,7 +86,7 @@ describe("aiCredits.resetCredits / getCredits", () => {
     });
     expect(second).toEqual({ alreadyProcessed: true });
 
-    const credits = await t.query(api.aiCredits.getCredits, {
+    const credits = await t.query(internal.aiCredits.getCredits, {
       clerkUserId: "user_3",
     });
     expect(credits?.balance).toBe(100);
@@ -146,7 +146,7 @@ describe("aiCredits.resetCredits / getCredits", () => {
 
   it("getCredits returns null for a clerkUserId with no aiCredits row", async () => {
     const t = convexTest(schema, modules);
-    const credits = await t.query(api.aiCredits.getCredits, {
+    const credits = await t.query(internal.aiCredits.getCredits, {
       clerkUserId: "user_nonexistent",
     });
     expect(credits).toBeNull();
@@ -170,7 +170,7 @@ describe("aiCredits.deductCredit", () => {
     });
     expect(result).toEqual({ success: true });
 
-    const credits = await t.query(api.aiCredits.getCredits, {
+    const credits = await t.query(internal.aiCredits.getCredits, {
       clerkUserId: "user_x",
     });
     expect(credits?.balance).toBe(4);
@@ -201,7 +201,7 @@ describe("aiCredits.deductCredit", () => {
       amount: 1,
     });
 
-    const credits = await t.query(api.aiCredits.getCredits, {
+    const credits = await t.query(internal.aiCredits.getCredits, {
       clerkUserId: "user_x",
     });
     expect(credits?.balance).toBe(0);
@@ -224,7 +224,7 @@ describe("aiCredits.deductCredit", () => {
       }),
     ).rejects.toThrow("INSUFFICIENT_CREDITS");
 
-    const credits = await t.query(api.aiCredits.getCredits, {
+    const credits = await t.query(internal.aiCredits.getCredits, {
       clerkUserId: "user_x",
     });
     expect(credits?.balance).toBe(0);
@@ -275,7 +275,7 @@ describe("aiCredits.deductCredit", () => {
     expect(fulfilled.length).toBe(1);
     expect(rejected.length).toBe(1);
 
-    const credits = await t.query(api.aiCredits.getCredits, {
+    const credits = await t.query(internal.aiCredits.getCredits, {
       clerkUserId: "user_x",
     });
     expect(credits?.balance).toBe(0);
@@ -317,7 +317,7 @@ describe("aiCredits.runAiAction", () => {
       .mutation(api.aiCredits.runAiAction, {});
     expect(result).toEqual({ success: true });
 
-    const credits = await t.query(api.aiCredits.getCredits, {
+    const credits = await t.query(internal.aiCredits.getCredits, {
       clerkUserId: "user_x",
     });
     expect(credits?.balance).toBe(2);
@@ -347,7 +347,7 @@ describe("aiCredits.runAiAction", () => {
       t.withIdentity(IDENTITY).mutation(api.aiCredits.runAiAction, {}),
     ).rejects.toThrow("INSUFFICIENT_CREDITS");
 
-    const credits = await t.query(api.aiCredits.getCredits, {
+    const credits = await t.query(internal.aiCredits.getCredits, {
       clerkUserId: "user_x",
     });
     expect(credits?.balance).toBe(0);
@@ -400,7 +400,7 @@ describe("aiCredits.addCredits", () => {
     });
     expect(result).not.toEqual({ alreadyProcessed: true });
 
-    const credits = await t.query(api.aiCredits.getCredits, {
+    const credits = await t.query(internal.aiCredits.getCredits, {
       clerkUserId: "user_topup",
     });
     expect(credits?.balance).toBe(60);
@@ -437,7 +437,7 @@ describe("aiCredits.addCredits", () => {
       stripePaymentIntentId: "pi_y",
     });
 
-    const credits = await t.query(api.aiCredits.getCredits, {
+    const credits = await t.query(internal.aiCredits.getCredits, {
       clerkUserId: "user_new_topup",
     });
     expect(credits?.balance).toBe(50);
@@ -472,7 +472,7 @@ describe("aiCredits.addCredits", () => {
     });
     expect(second).toEqual({ alreadyProcessed: true });
 
-    const credits = await t.query(api.aiCredits.getCredits, {
+    const credits = await t.query(internal.aiCredits.getCredits, {
       clerkUserId: "user_topup_replay",
     });
     expect(credits?.balance).toBe(50);
@@ -495,7 +495,7 @@ describe("aiCredits.addCredits", () => {
     });
     expect(result).not.toEqual({ alreadyProcessed: true });
 
-    const credits = await t.query(api.aiCredits.getCredits, {
+    const credits = await t.query(internal.aiCredits.getCredits, {
       clerkUserId: "user_no_pi",
     });
     expect(credits?.balance).toBe(50);
