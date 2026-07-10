@@ -119,7 +119,7 @@ Plans:
 
 **Gap Closure** _(from 03-HUMAN-UAT.md — Test 2 & Test 3 failures)_
 
-- [ ] 03-06-PLAN.md — Diagnosability fixes: guard+log the Convex auth-handshake/query in actions.ts (distinguishable error), console.error the real error in page.tsx's catch, log webhook 400/500 failures in route.ts (Wave 1, autonomous)
+- [x] 03-06-PLAN.md — Diagnosability fixes: guard+log the Convex auth-handshake/query in actions.ts (distinguishable error), console.error the real error in page.tsx's catch, log webhook 400/500 failures in route.ts (Wave 1, autonomous)
 - [ ] 03-07-PLAN.md — Manual UAT re-verification of Test 2 & Test 3 with `stripe listen` running and STRIPE_WEBHOOK_SECRET synced (Wave 2, depends on 03-06, checkpoint)
 
 ### Phase 4: Plan Enforcement
@@ -174,7 +174,7 @@ Plans:
 | ---------------------------------------------- | -------------- | ----------- | ---------- |
 | 1. Schema + Infrastructure Foundation          | 4/4            | Complete    | 2026-07-08 |
 | 2. Webhook Handler + Convex Internal Mutations | 6/6            | Complete    | 2026-07-08 |
-| 3. Checkout Flow + Pricing Page                | 4/7            | In Progress |            |
+| 3. Checkout Flow + Pricing Page                | 5/7            | In Progress |            |
 | 4. Plan Enforcement                            | 0/?            | Not started | -          |
 | 5. AI Credits System                           | 0/?            | Not started | -          |
 | 6. Settings Page                               | 0/?            | Not started | -          |
