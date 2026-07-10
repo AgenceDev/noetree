@@ -153,6 +153,15 @@
     "upgradeCta": "Upgrade to Pro",
     "dismiss": "Maybe later"
   },
+  "AiCredits": {
+    "dialogTitle": "You're out of AI credits",
+    "dialogBodyFree": "Free plans don't include AI credits. Upgrade to Pro for 100 AI credits a month, with the option to top up anytime.",
+    "dialogBodyPro": "You've used all your AI credits for this cycle. Buy 50 more credits for 2€, or wait for your next billing cycle to reset.",
+    "upgradeCta": "Upgrade to Pro",
+    "topupCta": "Buy 50 credits",
+    "dismiss": "Maybe later",
+    "badgeTooltip": "{count, plural, =0 {0 AI credits remaining} one {# AI credit remaining} other {# AI credits remaining}}"
+  },
   "Editor": {
     "placeholder": "Write something...",
     "tooltips": {
@@ -175,7 +184,8 @@
       "hardBreak": "Hard Break",
       "horizontalRule": "Horizontal Rule",
       "link": "Insert Link (Ctrl+K)",
-      "image": "Insert Image"
+      "image": "Insert Image",
+      "aiAction": "AI action (1 credit)"
     },
     "dialogs": {
       "linkTitle": "Insert Link",

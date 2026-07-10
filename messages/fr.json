@@ -153,6 +153,15 @@
     "upgradeCta": "Passer à Pro",
     "dismiss": "Plus tard"
   },
+  "AiCredits": {
+    "dialogTitle": "Vous n'avez plus de crédits IA",
+    "dialogBodyFree": "Les plans Gratuits n'incluent pas de crédits IA. Passez à Pro pour 100 crédits IA par mois, avec la possibilité d'en racheter à tout moment.",
+    "dialogBodyPro": "Vous avez utilisé tous vos crédits IA pour ce cycle. Achetez 50 crédits supplémentaires pour 2€, ou attendez la réinitialisation de votre prochain cycle de facturation.",
+    "upgradeCta": "Passer à Pro",
+    "topupCta": "Acheter 50 crédits",
+    "dismiss": "Plus tard",
+    "badgeTooltip": "{count, plural, =0 {0 crédit IA restant} one {# crédit IA restant} other {# crédits IA restants}}"
+  },
   "Editor": {
     "placeholder": "Écrivez quelque chose...",
     "tooltips": {
@@ -175,7 +184,8 @@
       "hardBreak": "Saut de ligne",
       "horizontalRule": "Règle horizontale",
       "link": "Insérer un lien (Ctrl+K)",
-      "image": "Insérer une image"
+      "image": "Insérer une image",
+      "aiAction": "Action IA (1 crédit)"
     },
     "dialogs": {
       "linkTitle": "Insérer un lien",
