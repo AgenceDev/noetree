@@ -136,4 +136,20 @@ describe("createCheckoutSession", () => {
       }),
     );
   });
+
+  it("a thrown Convex auth-handshake/query failure surfaces as subscriptionLookupFailed, never reaching Stripe (gap closure)", async () => {
+    mockAuth.mockResolvedValue({
+      userId: "user_lookup_fail_1",
+      redirectToSignIn: vi.fn(),
+      getToken: vi.fn().mockResolvedValue("mock_convex_token"),
+    });
+    mockConvexQuery.mockRejectedValueOnce(
+      new Error("convex auth handshake failed"),
+    );
+
+    await expect(createCheckoutSession("en")).rejects.toThrow(
+      /subscriptionLookupFailed/,
+    );
+    expect(mockSessionsCreate).not.toHaveBeenCalled();
+  });
 });

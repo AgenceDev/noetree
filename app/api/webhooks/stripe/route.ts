@@ -21,10 +21,17 @@ export async function POST(req: Request): Promise<Response> {
       signature!,
       process.env.STRIPE_WEBHOOK_SECRET!,
     );
-  } catch {
+  } catch (err) {
     // Spoofed/forged payload or missing/invalid Stripe-Signature header (D-10,
     // T-02-01) — never a 500, Stripe would otherwise retry a request that can
     // never succeed.
+    // Gap closure (03-06): log so a stopped/mismatched local `stripe listen`
+    // forwarder (STRIPE_WEBHOOK_SECRET mismatch) is diagnosable instead of
+    // failing silently. T-03-08: never log rawBody, signature, or any secret.
+    console.error(
+      "[stripe webhook] signature verification failed (400) — check STRIPE_WEBHOOK_SECRET matches the active `stripe listen` session",
+      err,
+    );
     return new Response("Invalid signature", { status: 400 });
   }
 
@@ -79,6 +86,9 @@ export async function POST(req: Request): Promise<Response> {
     // D-11 — genuine processing failure (Convex unreachable, unhandled
     // exception). 500 lets Stripe's retry-with-backoff self-heal transient
     // failures.
+    // Gap closure (03-06): log so this failure is developer-visible locally
+    // instead of silently 500-ing. T-03-08: never log any secret value.
+    console.error("[stripe webhook] processing failed (500)", err);
     return new Response("Webhook processing failed", { status: 500 });
   }
 }

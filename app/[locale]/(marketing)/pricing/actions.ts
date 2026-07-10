@@ -27,9 +27,25 @@ export async function createCheckoutSession(locale: string): Promise<void> {
   // own Clerk session token so getSubscription's ctx.auth.getUserIdentity()
   // resolves to this same user — the query no longer accepts a
   // client-supplied clerkUserId argument (IDOR fix, 03-REVIEW.md CR-01).
-  const convexToken = await getToken({ template: "convex" });
-  if (convexToken) convex.setAuth(convexToken);
-  const existing = await convex.query(api.subscriptions.getSubscription, {});
+  let existing: Awaited<
+    ReturnType<typeof convex.query<typeof api.subscriptions.getSubscription>>
+  >;
+  try {
+    const convexToken = await getToken({ template: "convex" });
+    if (convexToken) convex.setAuth(convexToken);
+    existing = await convex.query(api.subscriptions.getSubscription, {});
+  } catch (err) {
+    // Gap closure (03-06): a failure in the Clerk->Convex auth handshake or
+    // the getSubscription query must be caught, logged, and re-thrown as a
+    // distinguishable error — never propagate uncaught into page.tsx's bare
+    // catch, and never be confused with a genuine Stripe API failure below.
+    // T-03-08: never log convexToken or any secret/token value.
+    console.error(
+      "createCheckoutSession: subscription lookup/auth handshake failed",
+      err,
+    );
+    throw new Error("subscriptionLookupFailed");
+  }
 
   // D-08: already active -> short-circuit straight to the success page, no Stripe call.
   if (existing?.status === "active") {
