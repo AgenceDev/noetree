@@ -295,3 +295,128 @@ describe("aiCredits.deductCredit", () => {
     ).resolves.toBeDefined();
   });
 });
+
+const IDENTITY = {
+  subject: "user_x",
+  tokenIdentifier: "https://clerk.dev|user_x",
+};
+
+describe("aiCredits.runAiAction", () => {
+  it("deducts 1 credit from the authenticated identity's balance and records one deduction transaction", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("aiCredits", {
+        clerkUserId: "user_x",
+        balance: 3,
+        lastResetAt: Date.now(),
+      });
+    });
+
+    const result = await t
+      .withIdentity(IDENTITY)
+      .mutation(api.aiCredits.runAiAction, {});
+    expect(result).toEqual({ success: true });
+
+    const credits = await t.query(api.aiCredits.getCredits, {
+      clerkUserId: "user_x",
+    });
+    expect(credits?.balance).toBe(2);
+
+    const rows = await t.run(async ctx =>
+      ctx.db.query("creditTransactions").collect(),
+    );
+    expect(rows.length).toBe(1);
+    expect(rows[0]).toMatchObject({
+      clerkUserId: "user_x",
+      type: "deduction",
+      amount: -1,
+    });
+  });
+
+  it("throws INSUFFICIENT_CREDITS at balance=0 without mutating balance or inserting a transaction", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("aiCredits", {
+        clerkUserId: "user_x",
+        balance: 0,
+        lastResetAt: Date.now(),
+      });
+    });
+
+    await expect(
+      t.withIdentity(IDENTITY).mutation(api.aiCredits.runAiAction, {}),
+    ).rejects.toThrow("INSUFFICIENT_CREDITS");
+
+    const credits = await t.query(api.aiCredits.getCredits, {
+      clerkUserId: "user_x",
+    });
+    expect(credits?.balance).toBe(0);
+
+    const rows = await t.run(async ctx =>
+      ctx.db.query("creditTransactions").collect(),
+    );
+    expect(rows.length).toBe(0);
+  });
+
+  it("throws INSUFFICIENT_CREDITS when the identity has no aiCredits row", async () => {
+    const t = convexTest(schema, modules);
+
+    await expect(
+      t.withIdentity(IDENTITY).mutation(api.aiCredits.runAiAction, {}),
+    ).rejects.toThrow("INSUFFICIENT_CREDITS");
+  });
+
+  it("throws when called with no authenticated identity", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("aiCredits", {
+        clerkUserId: "user_x",
+        balance: 5,
+        lastResetAt: Date.now(),
+      });
+    });
+
+    await expect(t.mutation(api.aiCredits.runAiAction, {})).rejects.toThrow();
+  });
+});
+
+describe("aiCredits.getMyCredits", () => {
+  it("returns the authenticated identity's aiCredits row", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("aiCredits", {
+        clerkUserId: "user_x",
+        balance: 7,
+        lastResetAt: Date.now(),
+      });
+    });
+
+    const credits = await t
+      .withIdentity(IDENTITY)
+      .query(api.aiCredits.getMyCredits, {});
+    expect(credits?.balance).toBe(7);
+  });
+
+  it("returns null when the identity has no aiCredits row", async () => {
+    const t = convexTest(schema, modules);
+
+    const credits = await t
+      .withIdentity(IDENTITY)
+      .query(api.aiCredits.getMyCredits, {});
+    expect(credits).toBeNull();
+  });
+
+  it("returns null when there is no authenticated identity", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("aiCredits", {
+        clerkUserId: "user_x",
+        balance: 7,
+        lastResetAt: Date.now(),
+      });
+    });
+
+    const credits = await t.query(api.aiCredits.getMyCredits, {});
+    expect(credits).toBeNull();
+  });
+});
