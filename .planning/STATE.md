@@ -2,27 +2,27 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 5 UI-SPEC approved
-last_updated: "2026-07-10T20:04:36.149Z"
+status: ready_to_plan
+stopped_at: Phase 05 complete (5/5) — ready to discuss Phase 6
+last_updated: 2026-07-10T22:13:40.210Z
 last_activity: 2026-07-10 -- Phase 5 execution started
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 26
-  completed_plans: 21
+  completed_plans: 26
   percent: 67
 ---
 
 ## Current Position
 
-Phase: 5 (AI Credits System) — EXECUTING
-Plan: 1 of 5
-Status: Executing Phase 5
+Phase: 6
+Plan: Not started
+Status: Ready to plan
 needed an explicit https:// scheme + --skip-verify against this project's HTTPS-only dev
 server, and the Stripe test-mode account's Pro/Top-up Products+Prices had to be recreated
 (the configured price IDs no longer existed). Both re-verified against live Stripe test mode.
-Last activity: 2026-07-10 -- Phase 5 execution started
+Last activity: 2026-07-10
 
 Progress: [██████████] 100%
 
@@ -31,13 +31,13 @@ Progress: [██████████] 100%
 See: .planning/PROJECT.md (updated 2026-07-07)
 
 **Core value:** Un utilisateur peut créer, organiser et naviguer dans ses notes en structure arborescente.
-**Current focus:** Phase 5 — AI Credits System
+**Current focus:** Phase 6 — settings page
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 10
+- Total plans completed: 15
 - Average duration: —
 - Total execution time: 0 hours
 
@@ -47,6 +47,7 @@ See: .planning/PROJECT.md (updated 2026-07-07)
 | ----- | ----- | ----- | -------- |
 | 02    | 6     | -     | -        |
 | 04    | 4     | -     | -        |
+| 05    | 5     | -     | -        |
 
 **Recent Trend:**
 
