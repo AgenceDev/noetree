@@ -38,10 +38,14 @@ export default function PricingPage() {
     setIsPending(true);
     try {
       await createCheckoutSession(locale);
-    } catch {
+    } catch (err) {
       // D-15/D-02: sign-in and Stripe redirects throw internally (Next's
       // redirect-throw); only a genuine Checkout Session creation failure
       // reaches this catch (see actions.ts's narrow try/catch).
+      // Gap closure (03-06): log the real thrown error (e.g.
+      // subscriptionLookupFailed vs checkoutSessionCreationFailed) so it is
+      // readable in the browser console instead of only the static red text.
+      console.error("Checkout upgrade failed", err);
       setError(true);
     } finally {
       setIsPending(false);
