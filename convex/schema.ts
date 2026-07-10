@@ -64,6 +64,7 @@ export default defineSchema({
       v.literal("deduction"),
       v.literal("topup"),
       v.literal("reset"),
+      v.literal("refund"),
     ),
     amount: v.number(),
     createdAt: v.number(),

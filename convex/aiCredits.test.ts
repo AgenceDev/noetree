@@ -152,3 +152,146 @@ describe("aiCredits.resetCredits / getCredits", () => {
     expect(credits).toBeNull();
   });
 });
+
+describe("aiCredits.deductCredit", () => {
+  it("deducts 1 credit from balance=5, patches to 4, and records a deduction transaction", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("aiCredits", {
+        clerkUserId: "user_x",
+        balance: 5,
+        lastResetAt: Date.now(),
+      });
+    });
+
+    const result = await t.mutation(internal.aiCredits.deductCredit, {
+      clerkUserId: "user_x",
+      amount: 1,
+    });
+    expect(result).toEqual({ success: true });
+
+    const credits = await t.query(api.aiCredits.getCredits, {
+      clerkUserId: "user_x",
+    });
+    expect(credits?.balance).toBe(4);
+
+    const rows = await t.run(async ctx =>
+      ctx.db.query("creditTransactions").collect(),
+    );
+    expect(rows.length).toBe(1);
+    expect(rows[0]).toMatchObject({
+      clerkUserId: "user_x",
+      type: "deduction",
+      amount: -1,
+    });
+  });
+
+  it("deducts from balance=1 to 0", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("aiCredits", {
+        clerkUserId: "user_x",
+        balance: 1,
+        lastResetAt: Date.now(),
+      });
+    });
+
+    await t.mutation(internal.aiCredits.deductCredit, {
+      clerkUserId: "user_x",
+      amount: 1,
+    });
+
+    const credits = await t.query(api.aiCredits.getCredits, {
+      clerkUserId: "user_x",
+    });
+    expect(credits?.balance).toBe(0);
+  });
+
+  it("throws INSUFFICIENT_CREDITS at balance=0 with no patch and no transaction row", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("aiCredits", {
+        clerkUserId: "user_x",
+        balance: 0,
+        lastResetAt: Date.now(),
+      });
+    });
+
+    await expect(
+      t.mutation(internal.aiCredits.deductCredit, {
+        clerkUserId: "user_x",
+        amount: 1,
+      }),
+    ).rejects.toThrow("INSUFFICIENT_CREDITS");
+
+    const credits = await t.query(api.aiCredits.getCredits, {
+      clerkUserId: "user_x",
+    });
+    expect(credits?.balance).toBe(0);
+
+    const rows = await t.run(async ctx =>
+      ctx.db.query("creditTransactions").collect(),
+    );
+    expect(rows.length).toBe(0);
+  });
+
+  it("treats a clerkUserId with no aiCredits row as balance 0 and throws INSUFFICIENT_CREDITS", async () => {
+    const t = convexTest(schema, modules);
+
+    await expect(
+      t.mutation(internal.aiCredits.deductCredit, {
+        clerkUserId: "user_nonexistent",
+        amount: 1,
+      }),
+    ).rejects.toThrow("INSUFFICIENT_CREDITS");
+
+    const rows = await t.run(async ctx => ctx.db.query("aiCredits").collect());
+    expect(rows.length).toBe(0);
+  });
+
+  it("is TOCTOU-safe: two concurrent deductions at balance=1 never both succeed, final balance is 0", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("aiCredits", {
+        clerkUserId: "user_x",
+        balance: 1,
+        lastResetAt: Date.now(),
+      });
+    });
+
+    const results = await Promise.allSettled([
+      t.mutation(internal.aiCredits.deductCredit, {
+        clerkUserId: "user_x",
+        amount: 1,
+      }),
+      t.mutation(internal.aiCredits.deductCredit, {
+        clerkUserId: "user_x",
+        amount: 1,
+      }),
+    ]);
+
+    const fulfilled = results.filter(r => r.status === "fulfilled");
+    const rejected = results.filter(r => r.status === "rejected");
+    expect(fulfilled.length).toBe(1);
+    expect(rejected.length).toBe(1);
+
+    const credits = await t.query(api.aiCredits.getCredits, {
+      clerkUserId: "user_x",
+    });
+    expect(credits?.balance).toBe(0);
+  });
+
+  it("allows creditTransactions rows with type 'refund' (schema validation passes)", async () => {
+    const t = convexTest(schema, modules);
+    await expect(
+      t.run(async ctx =>
+        ctx.db.insert("creditTransactions", {
+          clerkUserId: "user_x",
+          type: "refund",
+          amount: 1,
+          createdAt: Date.now(),
+        }),
+      ),
+    ).resolves.toBeDefined();
+  });
+});
