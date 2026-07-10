@@ -13,7 +13,7 @@ Milestone v1.0 adds a Free/Pro subscription model and an AI credits metering sys
 
 - [x] **Phase 1: Schema + Infrastructure Foundation** - Convex tables deployed, env vars configured, packages installed (completed 2026-07-08)
 - [x] **Phase 2: Webhook Handler + Convex Internal Mutations** - Stripe events processed, subscription state written atomically (completed 2026-07-08)
-- [ ] **Phase 3: Checkout Flow + Pricing Page** - Users can view plans and subscribe via Stripe Checkout
+- [x] **Phase 3: Checkout Flow + Pricing Page** - Users can view plans and subscribe via Stripe Checkout (completed 2026-07-10)
 - [ ] **Phase 4: Plan Enforcement** - Free tier note limit enforced server-side, upgrade prompts shown
 - [ ] **Phase 5: AI Credits System** - Credits deducted atomically, top-up available, balance visible
 - [ ] **Phase 6: Settings Page** - Users can manage subscription and credits from a single in-app page
@@ -114,13 +114,13 @@ Plans:
 
 **Wave 3** _(blocked on Wave 2)_
 
-- [ ] 03-04-PLAN.md — End-to-end manual Stripe test-mode sign-off (SC2/SC3/SC4: redirect, webhook confirmation, no duplicate customer)
+- [x] 03-04-PLAN.md — End-to-end manual Stripe test-mode sign-off (SC2/SC3/SC4: redirect, webhook confirmation, no duplicate customer)
       **UI hint**: yes
 
 **Gap Closure** _(from 03-HUMAN-UAT.md — Test 2 & Test 3 failures)_
 
 - [x] 03-06-PLAN.md — Diagnosability fixes: guard+log the Convex auth-handshake/query in actions.ts (distinguishable error), console.error the real error in page.tsx's catch, log webhook 400/500 failures in route.ts (Wave 1, autonomous)
-- [ ] 03-07-PLAN.md — Manual UAT re-verification of Test 2 & Test 3 with `stripe listen` running and STRIPE_WEBHOOK_SECRET synced (Wave 2, depends on 03-06, checkpoint)
+- [x] 03-07-PLAN.md — Manual UAT re-verification of Test 2 & Test 3 with `stripe listen` running and STRIPE_WEBHOOK_SECRET synced (Wave 2, depends on 03-06, checkpoint)
 
 ### Phase 4: Plan Enforcement
 
@@ -174,7 +174,7 @@ Plans:
 | ---------------------------------------------- | -------------- | ----------- | ---------- |
 | 1. Schema + Infrastructure Foundation          | 4/4            | Complete    | 2026-07-08 |
 | 2. Webhook Handler + Convex Internal Mutations | 6/6            | Complete    | 2026-07-08 |
-| 3. Checkout Flow + Pricing Page                | 5/7            | In Progress |            |
+| 3. Checkout Flow + Pricing Page                | 7/7            | Complete    | 2026-07-10 |
 | 4. Plan Enforcement                            | 0/?            | Not started | -          |
 | 5. AI Credits System                           | 0/?            | Not started | -          |
 | 6. Settings Page                               | 0/?            | Not started | -          |

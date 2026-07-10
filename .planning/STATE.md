@@ -3,27 +3,28 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 3 UI-SPEC approved
-last_updated: "2026-07-10T10:14:32.098Z"
-last_activity: 2026-07-10 -- Phase 03 execution started
+stopped_at: Phase 3 complete — all 7 plans done, UAT gaps resolved
+last_updated: "2026-07-10T13:20:00.000Z"
+last_activity: 2026-07-10 -- Phase 03 gap-closure re-verified and complete (checkout + webhook e2e confirmed against live Stripe)
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 17
-  completed_plans: 14
-  percent: 33
+  completed_plans: 17
+  percent: 100
 ---
 
 ## Current Position
 
-Phase: 03 (checkout-flow-pricing-page) — EXECUTING
-Plan: 1 of 7
-Status: Executing Phase 03
-found in code review and fixed same session. Phase 3 cannot be marked Complete until a human
-completes the real Stripe test-mode payment checklist in 03-HUMAN-UAT.md.
-Last activity: 2026-07-10 -- Phase 03 execution started
+Phase: 03 (checkout-flow-pricing-page) — COMPLETE
+Plan: 7 of 7
+Status: All plans complete. UAT gaps (Test 2/Test 3) root-caused and fixed: stripe listen
+needed an explicit https:// scheme + --skip-verify against this project's HTTPS-only dev
+server, and the Stripe test-mode account's Pro/Top-up Products+Prices had to be recreated
+(the configured price IDs no longer existed). Both re-verified against live Stripe test mode.
+Last activity: 2026-07-10 -- Phase 03 gap-closure re-verified and complete
 
-Progress: [████████░░] 80%
+Progress: [██████████] 100%
 
 ## Project Reference
 
@@ -69,6 +70,7 @@ Recent decisions affecting current work:
 - [Phase ?]: Payment tables key on bare clerkUserId string (not v.id users) with by_clerkUserId index; all write functions are internalMutation — Decouples payment records from internal users table and blocks direct client writes (D-01/D-02/D-08/D-09)
 - [Phase ?]: Phase 1: Stripe SDKs installed via pnpm; @clerk/nextjs already 7.5.1 (CVE-2026-41248 pre-mitigated); webhook auth-exclusion applied to proxy.ts (Next 16 rename) protecting /notes
 - [Phase ?]: Phase 1: Stripe test-mode Pro product (900 EUR/mo recurring) and Top-up product (200 EUR one-time) created via API; real Price IDs captured in .env.local (D-03)
+- Phase 3 gap-closure (2026-07-10): Original Phase 1 Stripe Price IDs no longer existed on the test-mode account (zero Products/Prices found) — recreated Pro (price_1TrcDXBWPMSBebOkTYFLlfJr) and Top-up (price_1TrcEWBWPMSBebOkaTRHquve) and updated .env.local. Also: local HTTPS dev (`next dev --experimental-https`) requires `stripe listen --forward-to https://localhost:3000/... --skip-verify`, not the bare-host form.
 
 ### Pending Todos
 
