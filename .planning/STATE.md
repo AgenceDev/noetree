@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 5 UI-SPEC approved
-last_updated: "2026-07-10T19:57:35.843Z"
-last_activity: 2026-07-10 -- Phase 5 planning complete
+last_updated: "2026-07-10T20:04:36.149Z"
+last_activity: 2026-07-10 -- Phase 5 execution started
 progress:
   total_phases: 6
   completed_phases: 4
@@ -16,13 +16,13 @@ progress:
 
 ## Current Position
 
-Phase: 5
-Plan: Not started
-Status: Ready to execute
+Phase: 5 (AI Credits System) — EXECUTING
+Plan: 1 of 5
+Status: Executing Phase 5
 needed an explicit https:// scheme + --skip-verify against this project's HTTPS-only dev
 server, and the Stripe test-mode account's Pro/Top-up Products+Prices had to be recreated
 (the configured price IDs no longer existed). Both re-verified against live Stripe test mode.
-Last activity: 2026-07-10 -- Phase 5 planning complete
+Last activity: 2026-07-10 -- Phase 5 execution started
 
 Progress: [██████████] 100%
 
@@ -31,7 +31,7 @@ Progress: [██████████] 100%
 See: .planning/PROJECT.md (updated 2026-07-07)
 
 **Core value:** Un utilisateur peut créer, organiser et naviguer dans ses notes en structure arborescente.
-**Current focus:** Phase 5 — ai credits system
+**Current focus:** Phase 5 — AI Credits System
 
 ## Performance Metrics
 

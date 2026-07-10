@@ -170,8 +170,8 @@ Plans:
 
 **Wave 1**
 
-- [ ] 05-01-PLAN.md — Credit deduction machinery: implement deductCredit + public runAiAction (TOCTOU-safe deduct/act/refund) + identity-derived getMyCredits + "refund" schema literal + convex-test (CRED-04, CRED-02)
-- [ ] 05-03-PLAN.md — Top-up Server Action (payment-mode, Pro-only gate) + CreditsExhaustedDialog (branching CTA) + AiCredits i18n (CRED-03, PAY-05)
+- [x] 05-01-PLAN.md — Credit deduction machinery: implement deductCredit + public runAiAction (TOCTOU-safe deduct/act/refund) + identity-derived getMyCredits + "refund" schema literal + convex-test (CRED-04, CRED-02)
+- [x] 05-03-PLAN.md — Top-up Server Action (payment-mode, Pro-only gate) + CreditsExhaustedDialog (branching CTA) + AiCredits i18n (CRED-03, PAY-05)
 
 **Wave 2** _(blocked on Wave 1)_
 
@@ -209,5 +209,5 @@ Plans:
 | 2. Webhook Handler + Convex Internal Mutations | 6/6            | Complete    | 2026-07-08 |
 | 3. Checkout Flow + Pricing Page                | 7/7            | Complete    | 2026-07-10 |
 | 4. Plan Enforcement                            | 4/4            | Complete    | 2026-07-10 |
-| 5. AI Credits System                           | 0/5            | Planned     | -          |
+| 5. AI Credits System                           | 2/5            | In Progress |            |
 | 6. Settings Page                               | 0/?            | Not started | -          |
