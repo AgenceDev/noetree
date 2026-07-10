@@ -175,8 +175,8 @@ Plans:
 
 **Wave 2** _(blocked on Wave 1)_
 
-- [ ] 05-02-PLAN.md — Top-up webhook: addCredits internalMutation (idempotent +50) + stripeWebhooks session.mode branch + convex-test (PAY-05)
-- [ ] 05-04-PLAN.md — Editor toolbar: Sparkles AiActionButton + reactive CreditsBalanceBadge + runAiAction wiring + CreditsExhaustedDialog mount (CRED-02, CRED-04)
+- [x] 05-02-PLAN.md — Top-up webhook: addCredits internalMutation (idempotent +50) + stripeWebhooks session.mode branch + convex-test (PAY-05)
+- [x] 05-04-PLAN.md — Editor toolbar: Sparkles AiActionButton + reactive CreditsBalanceBadge + runAiAction wiring + CreditsExhaustedDialog mount (CRED-02, CRED-04)
 
 **Wave 3** _(blocked on Wave 2)_
 
@@ -209,5 +209,5 @@ Plans:
 | 2. Webhook Handler + Convex Internal Mutations | 6/6            | Complete    | 2026-07-08 |
 | 3. Checkout Flow + Pricing Page                | 7/7            | Complete    | 2026-07-10 |
 | 4. Plan Enforcement                            | 4/4            | Complete    | 2026-07-10 |
-| 5. AI Credits System                           | 2/5            | In Progress |            |
+| 5. AI Credits System                           | 4/5            | In Progress |            |
 | 6. Settings Page                               | 0/?            | Not started | -          |
