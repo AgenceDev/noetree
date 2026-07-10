@@ -1,8 +1,14 @@
 "use client";
 
 import { Button } from "../ui/button";
-import { Link as LinkIcon, Image as ImageIcon, Check } from "lucide-react";
+import {
+  Link as LinkIcon,
+  Image as ImageIcon,
+  Check,
+  Sparkles,
+} from "lucide-react";
 import { Separator } from "../ui/separator";
+import { Badge } from "../ui/badge";
 import {
   Tooltip,
   TooltipContent,
@@ -30,9 +36,15 @@ import { Label } from "../ui/label";
 import { useState } from "react";
 import { useEditorContext } from "@/providers/EditorProvider";
 import { useTranslations } from "next-intl";
+import { convexQuery, useConvexMutation } from "@convex-dev/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { ConvexError } from "convex/values";
+import { api } from "@/convex/_generated/api";
+import CreditsExhaustedDialog from "@/components/CreditsExhaustedDialog";
 
 export default function EditorToolbar() {
   const t = useTranslations("Editor");
+  const tCredits = useTranslations("AiCredits");
   const { editor } = useEditorContext();
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
@@ -40,6 +52,27 @@ export default function EditorToolbar() {
   const [linkText, setLinkText] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [imageAlt, setImageAlt] = useState("");
+  const [creditsDialogOpen, setCreditsDialogOpen] = useState(false);
+
+  // D-09: balance defaults to 0 when the user has no aiCredits row yet.
+  const { data: credits } = useQuery(
+    convexQuery(api.aiCredits.getMyCredits, {}),
+  );
+  const balance = credits?.balance ?? 0;
+
+  // T-05-02: the client never gates the click on balance — runAiAction
+  // enforces the balance check server-side and throws INSUFFICIENT_CREDITS,
+  // which opens the blocking dialog below.
+  const runAiActionMutate = useConvexMutation(api.aiCredits.runAiAction);
+  const runAiAction = useMutation({
+    mutationFn: runAiActionMutate,
+    onError: err => {
+      if (err instanceof ConvexError && err.data === "INSUFFICIENT_CREDITS") {
+        setCreditsDialogOpen(true);
+      }
+    },
+  });
+  const handleAiAction = () => runAiAction.mutate({});
 
   if (!editor || !editor.isEditable) return null;
 
@@ -152,6 +185,23 @@ export default function EditorToolbar() {
           icon={<ImageIcon className="h-4 w-4" />}
         />
 
+        <Separator orientation="vertical" className="h-auto!" />
+
+        {/* AI action + credits balance */}
+        <ToolbarButton
+          onClick={handleAiAction}
+          tooltip={t("tooltips.aiAction")}
+          icon={<Sparkles className="h-4 w-4" />}
+        />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge variant="secondary">{balance}</Badge>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            {tCredits("badgeTooltip", { count: balance })}
+          </TooltipContent>
+        </Tooltip>
+
         {/* Link Dialog */}
         <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
           <DialogContent className="sm:max-w-md">
@@ -237,6 +287,12 @@ export default function EditorToolbar() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Credits Exhausted Dialog */}
+        <CreditsExhaustedDialog
+          open={creditsDialogOpen}
+          onOpenChange={setCreditsDialogOpen}
+        />
       </div>
     </TooltipProvider>
   );
