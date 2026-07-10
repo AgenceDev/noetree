@@ -2,27 +2,27 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 04 UI-SPEC approved
-last_updated: "2026-07-10T15:19:59.034Z"
+status: ready_to_plan
+stopped_at: Phase 04 complete (4/4) — ready to discuss Phase 5
+last_updated: 2026-07-10T16:29:29.959Z
 last_activity: 2026-07-10 -- Phase 04 execution started
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 21
-  completed_plans: 17
+  completed_plans: 21
   percent: 50
 ---
 
 ## Current Position
 
-Phase: 04 (plan-enforcement) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 04
+Phase: 5
+Plan: Not started
+Status: Ready to plan
 needed an explicit https:// scheme + --skip-verify against this project's HTTPS-only dev
 server, and the Stripe test-mode account's Pro/Top-up Products+Prices had to be recreated
 (the configured price IDs no longer existed). Both re-verified against live Stripe test mode.
-Last activity: 2026-07-10 -- Phase 04 execution started
+Last activity: 2026-07-10
 
 Progress: [██████████] 100%
 
@@ -31,13 +31,13 @@ Progress: [██████████] 100%
 See: .planning/PROJECT.md (updated 2026-07-07)
 
 **Core value:** Un utilisateur peut créer, organiser et naviguer dans ses notes en structure arborescente.
-**Current focus:** Phase 04 — plan-enforcement
+**Current focus:** Phase 5 — ai credits system
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 6
+- Total plans completed: 10
 - Average duration: —
 - Total execution time: 0 hours
 
@@ -46,6 +46,7 @@ See: .planning/PROJECT.md (updated 2026-07-07)
 | Phase | Plans | Total | Avg/Plan |
 | ----- | ----- | ----- | -------- |
 | 02    | 6     | -     | -        |
+| 04    | 4     | -     | -        |
 
 **Recent Trend:**
 
