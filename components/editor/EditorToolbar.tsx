@@ -1,8 +1,14 @@
 "use client";
 
 import { Button } from "../ui/button";
-import { Link as LinkIcon, Image as ImageIcon, Check } from "lucide-react";
+import {
+  Link as LinkIcon,
+  Image as ImageIcon,
+  Check,
+  Sparkles,
+} from "lucide-react";
 import { Separator } from "../ui/separator";
+import { Badge } from "../ui/badge";
 import {
   Tooltip,
   TooltipContent,
@@ -30,9 +36,13 @@ import { Label } from "../ui/label";
 import { useState } from "react";
 import { useEditorContext } from "@/providers/EditorProvider";
 import { useTranslations } from "next-intl";
+import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/convex/_generated/api";
 
 export default function EditorToolbar() {
   const t = useTranslations("Editor");
+  const tCredits = useTranslations("AiCredits");
   const { editor } = useEditorContext();
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
@@ -40,6 +50,12 @@ export default function EditorToolbar() {
   const [linkText, setLinkText] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [imageAlt, setImageAlt] = useState("");
+
+  // D-09: balance defaults to 0 when the user has no aiCredits row yet.
+  const { data: credits } = useQuery(
+    convexQuery(api.aiCredits.getMyCredits, {}),
+  );
+  const balance = credits?.balance ?? 0;
 
   if (!editor || !editor.isEditable) return null;
 
@@ -151,6 +167,23 @@ export default function EditorToolbar() {
           tooltip={t("tooltips.image")}
           icon={<ImageIcon className="h-4 w-4" />}
         />
+
+        <Separator orientation="vertical" className="h-auto!" />
+
+        {/* AI action + credits balance */}
+        <ToolbarButton
+          onClick={() => {}}
+          tooltip={t("tooltips.aiAction")}
+          icon={<Sparkles className="h-4 w-4" />}
+        />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge variant="secondary">{balance}</Badge>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            {tCredits("badgeTooltip", { count: balance })}
+          </TooltipContent>
+        </Tooltip>
 
         {/* Link Dialog */}
         <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
