@@ -139,8 +139,8 @@ Plans:
 
 **Wave 1**
 
-- [ ] 04-01-PLAN.md — Server-side note-limit enforcement: isProUser helper + createNote 20-note gate (NOTE_LIMIT_REACHED) + convex-test coverage (PLAN-02, PLAN-03)
-- [ ] 04-02-PLAN.md — Upgrade-modal infrastructure: UpgradeModalProvider/useUpgradeModal + UpgradeModal Dialog + (app) layout mount + PlanEnforcement i18n (PLAN-04)
+- [x] 04-01-PLAN.md — Server-side note-limit enforcement: isProUser helper + createNote 20-note gate (NOTE_LIMIT_REACHED) + convex-test coverage (PLAN-02, PLAN-03)
+- [x] 04-02-PLAN.md — Upgrade-modal infrastructure: UpgradeModalProvider/useUpgradeModal + UpgradeModal Dialog + (app) layout mount + PlanEnforcement i18n (PLAN-04)
 
 **Wave 2** _(blocked on Wave 1)_
 
@@ -191,6 +191,6 @@ Plans:
 | 1. Schema + Infrastructure Foundation          | 4/4            | Complete    | 2026-07-08 |
 | 2. Webhook Handler + Convex Internal Mutations | 6/6            | Complete    | 2026-07-08 |
 | 3. Checkout Flow + Pricing Page                | 7/7            | Complete    | 2026-07-10 |
-| 4. Plan Enforcement                            | 0/4            | Not started | -          |
+| 4. Plan Enforcement                            | 2/4            | In Progress |            |
 | 5. AI Credits System                           | 0/?            | Not started | -          |
 | 6. Settings Page                               | 0/?            | Not started | -          |
