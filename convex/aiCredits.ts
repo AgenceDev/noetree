@@ -1,7 +1,54 @@
-import { query, internalMutation } from "./_generated/server";
-import { v } from "convex/values";
+import {
+  query,
+  internalMutation,
+  mutation,
+  MutationCtx,
+} from "./_generated/server";
+import { v, ConvexError } from "convex/values";
 
 const MONTHLY_CREDIT_QUOTA = 100;
+
+// Reads the aiCredits row, validates sufficient balance, and atomically
+// patches (or inserts) the row plus a "deduction" creditTransactions row —
+// all within the single mutation transaction the caller is already inside.
+// Never split across ctx.runMutation: doing so would reopen the TOCTOU
+// window this helper exists to close (Convex serializes concurrent
+// mutations touching the same document only when read+write happen inside
+// one handler invocation).
+async function applyDeduction(
+  ctx: MutationCtx,
+  clerkUserId: string,
+  amount: number,
+) {
+  const credits = await ctx.db
+    .query("aiCredits")
+    .withIndex("by_clerkUserId", q => q.eq("clerkUserId", clerkUserId))
+    .unique();
+
+  const balance = credits?.balance ?? 0;
+  if (balance < amount) {
+    throw new ConvexError("INSUFFICIENT_CREDITS");
+  }
+
+  if (credits) {
+    await ctx.db.patch(credits._id, { balance: balance - amount });
+  } else {
+    // Defensive-only branch: unreachable when balance < amount already
+    // threw above (balance defaults to 0, and amount is always >= 1).
+    await ctx.db.insert("aiCredits", {
+      clerkUserId,
+      balance: balance - amount,
+      lastResetAt: Date.now(),
+    });
+  }
+
+  await ctx.db.insert("creditTransactions", {
+    clerkUserId,
+    type: "deduction",
+    amount: -amount,
+    createdAt: Date.now(),
+  });
+}
 
 export const getCredits = query({
   args: { clerkUserId: v.string() },
@@ -15,10 +62,11 @@ export const getCredits = query({
 
 export const deductCredit = internalMutation({
   args: { clerkUserId: v.string(), amount: v.number() },
-  handler: async () => {
-    throw new Error("Not implemented — Phase 2");
+  handler: async (ctx, args) => {
+    await applyDeduction(ctx, args.clerkUserId, args.amount);
+    return { success: true };
   },
-}); // LEAVE UNCHANGED — Phase 5 (CRED-04)
+});
 
 export const resetCredits = internalMutation({
   args: {
