@@ -380,6 +380,134 @@ describe("aiCredits.runAiAction", () => {
   });
 });
 
+describe("aiCredits.addCredits", () => {
+  it("patches balance=10 to 60, inserts a topup transaction with the payment intent, and records the processed event", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("aiCredits", {
+        clerkUserId: "user_topup",
+        balance: 10,
+        lastResetAt: Date.now(),
+      });
+    });
+
+    const result = await t.mutation(internal.aiCredits.addCredits, {
+      clerkUserId: "user_topup",
+      amount: 50,
+      stripeEventId: "evt_topup_1",
+      eventType: "checkout.session.completed",
+      stripePaymentIntentId: "pi_x",
+    });
+    expect(result).not.toEqual({ alreadyProcessed: true });
+
+    const credits = await t.query(api.aiCredits.getCredits, {
+      clerkUserId: "user_topup",
+    });
+    expect(credits?.balance).toBe(60);
+
+    const rows = await t.run(async ctx =>
+      ctx.db.query("creditTransactions").collect(),
+    );
+    expect(rows.length).toBe(1);
+    expect(rows[0]).toMatchObject({
+      clerkUserId: "user_topup",
+      type: "topup",
+      amount: 50,
+      stripePaymentIntentId: "pi_x",
+    });
+
+    const processedEvents = await t.run(async ctx =>
+      ctx.db.query("processedStripeEvents").collect(),
+    );
+    expect(processedEvents.length).toBe(1);
+    expect(processedEvents[0]).toMatchObject({
+      stripeEventId: "evt_topup_1",
+      eventType: "checkout.session.completed",
+    });
+  });
+
+  it("inserts a new aiCredits row with balance 50 when none exists", async () => {
+    const t = convexTest(schema, modules);
+
+    await t.mutation(internal.aiCredits.addCredits, {
+      clerkUserId: "user_new_topup",
+      amount: 50,
+      stripeEventId: "evt_topup_2",
+      eventType: "checkout.session.completed",
+      stripePaymentIntentId: "pi_y",
+    });
+
+    const credits = await t.query(api.aiCredits.getCredits, {
+      clerkUserId: "user_new_topup",
+    });
+    expect(credits?.balance).toBe(50);
+    expect(credits?.lastResetAt).toBeTypeOf("number");
+  });
+
+  it("is idempotent by stripeEventId — replay returns alreadyProcessed and does not double-credit", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("aiCredits", {
+        clerkUserId: "user_topup_replay",
+        balance: 0,
+        lastResetAt: Date.now(),
+      });
+    });
+
+    const first = await t.mutation(internal.aiCredits.addCredits, {
+      clerkUserId: "user_topup_replay",
+      amount: 50,
+      stripeEventId: "evt_topup_3",
+      eventType: "checkout.session.completed",
+      stripePaymentIntentId: "pi_z",
+    });
+    expect(first).not.toEqual({ alreadyProcessed: true });
+
+    const second = await t.mutation(internal.aiCredits.addCredits, {
+      clerkUserId: "user_topup_replay",
+      amount: 50,
+      stripeEventId: "evt_topup_3",
+      eventType: "checkout.session.completed",
+      stripePaymentIntentId: "pi_z",
+    });
+    expect(second).toEqual({ alreadyProcessed: true });
+
+    const credits = await t.query(api.aiCredits.getCredits, {
+      clerkUserId: "user_topup_replay",
+    });
+    expect(credits?.balance).toBe(50);
+
+    const topupTransactions = await t.run(async ctx => {
+      const rows = await ctx.db.query("creditTransactions").collect();
+      return rows.filter(row => row.type === "topup");
+    });
+    expect(topupTransactions.length).toBe(1);
+  });
+
+  it("credits +50 with an undefined stripePaymentIntentId and omits the field without a validator error", async () => {
+    const t = convexTest(schema, modules);
+
+    const result = await t.mutation(internal.aiCredits.addCredits, {
+      clerkUserId: "user_no_pi",
+      amount: 50,
+      stripeEventId: "evt_topup_4",
+      eventType: "checkout.session.completed",
+    });
+    expect(result).not.toEqual({ alreadyProcessed: true });
+
+    const credits = await t.query(api.aiCredits.getCredits, {
+      clerkUserId: "user_no_pi",
+    });
+    expect(credits?.balance).toBe(50);
+
+    const rows = await t.run(async ctx =>
+      ctx.db.query("creditTransactions").collect(),
+    );
+    expect(rows.length).toBe(1);
+    expect(rows[0].stripePaymentIntentId).toBeUndefined();
+  });
+});
+
 describe("aiCredits.getMyCredits", () => {
   it("returns the authenticated identity's aiCredits row", async () => {
     const t = convexTest(schema, modules);

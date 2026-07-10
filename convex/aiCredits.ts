@@ -190,8 +190,55 @@ export const resetCredits = internalMutation({
 });
 
 export const addCredits = internalMutation({
-  args: { clerkUserId: v.string(), amount: v.number() },
-  handler: async () => {
-    throw new Error("Not implemented — Phase 2");
+  args: {
+    clerkUserId: v.string(),
+    amount: v.number(),
+    stripeEventId: v.string(),
+    eventType: v.string(),
+    stripePaymentIntentId: v.optional(v.string()),
   },
-}); // LEAVE UNCHANGED — Phase 5 (PAY-05)
+  handler: async (ctx, args) => {
+    const already = await ctx.db
+      .query("processedStripeEvents")
+      .withIndex("by_stripeEventId", q =>
+        q.eq("stripeEventId", args.stripeEventId),
+      )
+      .unique();
+    if (already) return { alreadyProcessed: true };
+
+    const existingCredits = await ctx.db
+      .query("aiCredits")
+      .withIndex("by_clerkUserId", q => q.eq("clerkUserId", args.clerkUserId))
+      .unique();
+
+    if (existingCredits) {
+      await ctx.db.patch(existingCredits._id, {
+        balance: existingCredits.balance + args.amount,
+      });
+    } else {
+      await ctx.db.insert("aiCredits", {
+        clerkUserId: args.clerkUserId,
+        balance: args.amount,
+        lastResetAt: Date.now(),
+      });
+    }
+
+    await ctx.db.insert("creditTransactions", {
+      clerkUserId: args.clerkUserId,
+      type: "topup",
+      amount: args.amount,
+      createdAt: Date.now(),
+      ...(args.stripePaymentIntentId
+        ? { stripePaymentIntentId: args.stripePaymentIntentId }
+        : {}),
+    });
+
+    await ctx.db.insert("processedStripeEvents", {
+      stripeEventId: args.stripeEventId,
+      eventType: args.eventType,
+      processedAt: Date.now(),
+    });
+
+    return { credited: args.amount };
+  },
+});
