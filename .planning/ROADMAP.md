@@ -133,8 +133,24 @@ Plans:
 2. A Pro tier user can create note 21, 50, and 200 without any rejection
 3. A user with no subscriptions row (pre-existing user) is treated as Free tier — the 20-note limit applies
 4. When a Free user hits the note limit, an upgrade prompt appears in the UI with a clear CTA to the pricing page
-   **Plans**: TBD
-   **UI hint**: yes
+   **Plans**: 4 plans
+
+Plans:
+
+**Wave 1**
+
+- [ ] 04-01-PLAN.md — Server-side note-limit enforcement: isProUser helper + createNote 20-note gate (NOTE_LIMIT_REACHED) + convex-test coverage (PLAN-02, PLAN-03)
+- [ ] 04-02-PLAN.md — Upgrade-modal infrastructure: UpgradeModalProvider/useUpgradeModal + UpgradeModal Dialog + (app) layout mount + PlanEnforcement i18n (PLAN-04)
+
+**Wave 2** _(blocked on Wave 1)_
+
+- [ ] 04-03-PLAN.md — Wire both createNote onError handlers (useNoteMutations.ts + notes/page.tsx) to open the modal on NOTE_LIMIT_REACHED (PLAN-04)
+
+**Wave 3** _(blocked on Wave 2)_
+
+- [ ] 04-04-PLAN.md — End-to-end human verification of SC1-SC4 in the running app (checkpoint)
+
+  **UI hint**: yes
 
 ### Phase 5: AI Credits System
 
@@ -175,6 +191,6 @@ Plans:
 | 1. Schema + Infrastructure Foundation          | 4/4            | Complete    | 2026-07-08 |
 | 2. Webhook Handler + Convex Internal Mutations | 6/6            | Complete    | 2026-07-08 |
 | 3. Checkout Flow + Pricing Page                | 7/7            | Complete    | 2026-07-10 |
-| 4. Plan Enforcement                            | 0/?            | Not started | -          |
+| 4. Plan Enforcement                            | 0/4            | Not started | -          |
 | 5. AI Credits System                           | 0/?            | Not started | -          |
 | 6. Settings Page                               | 0/?            | Not started | -          |
