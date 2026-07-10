@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 5 context gathered
-last_updated: "2026-07-10T18:33:39.597Z"
-last_activity: 2026-07-10
+status: executing
+stopped_at: Phase 5 UI-SPEC approved
+last_updated: "2026-07-10T19:57:35.843Z"
+last_activity: 2026-07-10 -- Phase 5 planning complete
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 21
+  total_plans: 26
   completed_plans: 21
   percent: 67
 ---
@@ -18,11 +18,11 @@ progress:
 
 Phase: 5
 Plan: Not started
-Status: Ready to plan
+Status: Ready to execute
 needed an explicit https:// scheme + --skip-verify against this project's HTTPS-only dev
 server, and the Stripe test-mode account's Pro/Top-up Products+Prices had to be recreated
 (the configured price IDs no longer existed). Both re-verified against live Stripe test mode.
-Last activity: 2026-07-10
+Last activity: 2026-07-10 -- Phase 5 planning complete
 
 Progress: [██████████] 100%
 
@@ -83,6 +83,7 @@ None yet.
 - Three webhook secrets needed (CLI, staging, production) — document separately per environment
 - Verify `billing_reason === "subscription_cycle"` field name at implementation time (Stripe has renamed fields before)
 - Phase 04 decision-coverage gate override (2026-07-10): `check.decision-coverage-plan` reported D-01/D-02/D-03/D-05/D-06/D-07/D-08 as uncovered (1/8 covered), but grep confirms all 8 are textually cited in plan `read_first`/action text using the same pattern as D-04 (which the tool did mark covered) — a likely parser gap with comma-separated ID lists, not a real gap. The plan-checker agent independently confirmed all 8 decisions have verifiable implementing tasks. Proceeded anyway; re-verify at /gsd:verify-work time if in doubt.
+- Phase 05 decision-coverage gate override (2026-07-10): `check.decision-coverage-plan` reported 0/15 decisions covered — worse than Phase 4's instance of the same bug. Manual `grep -P '(?<![A-Za-z])D-NN\b'` verification (excluding false matches from `CRED-NN`/`PAY-NN` substrings) found 14/15 genuinely cited in plan text (D-01, D-04 through D-15) with direct implementing tasks confirmed by two independent gsd-plan-checker passes (VERIFICATION PASSED). The 15th, D-02 ("future real AI feature should use direct Anthropic SDK"), is correctly NOT implemented this phase — it is explicitly locked as future-work-only in 05-CONTEXT.md, not an actionable decision for Phase 5. Proceeded anyway; re-verify at /gsd:verify-work time if in doubt.
 
 ## Deferred Items
 
@@ -92,6 +93,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-10T18:33:39.584Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-ai-credits-system/05-CONTEXT.md
+Last session: 2026-07-10T18:56:42.292Z
+Stopped at: Phase 5 UI-SPEC approved
+Resume file: .planning/phases/05-ai-credits-system/05-UI-SPEC.md
