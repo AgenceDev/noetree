@@ -121,3 +121,14 @@ None - no external service configuration required.
 
 _Phase: 05-ai-credits-system_
 _Completed: 2026-07-10_
+
+## Self-Check: PASSED
+
+- FOUND: convex/aiCredits.ts
+- FOUND: convex/stripeWebhooks.ts
+- FOUND: convex/aiCredits.test.ts
+- FOUND: convex/stripeWebhooks.test.ts
+- FOUND: .planning/phases/05-ai-credits-system/05-02-SUMMARY.md
+- FOUND commit: 5c1239e (Task 1)
+- FOUND commit: e3184e5 (Task 2)
+- FOUND commit: e0dad9a (SUMMARY)
