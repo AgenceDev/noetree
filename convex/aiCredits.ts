@@ -68,6 +68,64 @@ export const deductCredit = internalMutation({
   },
 });
 
+// Security: clerkUserId is derived exclusively from the caller's
+// authenticated Convex identity (never a client-supplied argument) so a
+// signed-in user cannot deduct credits from — or read the balance of —
+// another user's account (IDOR — mirrors subscriptions.ts getSubscription
+// and 03-REVIEW.md CR-01).
+export const runAiAction = mutation({
+  args: {},
+  handler: async ctx => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new ConvexError("UNAUTHENTICATED");
+    const clerkUserId = identity.subject;
+
+    // Deduct + placeholder action + refund all share this single mutation
+    // transaction (never split via ctx.runMutation — Pitfall 1: reopens
+    // the TOCTOU window applyDeduction exists to close). Propagates
+    // INSUFFICIENT_CREDITS to the client when the balance is too low.
+    await applyDeduction(ctx, clerkUserId, 1);
+
+    // Placeholder action (D-01): no real LLM call this phase, always
+    // succeeds. The refund branch below is implemented but intentionally
+    // unreachable while actionSucceeded is hardcoded true (D-04/D-06) —
+    // it exists so a future real action can flip this to a real result
+    // without restructuring the transaction.
+    const actionSucceeded = true;
+
+    if (!actionSucceeded) {
+      const credits = await ctx.db
+        .query("aiCredits")
+        .withIndex("by_clerkUserId", q => q.eq("clerkUserId", clerkUserId))
+        .unique();
+      if (credits) {
+        await ctx.db.patch(credits._id, { balance: credits.balance + 1 });
+      }
+      await ctx.db.insert("creditTransactions", {
+        clerkUserId,
+        type: "refund",
+        amount: 1,
+        createdAt: Date.now(),
+      });
+    }
+
+    return { success: actionSucceeded };
+  },
+});
+
+export const getMyCredits = query({
+  args: {},
+  handler: async ctx => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+
+    return await ctx.db
+      .query("aiCredits")
+      .withIndex("by_clerkUserId", q => q.eq("clerkUserId", identity.subject))
+      .unique();
+  },
+});
+
 export const resetCredits = internalMutation({
   args: {
     stripeEventId: v.string(),
