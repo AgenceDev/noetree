@@ -42,6 +42,8 @@ Un utilisateur peut créer, organiser et naviguer dans ses notes en structure ar
 - ✓ AI credits are deducted atomically when an AI action is used, with TOCTOU-safe concurrency protection — Phase 5 (CRED-04)
 - ✓ User can trigger a top-up purchase when credits are low; blocked with plan-appropriate prompt at 0 credits — Phase 5 (CRED-03)
 - ✓ User can purchase AI credits top-up via Stripe Checkout (one-time payment mode) — Phase 5 (PAY-05)
+- ✓ User can view and manage subscription in Settings page (plan, renewal date/status, credits balance, top-up history) — Phase 6 (SET-01, SET-02, SET-03, SET-05)
+- ✓ User can cancel Pro subscription with confirmation, without immediate access loss; correctly downgrades to Free at period end — Phase 6 (SET-04, PAY-04)
 
 ### Active
 
@@ -49,8 +51,6 @@ Un utilisateur peut créer, organiser et naviguer dans ses notes en structure ar
 
 - [ ] User can view pricing page (Free vs Pro plans)
 - [ ] User can subscribe to Pro via Stripe Checkout
-- [ ] User can cancel Pro subscription
-- [ ] User can view and manage subscription in Settings page
 
 ### Out of Scope
 
@@ -63,7 +63,7 @@ Un utilisateur peut créer, organiser et naviguer dans ses notes en structure ar
 
 - **Stack :** Next.js 15 App Router, Convex (real-time DB + backend functions), Shadcn UI, Clerk auth, Tailwind CSS
 - **Déploiement :** Vercel (production depuis tags git, staging depuis dev)
-- **État actuel :** App fonctionnelle avec auth, notes tree, éditeur. Webhook handler Stripe → Convex opérationnel (Phase 2 complète, vérifié en live via Stripe CLI). Checkout et pricing page livrés (Phase 3). Limite de 20 notes Free enforced server-side avec upgrade modal (Phase 4 complète, vérifié en live). Système de crédits IA complet (Phase 5 complète, vérifié en live) : bouton d'action IA dans le toolbar éditeur (placeholder — pas d'appel LLM réel ce phase, machine de crédit réelle), badge de solde réactif, dialogue de blocage à 0 crédit avec CTA selon le plan, top-up Stripe one-time (+50 crédits).
+- **État actuel :** App fonctionnelle avec auth, notes tree, éditeur. Webhook handler Stripe → Convex opérationnel (Phase 2 complète, vérifié en live via Stripe CLI). Checkout et pricing page livrés (Phase 3). Limite de 20 notes Free enforced server-side avec upgrade modal (Phase 4 complète, vérifié en live). Système de crédits IA complet (Phase 5 complète, vérifié en live) : bouton d'action IA dans le toolbar éditeur (placeholder — pas d'appel LLM réel ce phase, machine de crédit réelle), badge de solde réactif, dialogue de blocage à 0 crédit avec CTA selon le plan, top-up Stripe one-time (+50 crédits). Page Settings in-app livrée (Phase 6 complète, vérifié en live via Stripe CLI test-mode) : plan/renouvellement/statut, upgrade CTA, annulation avec confirmation (`AlertDialog`) sans perte d'accès immédiate, reprise d'abonnement, solde crédits + historique des top-ups — Phase 6 est la dernière phase du roadmap v1.0.
 - **Paiements :** Webhook handler Stripe (`app/api/webhooks/stripe/route.ts` → `convex/stripeWebhooks.ts`) écrit `subscriptions`/`aiCredits`/`creditTransactions`/`processedStripeEvents` de façon idempotente.
 - **Erreurs Convex client-inspectées :** toute erreur Convex qu'un composant client doit inspecter (pas seulement logger) DOIT être un `ConvexError(data)`, jamais un `Error` brut — un `Error` brut voit son `.message` redacted à la frontière client/serveur réelle, alors que `ConvexError.data` survit. Établi Phase 3 (webhook auth) et re-confirmé Phase 4 (note-limit gap-closure, `f2a7f06`).
 
@@ -104,4 +104,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-_Last updated: 2026-07-11 — Phase 5 (AI Credits System) complete_
+_Last updated: 2026-07-11 — Phase 6 (Settings Page) complete_
