@@ -208,7 +208,7 @@ Plans:
 
 **Wave 2** _(blocked on Wave 1)_
 
-- [ ] 06-04-PLAN.md — Settings page: stacked Plan Card + Credits Card composing all Wave 1 outputs (SET-01/02/03/05, wires SET-04/PAY-04)
+- [x] 06-04-PLAN.md — Settings page: stacked Plan Card + Credits Card composing all Wave 1 outputs (SET-01/02/03/05, wires SET-04/PAY-04)
 
 **Wave 3** _(blocked on Wave 2)_
 
@@ -227,4 +227,4 @@ Plans:
 | 3. Checkout Flow + Pricing Page                | 7/7            | Complete    | 2026-07-10 |
 | 4. Plan Enforcement                            | 4/4            | Complete    | 2026-07-10 |
 | 5. AI Credits System                           | 5/5            | Complete    | 2026-07-10 |
-| 6. Settings Page                               | 3/5            | In Progress |            |
+| 6. Settings Page                               | 4/5            | In Progress |            |
