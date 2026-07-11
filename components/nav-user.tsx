@@ -6,6 +6,7 @@ import {
   Laptop,
   LogOut,
   Moon,
+  Settings,
   Sun,
   User,
 } from "lucide-react";
@@ -101,6 +102,10 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
+              <DropdownMenuItem onClick={() => router.push("/settings")}>
+                <Settings />
+                {t("settings")}
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => openUserProfile()}>
                 <User />
                 {t("account")}
