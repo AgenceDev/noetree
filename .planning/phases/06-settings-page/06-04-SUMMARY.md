@@ -106,3 +106,14 @@ None - no external service configuration required. All Convex queries and Server
 
 _Phase: 06-settings-page_
 _Completed: 2026-07-11_
+
+## Self-Check: PASSED
+
+- FOUND: components/SettingsPlanCard.tsx
+- FOUND: components/SettingsCreditsCard.tsx
+- FOUND: app/[locale]/(app)/settings/page.tsx
+- FOUND: .planning/phases/06-settings-page/06-04-SUMMARY.md
+- FOUND commit: e3ad10e (Task 1)
+- FOUND commit: e4b66e6 (Task 2)
+- FOUND commit: bbc28b1 (Task 3)
+- FOUND commit: 08a441b (Summary)
