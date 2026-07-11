@@ -548,3 +548,106 @@ describe("aiCredits.getMyCredits", () => {
     expect(credits).toBeNull();
   });
 });
+
+describe("aiCredits.listMyTopups", () => {
+  it("returns [] (not null) for an unauthenticated caller", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("creditTransactions", {
+        clerkUserId: "user_x",
+        type: "topup",
+        amount: 50,
+        createdAt: Date.now(),
+      });
+    });
+
+    const rows = await t.query(api.aiCredits.listMyTopups, {});
+    expect(rows).toEqual([]);
+  });
+
+  it("returns only type:'topup' rows for the authenticated caller, excluding deduction/reset/refund", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("creditTransactions", {
+        clerkUserId: "user_x",
+        type: "deduction",
+        amount: -1,
+        createdAt: Date.now(),
+      });
+      await ctx.db.insert("creditTransactions", {
+        clerkUserId: "user_x",
+        type: "topup",
+        amount: 50,
+        createdAt: Date.now(),
+      });
+      await ctx.db.insert("creditTransactions", {
+        clerkUserId: "user_x",
+        type: "reset",
+        amount: 100,
+        createdAt: Date.now(),
+      });
+      await ctx.db.insert("creditTransactions", {
+        clerkUserId: "user_x",
+        type: "refund",
+        amount: 1,
+        createdAt: Date.now(),
+      });
+    });
+
+    const rows = await t
+      .withIdentity(IDENTITY)
+      .query(api.aiCredits.listMyTopups, {});
+    expect(rows.length).toBe(1);
+    expect(rows[0]).toMatchObject({ clerkUserId: "user_x", type: "topup" });
+  });
+
+  it("never returns another user's creditTransactions rows (cross-user isolation)", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("creditTransactions", {
+        clerkUserId: "user_x",
+        type: "topup",
+        amount: 50,
+        createdAt: Date.now(),
+      });
+      await ctx.db.insert("creditTransactions", {
+        clerkUserId: "user_other",
+        type: "topup",
+        amount: 50,
+        createdAt: Date.now(),
+      });
+    });
+
+    const rows = await t
+      .withIdentity(IDENTITY)
+      .query(api.aiCredits.listMyTopups, {});
+    expect(rows.length).toBe(1);
+    expect(rows.every(r => r.clerkUserId === "user_x")).toBe(true);
+    expect(rows.some(r => r.clerkUserId === "user_other")).toBe(false);
+  });
+
+  it("returns rows newest-first", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("creditTransactions", {
+        clerkUserId: "user_x",
+        type: "topup",
+        amount: 50,
+        createdAt: 1000,
+      });
+      await ctx.db.insert("creditTransactions", {
+        clerkUserId: "user_x",
+        type: "topup",
+        amount: 25,
+        createdAt: 2000,
+      });
+    });
+
+    const rows = await t
+      .withIdentity(IDENTITY)
+      .query(api.aiCredits.listMyTopups, {});
+    expect(rows.length).toBe(2);
+    expect(rows[0].amount).toBe(25);
+    expect(rows[1].amount).toBe(50);
+  });
+});
