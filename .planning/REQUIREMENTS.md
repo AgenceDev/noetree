@@ -30,7 +30,7 @@
 
 ### Settings
 
-- [ ] **SET-01**: User can view current plan (Free or Pro) in a settings/billing page
+- [x] **SET-01**: User can view current plan (Free or Pro) in a settings/billing page
 - [ ] **SET-02**: User can view subscription renewal date and status in settings
 - [ ] **SET-03**: User can upgrade from Free to Pro directly from settings
 - [ ] **SET-04**: User can cancel subscription from settings with confirmation dialog
@@ -78,7 +78,7 @@
 | CRED-02     | Phase 5 | Complete |
 | CRED-03     | Phase 5 | Complete |
 | CRED-04     | Phase 5 | Complete |
-| SET-01      | Phase 6 | Pending  |
+| SET-01      | Phase 6 | Complete |
 | SET-02      | Phase 6 | Pending  |
 | SET-03      | Phase 6 | Pending  |
 | SET-04      | Phase 6 | Pending  |
