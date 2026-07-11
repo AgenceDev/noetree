@@ -136,6 +136,28 @@ export const getMyCredits = query({
   },
 });
 
+// Security: clerkUserId is derived exclusively from the caller's
+// authenticated Convex identity (never a client-supplied argument) — mirrors
+// getMyCredits above (03-REVIEW.md CR-01). Returns [] (not null) when
+// unauthenticated so the Settings page can render an empty history list
+// without a null-check branch. D-09: no pagination — returns the full,
+// small result set. D-07: filters to type:"topup" only.
+export const listMyTopups = query({
+  args: {},
+  handler: async ctx => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+
+    const rows = await ctx.db
+      .query("creditTransactions")
+      .withIndex("by_clerkUserId", q => q.eq("clerkUserId", identity.subject))
+      .order("desc")
+      .collect();
+
+    return rows.filter(r => r.type === "topup");
+  },
+});
+
 export const resetCredits = internalMutation({
   args: {
     stripeEventId: v.string(),
