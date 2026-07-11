@@ -510,7 +510,7 @@ should build.)
 
 **If this table is empty:** N/A — see A1/A2 above.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `listMyTopups` sort by `createdAt` (app-level field) or rely on index/`_creationTime` order?**
    - What we know: D-08 says "sorted by `createdAt` descending"; the `creditTransactions` table has
@@ -523,6 +523,7 @@ should build.)
    - Recommendation: Use `.order("desc")` (sorts by `_creationTime`, which will match `createdAt`
      order for all realistically-possible data in this app) — do not add a manual JS sort by
      `createdAt` unless a future migration ever backfills historical rows out of order.
+   - **RESOLVED:** Plan 06-01 Task 2 implements `.order("desc")` exactly as recommended.
 
 2. **Extracted Card components vs. inline JSX in `page.tsx`?**
    - What we know: D-10 locks the two-Card, stacked, no-tabs layout. Nothing in CONTEXT.md specifies
@@ -532,6 +533,7 @@ should build.)
    - Recommendation: Extract (see Recommended Project Structure) for readability given the page has
      three separate Convex reads and two Server Action bindings, but this is non-blocking — either
      structure satisfies all five success criteria.
+   - **RESOLVED:** Plan 06-04 extracts `SettingsPlanCard.tsx`/`SettingsCreditsCard.tsx` exactly as recommended.
 
 ## Environment Availability
 
