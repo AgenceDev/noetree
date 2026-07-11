@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 6 UI-SPEC approved
-last_updated: "2026-07-11T10:41:26.609Z"
-last_activity: 2026-07-11 -- Phase 06 execution started
+status: paused
+stopped_at: "Phase 6 Plan 5 Task 2 checkpoint:human-verify (blocking) - awaiting human UAT of SC1-SC5"
+last_updated: "2026-07-11T11:06:17.281Z"
+last_activity: 2026-07-11 -- Phase 06 Plan 5 Task 1 security+suite gate passed (SECURITY-GATE-OK)
 progress:
   total_phases: 6
   completed_phases: 5
@@ -17,14 +17,13 @@ progress:
 ## Current Position
 
 Phase: 06 (Settings Page) — EXECUTING
-Plan: 1 of 5
-Status: Executing Phase 06
-needed an explicit https:// scheme + --skip-verify against this project's HTTPS-only dev
-server, and the Stripe test-mode account's Pro/Top-up Products+Prices had to be recreated
-(the configured price IDs no longer existed). Both re-verified against live Stripe test mode.
-Last activity: 2026-07-11 -- Phase 06 execution started
+Plan: 5 of 5 (06-05)
+Status: Task 1 (automated security + full-suite gate) passed; paused at Task 2
+(checkpoint:human-verify, gate="blocking") awaiting human UAT of ROADMAP SC1-SC5
+against live Stripe test mode.
+Last activity: 2026-07-11 -- Phase 06 Plan 5 Task 1 security+suite gate passed (SECURITY-GATE-OK)
 
-Progress: [██████████] 100%
+Progress: [█████████░] 94%
 
 ## Project Reference
 
@@ -73,6 +72,7 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 1: Stripe SDKs installed via pnpm; @clerk/nextjs already 7.5.1 (CVE-2026-41248 pre-mitigated); webhook auth-exclusion applied to proxy.ts (Next 16 rename) protecting /notes
 - [Phase ?]: Phase 1: Stripe test-mode Pro product (900 EUR/mo recurring) and Top-up product (200 EUR one-time) created via API; real Price IDs captured in .env.local (D-03)
 - Phase 3 gap-closure (2026-07-10): Original Phase 1 Stripe Price IDs no longer existed on the test-mode account (zero Products/Prices found) — recreated Pro (price_1TrcDXBWPMSBebOkTYFLlfJr) and Top-up (price_1TrcEWBWPMSBebOkaTRHquve) and updated .env.local. Also: local HTTPS dev (`next dev --experimental-https`) requires `stripe listen --forward-to https://localhost:3000/... --skip-verify`, not the bare-host form.
+- [Phase ?]: Phase 6 Plan 5 Task 1: security+suite gate passed (vitest 93/93 green; listMyTopups identity-derived; cancel/resume re-verify via getSubscription server-side, zero id args). Awaiting Task 2 human UAT of ROADMAP SC1-SC5 before Phase 6 completion.
 
 ### Pending Todos
 
@@ -94,6 +94,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-11T09:28:21.850Z
-Stopped at: Phase 6 UI-SPEC approved
-Resume file: .planning/phases/06-settings-page/06-UI-SPEC.md
+Last session: 2026-07-11T11:06:17.268Z
+Stopped at: Phase 6 Plan 5 Task 2 checkpoint:human-verify (blocking) - awaiting human UAT of SC1-SC5
+Resume file: .planning/phases/06-settings-page/06-05-PLAN.md
