@@ -106,3 +106,12 @@ None - no external service configuration required.
 
 _Phase: 06-settings-page_
 _Completed: 2026-07-11_
+
+## Self-Check: PASSED
+
+- FOUND: convex/aiCredits.ts
+- FOUND: convex/aiCredits.test.ts
+- FOUND: .planning/phases/06-settings-page/06-01-SUMMARY.md
+- FOUND commit: 914a9f0
+- FOUND commit: c2e68b0
+- Confirmed: `export const listMyTopups = query({` present in convex/aiCredits.ts
