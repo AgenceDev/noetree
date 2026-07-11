@@ -2,23 +2,23 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: milestone_complete
-stopped_at: Milestone complete (Phase 06 was final phase)
-last_updated: 2026-07-11T20:45:47.619Z
+status: "Gap-closure phase 06.1 inserted (v1.0 audit BLOCKER) — ready for /gsd:plan-phase 06.1"
+stopped_at: Phase 06.1 context gathered
+last_updated: "2026-07-11T22:07:18.791Z"
 last_activity: 2026-07-11
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 6
   total_plans: 31
   completed_plans: 31
-  percent: 100
+  percent: 86
 ---
 
 ## Current Position
 
-Phase: 06
+Phase: 06.1
 Plan: Not started
-Status: Milestone complete
+Status: Gap-closure phase 06.1 inserted (v1.0 audit BLOCKER) — ready for /gsd:plan-phase 06.1
 round-trip) against live Stripe test-mode webhooks; ready for /gsd:verify-work.
 Last activity: 2026-07-11
 
@@ -62,6 +62,10 @@ _Updated after each plan completion_
 
 ## Accumulated Context
 
+### Roadmap Evolution
+
+- Phase 06.1 inserted after Phase 6: Close gap: PLAN-05/CRED-01/CRED-04 — grant initial AI credits at Pro checkout (found by v1.0 milestone audit integration check) (URGENT)
+
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
@@ -96,6 +100,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-11T20:24:05.301Z
-Stopped at: Completed Phase 06 Plan 05 (06-05-PLAN.md) - Phase 6 fully verified, ready for /gsd:verify-work
-Resume file: None
+Last session: 2026-07-11T22:07:18.780Z
+Stopped at: Phase 06.1 context gathered
+Resume file: .planning/phases/06.1-close-gap-plan-05-cred-01-cred-04-grant-initial-ai-credits-a/06.1-CONTEXT.md
