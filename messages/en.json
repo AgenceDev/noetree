@@ -11,6 +11,7 @@
   },
   "NavUser": {
     "account": "Account",
+    "settings": "Settings",
     "language": "Language",
     "theme": "Theme",
     "themeLight": "Light",
@@ -202,5 +203,26 @@
       "insertImage": "Insert Image",
       "cancel": "Cancel"
     }
+  },
+  "Settings": {
+    "title": "Settings",
+    "planCardTitle": "Plan",
+    "creditsCardTitle": "Credits",
+    "freePlanName": "Free plan",
+    "proPlanName": "Pro",
+    "renewsOn": "Renews on {date}",
+    "cancelsOn": "Cancels on {date}",
+    "upgradeCta": "Upgrade to Pro",
+    "cancelCta": "Cancel subscription",
+    "resumeCta": "Resume subscription",
+    "cancelConfirmTitle": "Cancel your subscription?",
+    "cancelConfirmDesc": "You'll keep Pro access until {date}. You can resume anytime before then.",
+    "cancelConfirmKeep": "Keep subscription",
+    "cancelConfirmConfirm": "Cancel subscription",
+    "creditsBalance": "{count} credits",
+    "topupHistoryTitle": "Top-up history",
+    "topupHistoryEmptyTitle": "No top-ups yet",
+    "topupHistoryEmptyBody": "Your AI credit purchases will appear here once you buy a top-up.",
+    "actionError": "Something went wrong updating your subscription. Please try again, or contact support if this keeps happening."
   }
 }

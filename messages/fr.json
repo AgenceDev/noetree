@@ -11,6 +11,7 @@
   },
   "NavUser": {
     "account": "Compte",
+    "settings": "Paramètres",
     "language": "Langue",
     "theme": "Thème",
     "themeLight": "Clair",
@@ -202,5 +203,26 @@
       "insertImage": "Insérer l'image",
       "cancel": "Annuler"
     }
+  },
+  "Settings": {
+    "title": "Paramètres",
+    "planCardTitle": "Offre",
+    "creditsCardTitle": "Crédits",
+    "freePlanName": "Offre gratuite",
+    "proPlanName": "Pro",
+    "renewsOn": "Renouvellement le {date}",
+    "cancelsOn": "Se termine le {date}",
+    "upgradeCta": "Passer à Pro",
+    "cancelCta": "Résilier l'abonnement",
+    "resumeCta": "Reprendre l'abonnement",
+    "cancelConfirmTitle": "Résilier votre abonnement ?",
+    "cancelConfirmDesc": "Vous conserverez l'accès Pro jusqu'au {date}. Vous pouvez reprendre à tout moment avant cette date.",
+    "cancelConfirmKeep": "Conserver l'abonnement",
+    "cancelConfirmConfirm": "Résilier l'abonnement",
+    "creditsBalance": "{count} crédits",
+    "topupHistoryTitle": "Historique des recharges",
+    "topupHistoryEmptyTitle": "Aucune recharge pour le moment",
+    "topupHistoryEmptyBody": "Vos achats de crédits IA apparaîtront ici une fois que vous aurez effectué une recharge.",
+    "actionError": "Une erreur est survenue lors de la mise à jour de votre abonnement. Veuillez réessayer, ou contacter le support si le problème persiste."
   }
 }
