@@ -111,3 +111,9 @@ Phase 6 (Settings Page) is now fully verified end-to-end: automated suite/securi
 
 _Phase: 06-settings-page_
 _Completed: 2026-07-11_
+
+## Self-Check: PASSED
+
+- FOUND: `.planning/phases/06-settings-page/06-05-SUMMARY.md`
+- FOUND: commit `97a474b` (SUMMARY commit)
+- FOUND: commit `3555dbd` (Task 1 gate-pass commit)

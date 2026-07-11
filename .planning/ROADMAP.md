@@ -16,7 +16,7 @@ Milestone v1.0 adds a Free/Pro subscription model and an AI credits metering sys
 - [x] **Phase 3: Checkout Flow + Pricing Page** - Users can view plans and subscribe via Stripe Checkout (completed 2026-07-10)
 - [x] **Phase 4: Plan Enforcement** - Free tier note limit enforced server-side, upgrade prompts shown (completed 2026-07-10)
 - [x] **Phase 5: AI Credits System** - Credits deducted atomically, top-up available, balance visible (completed 2026-07-10)
-- [ ] **Phase 6: Settings Page** - Users can manage subscription and credits from a single in-app page
+- [x] **Phase 6: Settings Page** - Users can manage subscription and credits from a single in-app page (completed 2026-07-11)
 
 ## Phase Details
 
@@ -212,7 +212,7 @@ Plans:
 
 **Wave 3** _(blocked on Wave 2)_
 
-- [ ] 06-05-PLAN.md — Automated security/suite gate + human UAT of SC1-SC5 (checkpoint)
+- [x] 06-05-PLAN.md — Automated security/suite gate + human UAT of SC1-SC5 (checkpoint)
 
   **UI hint**: yes
 
@@ -220,11 +220,11 @@ Plans:
 
 **Execution Order:** 1 → 2 → 3 → 4 → 5 → 6
 
-| Phase                                          | Plans Complete | Status      | Completed  |
-| ---------------------------------------------- | -------------- | ----------- | ---------- |
-| 1. Schema + Infrastructure Foundation          | 4/4            | Complete    | 2026-07-08 |
-| 2. Webhook Handler + Convex Internal Mutations | 6/6            | Complete    | 2026-07-08 |
-| 3. Checkout Flow + Pricing Page                | 7/7            | Complete    | 2026-07-10 |
-| 4. Plan Enforcement                            | 4/4            | Complete    | 2026-07-10 |
-| 5. AI Credits System                           | 5/5            | Complete    | 2026-07-10 |
-| 6. Settings Page                               | 4/5            | In Progress |            |
+| Phase                                          | Plans Complete | Status   | Completed  |
+| ---------------------------------------------- | -------------- | -------- | ---------- |
+| 1. Schema + Infrastructure Foundation          | 4/4            | Complete | 2026-07-08 |
+| 2. Webhook Handler + Convex Internal Mutations | 6/6            | Complete | 2026-07-08 |
+| 3. Checkout Flow + Pricing Page                | 7/7            | Complete | 2026-07-10 |
+| 4. Plan Enforcement                            | 4/4            | Complete | 2026-07-10 |
+| 5. AI Credits System                           | 5/5            | Complete | 2026-07-10 |
+| 6. Settings Page                               | 5/5            | Complete | 2026-07-11 |

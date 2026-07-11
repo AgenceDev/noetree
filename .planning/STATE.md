@@ -2,28 +2,27 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: paused
-stopped_at: "Phase 6 Plan 5 Task 2 checkpoint:human-verify (blocking) - awaiting human UAT of SC1-SC5"
-last_updated: "2026-07-11T11:06:17.281Z"
-last_activity: 2026-07-11 -- Phase 06 Plan 5 Task 1 security+suite gate passed (SECURITY-GATE-OK)
+status: verifying
+stopped_at: "Completed Phase 06 Plan 05 (06-05-PLAN.md) - Phase 6 fully verified, ready for /gsd:verify-work"
+last_updated: "2026-07-11T20:24:05.312Z"
+last_activity: 2026-07-11
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 31
-  completed_plans: 29
-  percent: 83
+  completed_plans: 31
+  percent: 100
 ---
 
 ## Current Position
 
-Phase: 06 (Settings Page) — EXECUTING
+Phase: 06 (Settings Page) — COMPLETE
 Plan: 5 of 5 (06-05)
-Status: Task 1 (automated security + full-suite gate) passed; paused at Task 2
-(checkpoint:human-verify, gate="blocking") awaiting human UAT of ROADMAP SC1-SC5
-against live Stripe test mode.
-Last activity: 2026-07-11 -- Phase 06 Plan 5 Task 1 security+suite gate passed (SECURITY-GATE-OK)
+Status: Phase complete — human UAT approved all six checks (SC1-SC5 + resume
+round-trip) against live Stripe test-mode webhooks; ready for /gsd:verify-work.
+Last activity: 2026-07-11
 
-Progress: [█████████░] 94%
+Progress: [██████████] 100%
 
 ## Project Reference
 
@@ -58,6 +57,7 @@ _Updated after each plan completion_
 | Phase 01 P02 | 15 | 2 tasks | 3 files |
 | Phase 01 P03 | 8 | 3 tasks | 3 files |
 | Phase 01 P04 | 5 | 2 tasks | 1 files |
+| Phase 06 P05 | N/A | 2 tasks | 0 files |
 
 ## Accumulated Context
 
@@ -73,6 +73,7 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 1: Stripe test-mode Pro product (900 EUR/mo recurring) and Top-up product (200 EUR one-time) created via API; real Price IDs captured in .env.local (D-03)
 - Phase 3 gap-closure (2026-07-10): Original Phase 1 Stripe Price IDs no longer existed on the test-mode account (zero Products/Prices found) — recreated Pro (price_1TrcDXBWPMSBebOkTYFLlfJr) and Top-up (price_1TrcEWBWPMSBebOkaTRHquve) and updated .env.local. Also: local HTTPS dev (`next dev --experimental-https`) requires `stripe listen --forward-to https://localhost:3000/... --skip-verify`, not the bare-host form.
 - [Phase ?]: Phase 6 Plan 5 Task 1: security+suite gate passed (vitest 93/93 green; listMyTopups identity-derived; cancel/resume re-verify via getSubscription server-side, zero id args). Awaiting Task 2 human UAT of ROADMAP SC1-SC5 before Phase 6 completion.
+- [Phase 06]: Phase 6 Plan 5: Human UAT approved all six checks (SC1-SC5 + resume round-trip) against live Stripe test-mode webhooks; automated security/suite gate (vitest 93/93, listMyTopups identity-derived, cancel/resume re-verify via getSubscription) confirmed prior. Phase 6 fully verified.
 
 ### Pending Todos
 
@@ -94,6 +95,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-11T11:06:17.268Z
-Stopped at: Phase 6 Plan 5 Task 2 checkpoint:human-verify (blocking) - awaiting human UAT of SC1-SC5
-Resume file: .planning/phases/06-settings-page/06-05-PLAN.md
+Last session: 2026-07-11T20:24:05.301Z
+Stopped at: Completed Phase 06 Plan 05 (06-05-PLAN.md) - Phase 6 fully verified, ready for /gsd:verify-work
+Resume file: None

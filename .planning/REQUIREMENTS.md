@@ -18,7 +18,7 @@
 - [ ] **PAY-01**: User can subscribe to Pro plan via Stripe Checkout
 - [ ] **PAY-02**: User receives in-app confirmation after successful subscription activation
 - [x] **PAY-03**: Stripe webhooks update subscription status in Convex in real time
-- [ ] **PAY-04**: User can cancel Pro subscription from within the app
+- [x] **PAY-04**: User can cancel Pro subscription from within the app
 - [x] **PAY-05**: User can purchase AI credits top-up via Stripe Checkout (one-time payment)
 
 ### Crédits IA
@@ -31,10 +31,10 @@
 ### Settings
 
 - [x] **SET-01**: User can view current plan (Free or Pro) in a settings/billing page
-- [ ] **SET-02**: User can view subscription renewal date and status in settings
-- [ ] **SET-03**: User can upgrade from Free to Pro directly from settings
-- [ ] **SET-04**: User can cancel subscription from settings with confirmation dialog
-- [ ] **SET-05**: User can view AI credits balance and top-up history in settings
+- [x] **SET-02**: User can view subscription renewal date and status in settings
+- [x] **SET-03**: User can upgrade from Free to Pro directly from settings
+- [x] **SET-04**: User can cancel subscription from settings with confirmation dialog
+- [x] **SET-05**: User can view AI credits balance and top-up history in settings
 
 ## v2 Requirements (Deferred)
 
@@ -72,17 +72,17 @@
 | PAY-01      | Phase 3 | Pending  |
 | PAY-02      | Phase 3 | Pending  |
 | PAY-03      | Phase 2 | Complete |
-| PAY-04      | Phase 6 | Pending  |
+| PAY-04      | Phase 6 | Complete |
 | PAY-05      | Phase 5 | Complete |
 | CRED-01     | Phase 2 | Complete |
 | CRED-02     | Phase 5 | Complete |
 | CRED-03     | Phase 5 | Complete |
 | CRED-04     | Phase 5 | Complete |
 | SET-01      | Phase 6 | Complete |
-| SET-02      | Phase 6 | Pending  |
-| SET-03      | Phase 6 | Pending  |
-| SET-04      | Phase 6 | Pending  |
-| SET-05      | Phase 6 | Pending  |
+| SET-02      | Phase 6 | Complete |
+| SET-03      | Phase 6 | Complete |
+| SET-04      | Phase 6 | Complete |
+| SET-05      | Phase 6 | Complete |
 
 **Coverage:**
 
