@@ -196,18 +196,35 @@ Plans:
 3. A Pro user can click "Cancel subscription" and confirm in a dialog — after Stripe API call the status shows "cancels on [date]" without immediate loss of Pro access
 4. Cancelled subscription correctly downgrades to Free after `customer.subscription.deleted` webhook fires at period end (Convex state reflects new plan)
 5. User can view current AI credits balance and a history of top-up purchases with dates and amounts
-   **Plans**: TBD
-   **UI hint**: yes
+   **Plans**: 5 plans
+
+Plans:
+
+**Wave 1**
+
+- [ ] 06-01-PLAN.md — listMyTopups identity-derived Convex query + tests (SET-05)
+- [ ] 06-02-PLAN.md — cancelSubscription/resumeSubscription Server Actions + tests (SET-04, PAY-04)
+- [ ] 06-03-PLAN.md — Settings NavUser dropdown item + Settings i18n namespace (SET-01)
+
+**Wave 2** _(blocked on Wave 1)_
+
+- [ ] 06-04-PLAN.md — Settings page: stacked Plan Card + Credits Card composing all Wave 1 outputs (SET-01/02/03/05, wires SET-04/PAY-04)
+
+**Wave 3** _(blocked on Wave 2)_
+
+- [ ] 06-05-PLAN.md — Automated security/suite gate + human UAT of SC1-SC5 (checkpoint)
+
+  **UI hint**: yes
 
 ## Progress
 
 **Execution Order:** 1 → 2 → 3 → 4 → 5 → 6
 
-| Phase                                          | Plans Complete | Status      | Completed  |
-| ---------------------------------------------- | -------------- | ----------- | ---------- |
-| 1. Schema + Infrastructure Foundation          | 4/4            | Complete    | 2026-07-08 |
-| 2. Webhook Handler + Convex Internal Mutations | 6/6            | Complete    | 2026-07-08 |
-| 3. Checkout Flow + Pricing Page                | 7/7            | Complete    | 2026-07-10 |
-| 4. Plan Enforcement                            | 4/4            | Complete    | 2026-07-10 |
-| 5. AI Credits System                           | 5/5            | Complete    | 2026-07-10 |
-| 6. Settings Page                               | 0/?            | Not started | -          |
+| Phase                                          | Plans Complete | Status   | Completed  |
+| ---------------------------------------------- | -------------- | -------- | ---------- |
+| 1. Schema + Infrastructure Foundation          | 4/4            | Complete | 2026-07-08 |
+| 2. Webhook Handler + Convex Internal Mutations | 6/6            | Complete | 2026-07-08 |
+| 3. Checkout Flow + Pricing Page                | 7/7            | Complete | 2026-07-10 |
+| 4. Plan Enforcement                            | 4/4            | Complete | 2026-07-10 |
+| 5. AI Credits System                           | 5/5            | Complete | 2026-07-10 |
+| 6. Settings Page                               | 0/5            | Planned  | -          |
