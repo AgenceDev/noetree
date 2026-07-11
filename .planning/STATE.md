@@ -4,25 +4,25 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 6 UI-SPEC approved
-last_updated: "2026-07-11T10:13:57.471Z"
-last_activity: 2026-07-11 -- Phase 06 planning complete
+last_updated: "2026-07-11T10:41:26.609Z"
+last_activity: 2026-07-11 -- Phase 06 execution started
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 31
-  completed_plans: 26
+  completed_plans: 29
   percent: 83
 ---
 
 ## Current Position
 
-Phase: 6
-Plan: Not started
-Status: Ready to execute
+Phase: 06 (Settings Page) — EXECUTING
+Plan: 1 of 5
+Status: Executing Phase 06
 needed an explicit https:// scheme + --skip-verify against this project's HTTPS-only dev
 server, and the Stripe test-mode account's Pro/Top-up Products+Prices had to be recreated
 (the configured price IDs no longer existed). Both re-verified against live Stripe test mode.
-Last activity: 2026-07-11 -- Phase 06 planning complete
+Last activity: 2026-07-11 -- Phase 06 execution started
 
 Progress: [██████████] 100%
 
@@ -31,7 +31,7 @@ Progress: [██████████] 100%
 See: .planning/PROJECT.md (updated 2026-07-07)
 
 **Core value:** Un utilisateur peut créer, organiser et naviguer dans ses notes en structure arborescente.
-**Current focus:** Phase 6 — settings page
+**Current focus:** Phase 06 — Settings Page
 
 ## Performance Metrics
 

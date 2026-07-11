@@ -202,9 +202,9 @@ Plans:
 
 **Wave 1**
 
-- [ ] 06-01-PLAN.md — listMyTopups identity-derived Convex query + tests (SET-05)
-- [ ] 06-02-PLAN.md — cancelSubscription/resumeSubscription Server Actions + tests (SET-04, PAY-04)
-- [ ] 06-03-PLAN.md — Settings NavUser dropdown item + Settings i18n namespace (SET-01)
+- [x] 06-01-PLAN.md — listMyTopups identity-derived Convex query + tests (SET-05)
+- [x] 06-02-PLAN.md — cancelSubscription/resumeSubscription Server Actions + tests (SET-04, PAY-04)
+- [x] 06-03-PLAN.md — Settings NavUser dropdown item + Settings i18n namespace (SET-01)
 
 **Wave 2** _(blocked on Wave 1)_
 
@@ -220,11 +220,11 @@ Plans:
 
 **Execution Order:** 1 → 2 → 3 → 4 → 5 → 6
 
-| Phase                                          | Plans Complete | Status   | Completed  |
-| ---------------------------------------------- | -------------- | -------- | ---------- |
-| 1. Schema + Infrastructure Foundation          | 4/4            | Complete | 2026-07-08 |
-| 2. Webhook Handler + Convex Internal Mutations | 6/6            | Complete | 2026-07-08 |
-| 3. Checkout Flow + Pricing Page                | 7/7            | Complete | 2026-07-10 |
-| 4. Plan Enforcement                            | 4/4            | Complete | 2026-07-10 |
-| 5. AI Credits System                           | 5/5            | Complete | 2026-07-10 |
-| 6. Settings Page                               | 0/5            | Planned  | -          |
+| Phase                                          | Plans Complete | Status      | Completed  |
+| ---------------------------------------------- | -------------- | ----------- | ---------- |
+| 1. Schema + Infrastructure Foundation          | 4/4            | Complete    | 2026-07-08 |
+| 2. Webhook Handler + Convex Internal Mutations | 6/6            | Complete    | 2026-07-08 |
+| 3. Checkout Flow + Pricing Page                | 7/7            | Complete    | 2026-07-10 |
+| 4. Plan Enforcement                            | 4/4            | Complete    | 2026-07-10 |
+| 5. AI Credits System                           | 5/5            | Complete    | 2026-07-10 |
+| 6. Settings Page                               | 3/5            | In Progress |            |
