@@ -153,6 +153,124 @@ describe("aiCredits.resetCredits / getCredits", () => {
   });
 });
 
+describe("aiCredits.grantInitialCredits", () => {
+  it("inserts a new aiCredits row with balance exactly 100 when none exists for the given clerkUserId", async () => {
+    const t = convexTest(schema, modules);
+
+    await t.mutation(internal.aiCredits.grantInitialCredits, {
+      clerkUserId: "user_grant_1",
+      stripeEventId: "evt_grant_1",
+      eventType: "checkout.session.completed",
+    });
+
+    const credits = await t.query(internal.aiCredits.getCredits, {
+      clerkUserId: "user_grant_1",
+    });
+    expect(credits?.balance).toBe(100);
+    expect(credits?.lastResetAt).toBeTypeOf("number");
+  });
+
+  it("patches an existing aiCredits row with a leftover balance of 42 to exactly 100 (reset, not additive) [D-01]", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("aiCredits", {
+        clerkUserId: "user_grant_2",
+        balance: 42,
+        lastResetAt: 0,
+      });
+    });
+
+    await t.mutation(internal.aiCredits.grantInitialCredits, {
+      clerkUserId: "user_grant_2",
+      stripeEventId: "evt_grant_2",
+      eventType: "checkout.session.completed",
+    });
+
+    const credits = await t.query(internal.aiCredits.getCredits, {
+      clerkUserId: "user_grant_2",
+    });
+    expect(credits?.balance).toBe(100);
+
+    const allRows = await t.run(async ctx =>
+      ctx.db.query("aiCredits").collect(),
+    );
+    expect(allRows.length).toBe(1);
+  });
+
+  it("inserts exactly one creditTransactions row of type reset with amount 100", async () => {
+    const t = convexTest(schema, modules);
+
+    await t.mutation(internal.aiCredits.grantInitialCredits, {
+      clerkUserId: "user_grant_3",
+      stripeEventId: "evt_grant_3",
+      eventType: "checkout.session.completed",
+    });
+
+    const rows = await t.run(async ctx =>
+      ctx.db.query("creditTransactions").collect(),
+    );
+    expect(rows.length).toBe(1);
+    expect(rows[0]).toMatchObject({
+      clerkUserId: "user_grant_3",
+      type: "reset",
+      amount: 100,
+    });
+  });
+
+  it("is idempotent by its own suffixed key — replay returns alreadyProcessed, balance stays 100, exactly one reset transaction", async () => {
+    const t = convexTest(schema, modules);
+
+    const first = await t.mutation(internal.aiCredits.grantInitialCredits, {
+      clerkUserId: "user_grant_4",
+      stripeEventId: "evt_grant_4",
+      eventType: "checkout.session.completed",
+    });
+    expect(first).not.toEqual({ alreadyProcessed: true });
+
+    const second = await t.mutation(internal.aiCredits.grantInitialCredits, {
+      clerkUserId: "user_grant_4",
+      stripeEventId: "evt_grant_4",
+      eventType: "checkout.session.completed",
+    });
+    expect(second).toEqual({ alreadyProcessed: true });
+
+    const credits = await t.query(internal.aiCredits.getCredits, {
+      clerkUserId: "user_grant_4",
+    });
+    expect(credits?.balance).toBe(100);
+
+    const resetTransactions = await t.run(async ctx => {
+      const rows = await ctx.db.query("creditTransactions").collect();
+      return rows.filter(row => row.type === "reset");
+    });
+    expect(resetTransactions.length).toBe(1);
+  });
+
+  it("LANDMINE regression: a pre-existing processedStripeEvents row keyed by the RAW stripeEventId (simulating upsertSubscription) does not block the grant", async () => {
+    const t = convexTest(schema, modules);
+    const rawEventId = "evt_grant_landmine";
+    await t.run(async ctx => {
+      await ctx.db.insert("processedStripeEvents", {
+        stripeEventId: rawEventId,
+        eventType: "checkout.session.completed",
+        processedAt: Date.now(),
+      });
+    });
+
+    const result = await t.mutation(internal.aiCredits.grantInitialCredits, {
+      clerkUserId: "user_grant_landmine",
+      stripeEventId: rawEventId,
+      eventType: "checkout.session.completed",
+    });
+    expect(result).not.toEqual({ alreadyProcessed: true });
+
+    const credits = await t.query(internal.aiCredits.getCredits, {
+      clerkUserId: "user_grant_landmine",
+    });
+    expect(credits?.balance).toBe(100);
+  });
+});
+
 describe("aiCredits.deductCredit", () => {
   it("deducts 1 credit from balance=5, patches to 4, and records a deduction transaction", async () => {
     const t = convexTest(schema, modules);

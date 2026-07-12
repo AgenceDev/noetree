@@ -86,6 +86,20 @@ export const processWebhookEvent = action({
           return { anomaly: "unexpected checkout mode" };
         }
 
+        // grantInitialCredits' clerkUserId arg is a required v.string() (same
+        // reasoning as the payment-mode guard above): an unguarded call with
+        // undefined would throw an uncaught ArgumentValidationError and
+        // surface as a 500 to Stripe. This also short-circuits before
+        // upsertSubscription for the same anomaly case, preserving the
+        // existing null-metadata test's { anomaly: "missing clerkUserId" }
+        // result.
+        if (!clerkUserId) {
+          console.error(
+            `checkout.session.completed (subscription) anomaly: missing clerkUserId for stripeEventId ${args.event.id}`,
+          );
+          return { anomaly: "missing clerkUserId" };
+        }
+
         const stripeCustomerId =
           typeof session.customer === "string"
             ? session.customer
@@ -95,7 +109,7 @@ export const processWebhookEvent = action({
             ? session.subscription
             : session.subscription?.id;
 
-        return await ctx.runMutation(
+        const upsertResult = await ctx.runMutation(
           internal.subscriptions.upsertSubscription,
           {
             stripeEventId: args.event.id,
@@ -112,6 +126,18 @@ export const processWebhookEvent = action({
               session.subscriptionSnapshot?.cancelAtPeriodEnd ?? false,
           },
         );
+
+        // Grant AFTER upsert (subscription row exists first); the grant's
+        // distinct ":credits-grant" idempotency key makes ordering irrelevant
+        // to correctness — it can never collide with upsertSubscription's
+        // raw-stripeEventId processedStripeEvents row (06.1 landmine).
+        await ctx.runMutation(internal.aiCredits.grantInitialCredits, {
+          stripeEventId: args.event.id,
+          eventType: args.event.type,
+          clerkUserId,
+        });
+
+        return upsertResult;
       }
 
       case "customer.subscription.updated": {
