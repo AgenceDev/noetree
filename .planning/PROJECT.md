@@ -34,7 +34,7 @@ Un utilisateur peut créer, organiser et naviguer dans ses notes en structure ar
 - ✓ Dark mode — v0.x
 - ✓ CI/CD GitHub Actions + Vercel (staging/production) — v0.x
 - ✓ Stripe webhooks update subscription status in Convex — Phase 2 (PAY-03)
-- ✓ Pro user receives monthly AI credits quota (reset on billing cycle) — Phase 2 (CRED-01)
+- ✓ Pro user receives monthly AI credits quota (granted at initial checkout, reset on billing cycle) — Phase 2 + Phase 06.1 (CRED-01, PLAN-05)
 - ✓ Free tier user is limited to 20 notes maximum, enforced server-side in Convex `createNote` (cannot be bypassed by client) — Phase 4 (PLAN-02)
 - ✓ Pro tier user has unlimited notes — Phase 4 (PLAN-03)
 - ✓ User sees a clear upgrade prompt when hitting the Free note limit — Phase 4 (PLAN-04)
@@ -63,7 +63,7 @@ Un utilisateur peut créer, organiser et naviguer dans ses notes en structure ar
 
 - **Stack :** Next.js 15 App Router, Convex (real-time DB + backend functions), Shadcn UI, Clerk auth, Tailwind CSS
 - **Déploiement :** Vercel (production depuis tags git, staging depuis dev)
-- **État actuel :** App fonctionnelle avec auth, notes tree, éditeur. Webhook handler Stripe → Convex opérationnel (Phase 2 complète, vérifié en live via Stripe CLI). Checkout et pricing page livrés (Phase 3). Limite de 20 notes Free enforced server-side avec upgrade modal (Phase 4 complète, vérifié en live). Système de crédits IA complet (Phase 5 complète, vérifié en live) : bouton d'action IA dans le toolbar éditeur (placeholder — pas d'appel LLM réel ce phase, machine de crédit réelle), badge de solde réactif, dialogue de blocage à 0 crédit avec CTA selon le plan, top-up Stripe one-time (+50 crédits). Page Settings in-app livrée (Phase 6 complète, vérifié en live via Stripe CLI test-mode) : plan/renouvellement/statut, upgrade CTA, annulation avec confirmation (`AlertDialog`) sans perte d'accès immédiate, reprise d'abonnement, solde crédits + historique des top-ups — Phase 6 est la dernière phase du roadmap v1.0.
+- **État actuel :** App fonctionnelle avec auth, notes tree, éditeur. Webhook handler Stripe → Convex opérationnel (Phase 2 complète, vérifié en live via Stripe CLI). Checkout et pricing page livrés (Phase 3). Limite de 20 notes Free enforced server-side avec upgrade modal (Phase 4 complète, vérifié en live). Système de crédits IA complet (Phase 5 complète, vérifié en live) : bouton d'action IA dans le toolbar éditeur (placeholder — pas d'appel LLM réel ce phase, machine de crédit réelle), badge de solde réactif, dialogue de blocage à 0 crédit avec CTA selon le plan, top-up Stripe one-time (+50 crédits). Page Settings in-app livrée (Phase 6 complète, vérifié en live via Stripe CLI test-mode) : plan/renouvellement/statut, upgrade CTA, annulation avec confirmation (`AlertDialog`) sans perte d'accès immédiate, reprise d'abonnement, solde crédits + historique des top-ups — Phase 6 était la dernière phase du roadmap v1.0 initial. Phase 06.1 (gap-closure) a fermé un BLOCKER trouvé par l'audit milestone v1.0 : un nouveau abonné Pro recevait 0 crédit IA jusqu'à son premier renouvellement mensuel — `grantInitialCredits` accorde maintenant les 100 crédits dès la confirmation du `checkout.session.completed` (mode abonnement), avec une clé d'idempotence distincte pour éviter une collision silencieuse avec `upsertSubscription`.
 - **Paiements :** Webhook handler Stripe (`app/api/webhooks/stripe/route.ts` → `convex/stripeWebhooks.ts`) écrit `subscriptions`/`aiCredits`/`creditTransactions`/`processedStripeEvents` de façon idempotente.
 - **Erreurs Convex client-inspectées :** toute erreur Convex qu'un composant client doit inspecter (pas seulement logger) DOIT être un `ConvexError(data)`, jamais un `Error` brut — un `Error` brut voit son `.message` redacted à la frontière client/serveur réelle, alors que `ConvexError.data` survit. Établi Phase 3 (webhook auth) et re-confirmé Phase 4 (note-limit gap-closure, `f2a7f06`).
 
@@ -104,4 +104,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-_Last updated: 2026-07-11 — Phase 6 (Settings Page) complete_
+_Last updated: 2026-07-12 — Phase 06.1 (gap closure: initial AI credits grant) complete_
