@@ -2,27 +2,24 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: milestone_complete
-stopped_at: Milestone complete (Phase 06.1 was final phase)
-last_updated: 2026-07-12T06:16:00.243Z
-last_activity: 2026-07-12 -- Phase 06.1 execution started
+status: Awaiting next milestone
+stopped_at: Phase 06.1 context gathered
+last_updated: "2026-07-12T07:30:31.767Z"
+last_activity: 2026-07-12 — Milestone v1.0 completed and archived
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 32
   completed_plans: 32
-  percent: 86
+  percent: 100
 ---
 
 ## Current Position
 
-Phase: 06.1
-Plan: Not started
-Status: Milestone complete
-round-trip) against live Stripe test-mode webhooks; ready for /gsd:verify-work.
-Last activity: 2026-07-12
-
-Progress: [██████████] 100%
+Phase: Milestone v1.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-12 — Milestone v1.0 completed and archived
 
 ## Project Reference
 
@@ -95,12 +92,18 @@ None yet.
 
 ## Deferred Items
 
-| Category | Item | Status | Deferred At |
-| -------- | ---- | ------ | ----------- |
-| _(none)_ |      |        |             |
+Items acknowledged and deferred at milestone close on 2026-07-12:
+
+| Category | Item            | Status                                                        |
+| -------- | --------------- | ------------------------------------------------------------- |
+| uat_gap  | 03-HUMAN-UAT.md | resolved (0 pending scenarios; stale open-artifact scan flag) |
 
 ## Session Continuity
 
 Last session: 2026-07-11T22:07:18.780Z
 Stopped at: Phase 06.1 context gathered
 Resume file: .planning/phases/06.1-close-gap-plan-05-cred-01-cred-04-grant-initial-ai-credits-a/06.1-CONTEXT.md
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone

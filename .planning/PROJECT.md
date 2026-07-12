@@ -10,6 +10,8 @@ Un utilisateur peut créer, organiser et naviguer dans ses notes en structure ar
 
 ## Current Milestone: v1.0 Monétisation & Paiements
 
+**Statut :** ✅ Shipped 2026-07-12 — voir `.planning/MILESTONES.md` pour le détail complet
+
 **Goal :** Intégrer Stripe pour monétiser Noetree via un modèle Free/Pro avec quota de crédits IA rechargeables.
 
 **Target features :**
@@ -44,13 +46,14 @@ Un utilisateur peut créer, organiser et naviguer dans ses notes en structure ar
 - ✓ User can purchase AI credits top-up via Stripe Checkout (one-time payment mode) — Phase 5 (PAY-05)
 - ✓ User can view and manage subscription in Settings page (plan, renewal date/status, credits balance, top-up history) — Phase 6 (SET-01, SET-02, SET-03, SET-05)
 - ✓ User can cancel Pro subscription with confirmation, without immediate access loss; correctly downgrades to Free at period end — Phase 6 (SET-04, PAY-04)
+- ✓ User can view pricing page (Free vs Pro plans) — Phase 3 (PLAN-01)
+- ✓ User can subscribe to Pro plan via Stripe Checkout, with in-app confirmation after activation — Phase 3 (PAY-01, PAY-02)
 
 ### Active
 
-<!-- Scope actuel — milestone v1.0. -->
+<!-- Scope actuel — prochain milestone (à définir via /gsd:new-milestone). -->
 
-- [ ] User can view pricing page (Free vs Pro plans)
-- [ ] User can subscribe to Pro via Stripe Checkout
+(none yet — v1.0 shipped in full; run `/gsd:new-milestone` to define the next milestone's scope)
 
 ### Out of Scope
 
@@ -79,7 +82,7 @@ Un utilisateur peut créer, organiser et naviguer dans ses notes en structure ar
 | Decision                              | Rationale                                                   | Outcome                                                    |
 | ------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------- |
 | Stripe comme provider                 | Maturité, webhooks robustes, support abonnements + one-time | ✓ Confirmé — Phase 2                                       |
-| UI custom (pas Stripe Portal)         | Meilleure cohérence UX dans l'app                           | — Pending (Phase 3+)                                       |
+| UI custom (pas Stripe Portal)         | Meilleure cohérence UX dans l'app                           | ✓ Confirmé — Phase 6 (Settings page)                       |
 | Convex pour stocker statut abonnement | Temps réel, cohérent avec le reste du stack                 | ✓ Confirmé — Phase 2                                       |
 | Modèle hybride Free/Pro + crédits     | Monétisation flexible : récurrent + usage IA                | ✓ Confirmé — Phase 2 (reset), Phase 5 (déduction + top-up) |
 
@@ -104,4 +107,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-_Last updated: 2026-07-12 — Phase 06.1 (gap closure: initial AI credits grant) complete_
+_Last updated: 2026-07-12 — v1.0 milestone shipped (all 19 requirements Validated)_
