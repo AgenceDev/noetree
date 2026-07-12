@@ -221,6 +221,71 @@ export const resetCredits = internalMutation({
   },
 });
 
+// Grants the initial 100-credit quota when a checkout.session.completed
+// (subscription mode) confirms a new Pro subscription. clerkUserId arrives
+// directly from the webhook call site (unlike resetCredits' indirect
+// stripeSubscriptionId-join lookup, which invoice.paid events require).
+//
+// Idempotency key is suffixed with ":credits-grant" and MUST stay distinct
+// from the raw stripeEventId. upsertSubscription (convex/subscriptions.ts)
+// already inserts a processedStripeEvents row keyed by the raw stripeEventId
+// for this same event; reusing that bare key here would make this
+// mutation's own idempotency check find upsertSubscription's row and
+// silently no-op — the grant would never fire while the webhook still
+// returns 200 (06.1-CONTEXT.md landmine).
+export const grantInitialCredits = internalMutation({
+  args: {
+    clerkUserId: v.string(),
+    stripeEventId: v.string(),
+    eventType: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const idempotencyKey = `${args.stripeEventId}:credits-grant`;
+
+    const already = await ctx.db
+      .query("processedStripeEvents")
+      .withIndex("by_stripeEventId", q => q.eq("stripeEventId", idempotencyKey))
+      .unique();
+    if (already) return { alreadyProcessed: true };
+
+    const existingCredits = await ctx.db
+      .query("aiCredits")
+      .withIndex("by_clerkUserId", q => q.eq("clerkUserId", args.clerkUserId))
+      .unique();
+
+    // Reset-to-100 semantics (D-01), not additive: a re-subscription for a
+    // user with a leftover balance resets to exactly 100, never stacks
+    // (e.g. 42 -> 100, never 142).
+    if (existingCredits) {
+      await ctx.db.patch(existingCredits._id, {
+        balance: MONTHLY_CREDIT_QUOTA,
+        lastResetAt: Date.now(),
+      });
+    } else {
+      await ctx.db.insert("aiCredits", {
+        clerkUserId: args.clerkUserId,
+        balance: MONTHLY_CREDIT_QUOTA,
+        lastResetAt: Date.now(),
+      });
+    }
+
+    await ctx.db.insert("creditTransactions", {
+      clerkUserId: args.clerkUserId,
+      type: "reset",
+      amount: MONTHLY_CREDIT_QUOTA,
+      createdAt: Date.now(),
+    });
+
+    await ctx.db.insert("processedStripeEvents", {
+      stripeEventId: idempotencyKey,
+      eventType: args.eventType,
+      processedAt: Date.now(),
+    });
+
+    return { granted: MONTHLY_CREDIT_QUOTA };
+  },
+});
+
 export const addCredits = internalMutation({
   args: {
     clerkUserId: v.string(),
