@@ -173,7 +173,7 @@ describe("stripeWebhooks.processWebhookEvent", () => {
     expect(credits?.balance).toBe(50);
   });
 
-  it("checkout.session.completed with mode 'subscription' still routes to upsertSubscription, not addCredits", async () => {
+  it("checkout.session.completed with mode 'subscription' routes to upsertSubscription AND grants 100 credits via grantInitialCredits (reset semantics, not addCredits/topup)", async () => {
     const t = convexTest(schema, modules);
 
     await t.action(api.stripeWebhooks.processWebhookEvent, {
@@ -206,7 +206,84 @@ describe("stripeWebhooks.processWebhookEvent", () => {
     const credits = await t.query(internal.aiCredits.getCredits, {
       clerkUserId: "user_sub_explicit",
     });
-    expect(credits).toBeNull();
+    expect(credits?.balance).toBe(100);
+
+    const transactions = await t.run(async ctx =>
+      ctx.db.query("creditTransactions").collect(),
+    );
+    expect(transactions.length).toBe(1);
+    expect(transactions[0]).toMatchObject({
+      clerkUserId: "user_sub_explicit",
+      type: "reset",
+    });
+    expect(transactions.some(row => row.type === "topup")).toBe(false);
+  });
+
+  it("LANDMINE regression: replaying the same subscription-mode checkout event through processWebhookEvent twice does not double-grant", async () => {
+    const t = convexTest(schema, modules);
+    const event = seedCheckoutEvent(
+      "evt_sub_replay",
+      "user_sub_replay",
+      "cus_sub_replay",
+      "sub_sub_replay",
+    );
+
+    await t.action(api.stripeWebhooks.processWebhookEvent, {
+      secret: TEST_SECRET,
+      event,
+    });
+
+    const creditsAfterFirst = await t.query(internal.aiCredits.getCredits, {
+      clerkUserId: "user_sub_replay",
+    });
+    expect(creditsAfterFirst?.balance).toBe(100);
+
+    await t.action(api.stripeWebhooks.processWebhookEvent, {
+      secret: TEST_SECRET,
+      event,
+    });
+
+    const creditsAfterSecond = await t.query(internal.aiCredits.getCredits, {
+      clerkUserId: "user_sub_replay",
+    });
+    expect(creditsAfterSecond?.balance).toBe(100);
+
+    const subs = await t.run(async ctx =>
+      ctx.db.query("subscriptions").collect(),
+    );
+    expect(subs.length).toBe(1);
+
+    const resetTransactions = await t.run(async ctx => {
+      const rows = await ctx.db.query("creditTransactions").collect();
+      return rows.filter(row => row.type === "reset");
+    });
+    expect(resetTransactions.length).toBe(1);
+  });
+
+  it("D-01 re-subscription: a user with a leftover balance of 42 resets to exactly 100 (not additive 142) on a new subscription-mode checkout", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async ctx => {
+      await ctx.db.insert("aiCredits", {
+        clerkUserId: "user_sub_resub",
+        balance: 42,
+        lastResetAt: 0,
+      });
+    });
+
+    await t.action(api.stripeWebhooks.processWebhookEvent, {
+      secret: TEST_SECRET,
+      event: seedCheckoutEvent(
+        "evt_sub_resub",
+        "user_sub_resub",
+        "cus_sub_resub",
+        "sub_sub_resub",
+      ),
+    });
+
+    const credits = await t.query(internal.aiCredits.getCredits, {
+      clerkUserId: "user_sub_resub",
+    });
+    expect(credits?.balance).toBe(100);
   });
 
   it("customer.subscription.updated patches the existing row's status and cancelAtPeriodEnd", async () => {
