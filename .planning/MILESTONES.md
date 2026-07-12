@@ -37,12 +37,3 @@
 **Last phase:** N/A (pré-GSD)
 
 ---
-
-## v1.0 — Monétisation & Paiements (current)
-
-**Started:** 2026-07-07
-**Status:** In progress
-
-**Goal:** Intégrer Stripe pour monétiser Noetree via un modèle Free/Pro avec quota de crédits IA rechargeables.
-
----
