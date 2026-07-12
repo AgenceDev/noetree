@@ -234,10 +234,10 @@ Plans:
 **Goal:** A brand-new Pro subscriber is granted their full 100-credit AI quota at the moment `checkout.session.completed` (subscription mode) confirms — closing the v1.0 milestone-audit BLOCKER where new Pro users saw a 0/null balance and hit `INSUFFICIENT_CREDITS` on their first AI action until the next monthly renewal.
 **Requirements**: PLAN-05, CRED-01, CRED-04
 **Depends on:** Phase 6
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 
 **Wave 1**
 
-- [ ] 06.1-01-PLAN.md — grantInitialCredits internalMutation (reset-to-100, collision-safe idempotency key) + wire into checkout.session.completed subscription branch + regression/replay/re-subscription tests (PLAN-05, CRED-01, CRED-04)
+- [x] 06.1-01-PLAN.md — grantInitialCredits internalMutation (reset-to-100, collision-safe idempotency key) + wire into checkout.session.completed subscription branch + regression/replay/re-subscription tests (PLAN-05, CRED-01, CRED-04)
